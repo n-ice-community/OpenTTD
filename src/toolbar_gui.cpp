@@ -35,6 +35,7 @@
 #include "news_gui.h"
 #include "ai/ai_gui.hpp"
 #include "tilehighlight_func.h"
+#include "watch_gui_1.h"
 #include "smallmap_gui.h"
 #include "graph_gui.h"
 #include "textbuf_gui.h"
@@ -49,6 +50,12 @@
 #include "toolbar_gui.h"
 #include "framerate_type.h"
 #include "guitimer_func.h"
+#include "zoning.h"
+
+#include "commands_token_gui.h"
+#include "cargo_table_gui.h"
+#include "object_type.h"
+#include "error.h"
 
 #include "widgets/toolbar_widget.h"
 
@@ -79,6 +86,7 @@ enum CallBackFunction {
 	CBF_NONE,
 	CBF_PLACE_SIGN,
 	CBF_PLACE_LANDINFO,
+	CBF_BUILD_HQ,
 };
 
 static CallBackFunction _last_started_action = CBF_NONE; ///< Last started user action.
@@ -163,10 +171,10 @@ public:
 
 		DrawCompanyIcon(company, rtl ? right - this->icon_size.width - WD_FRAMERECT_RIGHT : left + WD_FRAMERECT_LEFT, top + icon_offset);
 #ifdef ENABLE_NETWORK
-		if (NetworkCompanyIsPassworded(company)) {
-			DrawSprite(SPR_LOCK, PAL_NONE, rtl ? left + WD_FRAMERECT_LEFT : right - this->lock_size.width - WD_FRAMERECT_RIGHT, top + lock_offset);
+		if (_networking && NetworkCompanyIsPassworded(company)) {
+			DrawSprite(SPR_LOCK, PAL_NONE, (rtl ? right : left + 15), top + (FONT_HEIGHT_NORMAL - 10) / 2);
 		}
-#endif
+#endif /* ENABLE_NETWORK */
 
 		SetDParam(0, company);
 		SetDParam(1, company);
@@ -176,7 +184,8 @@ public:
 		} else {
 			col = sel ? TC_WHITE : TC_BLACK;
 		}
-		DrawString(left + WD_FRAMERECT_LEFT + (rtl ? 3 + this->lock_size.width : 3 + this->icon_size.width), right - WD_FRAMERECT_RIGHT - (rtl ? 3 + this->icon_size.width : 3 + this->lock_size.width), top + text_offset, STR_COMPANY_NAME_COMPANY_NUM, col);
+		//DrawString(left + WD_FRAMERECT_LEFT + (rtl ? 3 + this->lock_size.width : 3 + this->icon_size.width), right - WD_FRAMERECT_RIGHT - (rtl ? 3 + this->icon_size.width : 3 + this->lock_size.width), top + text_offset, STR_COMPANY_NAME_COMPANY_NUM, col);
+		DrawString(left + WD_FRAMERECT_LEFT + (rtl ? 3 + this->lock_size.width : 8 + this->icon_size.width), right - WD_FRAMERECT_RIGHT - (rtl ? 3 + this->icon_size.width : 3 + this->lock_size.width), top + text_offset, STR_COMPANY_NAME_COMPANY_NUM, col);
 	}
 };
 
@@ -272,6 +281,20 @@ static CallBackFunction SelectSignTool()
 	}
 }
 
+/* hq hotkey */
+static CallBackFunction BuildCompanyHQ(){
+	if(_current_company == COMPANY_SPECTATOR) return CBF_NONE;
+	//if (_cursor.sprite == SPR_CURSOR_HQ) {  // original
+	if (_last_started_action == CBF_BUILD_HQ) {
+		ResetObjectToPlace();
+		return CBF_NONE;
+	} else {
+		SetObjectToPlace(SPR_CURSOR_HQ, PAL_NONE, HT_RECT, WC_MAIN_TOOLBAR, 0);
+		SetTileSelectSize(2, 2);
+		return CBF_BUILD_HQ;
+	}
+}
+
 /* --- Pausing --- */
 
 static CallBackFunction ToolbarPauseClick(Window *w)
@@ -305,6 +328,7 @@ enum OptionMenuEntries {
 	OME_SETTINGS,
 	OME_SCRIPT_SETTINGS,
 	OME_NEWGRFSETTINGS,
+	OME_ZONING,
 	OME_TRANSPARENCIES,
 	OME_SHOW_TOWNNAMES,
 	OME_SHOW_STATIONNAMES,
@@ -333,6 +357,7 @@ static CallBackFunction ToolbarOptionsClick(Window *w)
 	 * to network clients. */
 	if (!_networking || _network_server) *list->Append() = new DropDownListStringItem(STR_SETTINGS_MENU_SCRIPT_SETTINGS, OME_SCRIPT_SETTINGS, false);
 	*list->Append() = new DropDownListStringItem(STR_SETTINGS_MENU_NEWGRF_SETTINGS,          OME_NEWGRFSETTINGS, false);
+        *list->Append() = new DropDownListStringItem(STR_SETTINGS_MENU_ZONING,                   OME_ZONING, false);
 	*list->Append() = new DropDownListStringItem(STR_SETTINGS_MENU_TRANSPARENCY_OPTIONS,     OME_TRANSPARENCIES, false);
 	*list->Append() = new DropDownListItem(-1, false);
 	*list->Append() = new DropDownListCheckedItem(STR_SETTINGS_MENU_TOWN_NAMES_DISPLAYED,    OME_SHOW_TOWNNAMES, false, HasBit(_display_opt, DO_SHOW_TOWN_NAMES));
@@ -363,6 +388,7 @@ static CallBackFunction MenuClickSettings(int index)
 		case OME_SETTINGS:             ShowGameSettings();                              return CBF_NONE;
 		case OME_SCRIPT_SETTINGS:      ShowAIConfigWindow();                            return CBF_NONE;
 		case OME_NEWGRFSETTINGS:       ShowNewGRFSettings(!_networking && _settings_client.gui.UserIsAllowedToChangeNewGRFs(), true, true, &_grfconfig); return CBF_NONE;
+                case OME_ZONING:               ShowZoningToolbar();                             break;
 		case OME_TRANSPARENCIES:       ShowTransparencyToolbar();                       break;
 
 		case OME_SHOW_TOWNNAMES:       ToggleBit(_display_opt, DO_SHOW_TOWN_NAMES);     break;
@@ -465,6 +491,8 @@ enum MapMenuEntries {
 	MME_SHOW_EXTRAVIEWPORTS,
 	MME_SHOW_LINKGRAPH,
 	MME_SHOW_SIGNLISTS,
+	MME_WATCH_COMPANY,
+	MME_GLOBAL_NICE_COMMANDS,
 	MME_SHOW_TOWNDIRECTORY,
 	MME_SHOW_INDUSTRYDIRECTORY,
 };
@@ -475,6 +503,7 @@ static CallBackFunction ToolbarMapClick(Window *w)
 	*list->Append() = new DropDownListStringItem(STR_MAP_MENU_MAP_OF_WORLD,            MME_SHOW_SMALLMAP,          false);
 	*list->Append() = new DropDownListStringItem(STR_MAP_MENU_EXTRA_VIEW_PORT,         MME_SHOW_EXTRAVIEWPORTS,    false);
 	*list->Append() = new DropDownListStringItem(STR_MAP_MENU_LINGRAPH_LEGEND,         MME_SHOW_LINKGRAPH,         false);
+	*list->Append() = new DropDownListStringItem(STR_MAP_MENU_WATCH_COMPANY,           MME_WATCH_COMPANY,          false);
 	*list->Append() = new DropDownListStringItem(STR_MAP_MENU_SIGN_LIST,               MME_SHOW_SIGNLISTS,         false);
 	PopupMainToolbMenu(w, WID_TN_SMALL_MAP, list, 0);
 	return CBF_NONE;
@@ -507,6 +536,7 @@ static CallBackFunction MenuClickMap(int index)
 		case MME_SHOW_SIGNLISTS:      ShowSignList();            break;
 		case MME_SHOW_TOWNDIRECTORY:  ShowTownDirectory();       break;
 		case MME_SHOW_INDUSTRYDIRECTORY: ShowIndustryDirectory(); break;
+		case MME_WATCH_COMPANY:       ShowWatchWindow1( (CompanyID) INVALID_COMPANY ); break;
 	}
 	return CBF_NONE;
 }
@@ -595,6 +625,20 @@ static CallBackFunction ToolbarFinancesClick(Window *w)
 static CallBackFunction MenuClickFinances(int index)
 {
 	ShowCompanyFinances((CompanyID)index);
+	return CBF_NONE;
+}
+
+/* --- CARGOS button menu --- */
+
+static CallBackFunction ToolbarCargosClick(Window *w)
+{
+	PopupMainCompanyToolbMenu(w, WID_TN_CARGOS);
+	return CBF_NONE;
+}
+
+static CallBackFunction MenuClickCargos(int index)
+{
+	ShowCompanyCargos((CompanyID)index);
 	return CBF_NONE;
 }
 
@@ -1299,6 +1343,7 @@ static MenuClickedProc * const _menu_clicked_procs[] = {
 	MenuClickSubsidies,   // 6
 	MenuClickStations,    // 7
 	MenuClickFinances,    // 8
+	MenuClickCargos,      // 8,5
 	MenuClickCompany,     // 9
 	MenuClickStory,       // 10
 	MenuClickGoal,        // 11
@@ -1760,6 +1805,7 @@ class NWidgetMainToolbarContainer : public NWidgetToolbarContainer {
 			WID_TN_SUBSIDIES,
 			WID_TN_STATIONS,
 			WID_TN_FINANCES,
+			WID_TN_CARGOS,
 			WID_TN_COMPANIES,
 			WID_TN_STORY,
 			WID_TN_GOAL,
@@ -1925,6 +1971,7 @@ static ToolbarButtonProc * const _toolbar_button_procs[] = {
 	ToolbarSubsidiesClick,
 	ToolbarStationsClick,
 	ToolbarFinancesClick,
+	ToolbarCargosClick,
 	ToolbarCompaniesClick,
 	ToolbarStoryClick,
 	ToolbarGoalClick,
@@ -1987,6 +2034,10 @@ enum MainToolbarHotkeys {
 	MTHK_EXTRA_VIEWPORT,
 	MTHK_CLIENT_LIST,
 	MTHK_SIGN_LIST,
+	MTHK_BUILD_HQ,
+	MTHK_TREES,
+	MTHK_SETTINGS_ADV,
+	MTHK_NEWGRF,
 };
 
 /** Main toolbar. */
@@ -2016,10 +2067,10 @@ struct MainToolbarWindow : Window {
 	{
 		/* If spectator, disable all construction buttons
 		 * ie : Build road, rail, ships, airports and landscaping
-		 * Since enabled state is the default, just disable when needed */
+ 		* Since enabled state is the default, just disable when needed */
 		this->SetWidgetsDisabledState(_local_company == COMPANY_SPECTATOR, WID_TN_RAILS, WID_TN_ROADS, WID_TN_WATER, WID_TN_AIR, WID_TN_LANDSCAPE, WIDGET_LIST_END);
 		/* disable company list drop downs, if there are no companies */
-		this->SetWidgetsDisabledState(Company::GetNumItems() == 0, WID_TN_STATIONS, WID_TN_FINANCES, WID_TN_TRAINS, WID_TN_ROADVEHS, WID_TN_SHIPS, WID_TN_AIRCRAFT, WIDGET_LIST_END);
+		this->SetWidgetsDisabledState(Company::GetNumItems() == 0, WID_TN_STATIONS, WID_TN_FINANCES, WID_TN_CARGOS, WID_TN_TRAINS, WID_TN_ROADVEHS, WID_TN_SHIPS, WID_TN_AIRCRAFT, WIDGET_LIST_END);
 
 		this->SetWidgetDisabledState(WID_TN_GOAL, Goal::GetNumItems() == 0);
 		this->SetWidgetDisabledState(WID_TN_STORY, StoryPage::GetNumItems() == 0);
@@ -2083,10 +2134,30 @@ struct MainToolbarWindow : Window {
 #ifdef ENABLE_NETWORK
 			case MTHK_CLIENT_LIST: if (_networking) ShowClientList(); break;
 #endif
+			//case MTHK_BUILD_HQ: this->last_started_action = CBF_BUILD_HQ; BuildCompanyHQ(); break;  // CORAGEM old line
+			case MTHK_BUILD_HQ: if(_current_company != COMPANY_SPECTATOR){ _last_started_action = CBF_BUILD_HQ; BuildCompanyHQ(); } break;
+			case MTHK_TREES: BuildTreesWindow(); break;
+			case MTHK_SETTINGS_ADV: ShowGameSettings(); break;
+			case MTHK_NEWGRF: ShowNewGRFSettings(!_networking && _settings_client.gui.UserIsAllowedToChangeNewGRFs(), true, true, &_grfconfig); break;
 			case MTHK_SIGN_LIST: ShowSignList(); break;
 			default: return ES_NOT_HANDLED;
 		}
 		return ES_HANDLED;
+	}
+
+	virtual void BuildTreesWindow(){
+		ShowBuildTreesToolbar();
+		Window *w = FindWindowById(WC_BUILD_TREES, 0);
+		if(w != NULL){
+			if(w->IsWidgetLowered(WID_BT_TYPE_RANDOM)){
+				w->RaiseWidget(WID_BT_TYPE_RANDOM);
+				ResetObjectToPlace();
+			}
+			else{
+				w->OnHotkey(WID_BT_TYPE_RANDOM);
+			}
+
+		}
 	}
 
 	virtual void OnPlaceObject(Point pt, TileIndex tile)
@@ -2098,6 +2169,13 @@ struct MainToolbarWindow : Window {
 
 			case CBF_PLACE_LANDINFO:
 				ShowLandInfo(tile);
+				break;
+
+			case CBF_BUILD_HQ:
+				if(DoCommandP(tile, OBJECT_HQ, 0, CMD_BUILD_OBJECT | CMD_MSG(STR_ERROR_CAN_T_BUILD_COMPANY_HEADQUARTERS))){
+					ResetObjectToPlace();
+					this->RaiseButtons();
+				}
 				break;
 
 			default: NOT_REACHED();
@@ -2196,6 +2274,10 @@ static Hotkey maintoolbar_hotkeys[] = {
 #ifdef ENABLE_NETWORK
 	Hotkey((uint16)0, "client_list", MTHK_CLIENT_LIST),
 #endif
+	Hotkey(WKC_CTRL  | 'H', "build_hq", MTHK_BUILD_HQ),
+	Hotkey('I', "trees", MTHK_TREES),
+	Hotkey((uint16)0, "settings_advanced", MTHK_SETTINGS_ADV),
+	Hotkey((uint16)0, "newgrf_window", MTHK_NEWGRF),
 	Hotkey((uint16)0, "sign_list", MTHK_SIGN_LIST),
 	HOTKEY_LIST_END
 };
@@ -2214,6 +2296,7 @@ static NWidgetBase *MakeMainToolbar(int *biggest_index)
 		SPR_IMG_SUBSIDIES,       // WID_TN_SUBSIDIES
 		SPR_IMG_COMPANY_LIST,    // WID_TN_STATIONS
 		SPR_IMG_COMPANY_FINANCE, // WID_TN_FINANCES
+		SPR_REFIT_VEHICLE,          // WID_TN_CARGOS
 		SPR_IMG_COMPANY_GENERAL, // WID_TN_COMPANIES
 		SPR_IMG_STORY_BOOK,      // WID_TN_STORY
 		SPR_IMG_GOAL,            // WID_TN_GOAL
@@ -2604,5 +2687,16 @@ void AllocateToolbar()
 		new ScenarioEditorToolbarWindow(&_toolb_scen_desc);
 	} else {
 		new MainToolbarWindow(&_toolb_normal_desc);
+		//ShowSmallMap();
+#ifdef ENABLE_NETWORK
+		if (_networking && _settings_client.gui.community != 0) { //extra windows upon join
+			//ShowClientList();
+			//if(_current_company != COMPANY_SPECTATOR){ ShowGoalsList(_current_company); }
+			ShowTokenLogin();
+			/* if (_settings_client.gui.btpro_version > 19201) {
+			  ShowErrorMessage(STR_BT_NEW_CLIENT_AVAILABLE, INVALID_STRING_ID, WL_ERROR);
+			} */
+		}
+#endif /* ENABLE_NETWORK */
 	}
 }

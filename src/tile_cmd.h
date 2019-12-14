@@ -65,6 +65,7 @@ struct TileDesc {
 	StringID railtype;          ///< Type of rail on the tile.
 	uint16 rail_speed;          ///< Speed limit of rail (bridges and track)
 	uint16 road_speed;          ///< Speed limit of road (bridges)
+	uint16 population;
 };
 
 /**

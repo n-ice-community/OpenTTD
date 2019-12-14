@@ -630,6 +630,8 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::Receive_SERVER_CLIENT_INFO(Pac
 		strecpy(ci->client_name, name, lastof(ci->client_name));
 
 		SetWindowDirty(WC_CLIENT_LIST, 0);
+		InvalidateWindowClassesData( WC_WATCH_COMPANY1, 0 );
+		SetWindowClassesDirty( WC_WATCH_COMPANY1 );
 
 		return NETWORK_RECV_STATUS_OKAY;
 	}
@@ -649,6 +651,8 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::Receive_SERVER_CLIENT_INFO(Pac
 	strecpy(ci->client_name, name, lastof(ci->client_name));
 
 	SetWindowDirty(WC_CLIENT_LIST, 0);
+	InvalidateWindowClassesData( WC_WATCH_COMPANY1, 0 );
+	SetWindowClassesDirty( WC_WATCH_COMPANY1 );
 
 	return NETWORK_RECV_STATUS_OKAY;
 }
@@ -1022,6 +1026,8 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::Receive_SERVER_ERROR_QUIT(Pack
 	}
 
 	SetWindowDirty(WC_CLIENT_LIST, 0);
+	InvalidateWindowClassesData( WC_WATCH_COMPANY1, 0 );
+	SetWindowClassesDirty( WC_WATCH_COMPANY1 );
 
 	return NETWORK_RECV_STATUS_OKAY;
 }
@@ -1041,6 +1047,8 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::Receive_SERVER_QUIT(Packet *p)
 	}
 
 	SetWindowDirty(WC_CLIENT_LIST, 0);
+	InvalidateWindowClassesData( WC_WATCH_COMPANY1, 0 );
+	SetWindowClassesDirty( WC_WATCH_COMPANY1 );
 
 	/* If we come here it means we could not locate the client.. strange :s */
 	return NETWORK_RECV_STATUS_OKAY;
@@ -1058,6 +1066,8 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::Receive_SERVER_JOIN(Packet *p)
 	}
 
 	SetWindowDirty(WC_CLIENT_LIST, 0);
+	InvalidateWindowClassesData( WC_WATCH_COMPANY1, 0 );
+	SetWindowClassesDirty( WC_WATCH_COMPANY1 );
 
 	return NETWORK_RECV_STATUS_OKAY;
 }

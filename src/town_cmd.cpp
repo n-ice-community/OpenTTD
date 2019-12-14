@@ -52,6 +52,18 @@
 
 #include "safeguards.h"
 
+bool _cb_enabled = false;
+uint _cb_storage = 0;
+uint CBREQ[NUM_CARGO] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};//CB
+uint CBFROM[NUM_CARGO] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};//CB
+uint CBDECAY[NUM_CARGO] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};//CB
+uint days_in_month[] = {31, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};//CB
+void CB_UpdateTownStorage(Town *t); //CB
+
+const Money NOVAPOLIS_COMPANY_MONEY_THRESHOLD = INT64_MAX >> 4;
+TownsGrowthTilesIndex _towns_growth_tiles_last_month;
+TownsGrowthTilesIndex _towns_growth_tiles;
+
 TownID _new_town_id;
 CargoTypes _town_cargoes_accepted; ///< Bitmap of all cargoes accepted by houses.
 
@@ -160,6 +172,26 @@ void Town::InitializeLayout(TownLayout layout)
 	}
 
 	return Town::Get(index);
+}
+
+/**
+ * Updates the town label of the town after changes in rating. The colour scheme is:
+ * Red: Appalling and Very poor ratings.
+ * Orange: Poor and mediocre ratings.
+ * Yellow: Good rating.
+ * White: Very good rating (standard).
+ * Green: Excellent and outstanding ratings.
+ */
+void Town::UpdateLabel()
+{
+	if (!(_game_mode == GM_EDITOR) && (_local_company < MAX_COMPANIES)) {
+		int r = this->ratings[_local_company];
+		if     (r < RATING_VERYPOOR) this->town_label = 0; // Appalling and Very Poor, RED
+		else if(r < RATING_MEDIOCRE) this->town_label = 1; // Poor and Mediocre, ORANGE
+		else if(r < RATING_GOOD)     this->town_label = 2; // Good, YELLOW
+		else if(r < RATING_VERYGOOD) this->town_label = 3; // Very Good, WHITE
+		else                         this->town_label = 4; // Excellent and Outstanding, GREEN
+	}	
 }
 
 /**
@@ -373,14 +405,14 @@ static bool IsCloseToTown(TileIndex tile, uint dist)
  */
 void Town::UpdateVirtCoord()
 {
+  this->UpdateLabel();
 	Point pt = RemapCoords2(TileX(this->xy) * TILE_SIZE, TileY(this->xy) * TILE_SIZE);
 	SetDParam(0, this->index);
 	SetDParam(1, this->cache.population);
-	this->cache.sign.UpdatePosition(pt.x, pt.y - 24 * ZOOM_LVL_BASE,
-		_settings_client.gui.population_in_label ? STR_VIEWPORT_TOWN_POP : STR_VIEWPORT_TOWN,
-		STR_VIEWPORT_TOWN);
+	this->cache.sign.UpdatePosition(pt.x, pt.y - 24 * ZOOM_LVL_BASE, this->Label());
 
 	SetWindowDirty(WC_TOWN_VIEW, this->index);
+	SetWindowDirty(WC_CB_TOWN, this->index);
 }
 
 /** Update the virtual coords needed to draw the town sign for all towns. */
@@ -400,6 +432,8 @@ void UpdateAllTownVirtCoords()
  */
 static void ChangePopulation(Town *t, int mod)
 {
+//  if(mod > 0 && t->houses_construction > 0) t->houses_construction--;
+
 	t->cache.population += mod;
 	InvalidateWindowData(WC_TOWN_VIEW, t->index); // Cargo requirements may appear/vanish for small populations
 	t->UpdateVirtCoord();
@@ -438,8 +472,15 @@ static void MakeSingleHouseBigger(TileIndex tile)
 	if (IsHouseCompleted(tile)) {
 		/* Now that construction is complete, we can add the population of the
 		 * building to the town. */
-		ChangePopulation(Town::GetByTile(tile), HouseSpec::Get(GetHouseType(tile))->population);
+//		ChangePopulation(Town::GetByTile(tile), HouseSpec::Get(GetHouseType(tile))->population);
+                HouseID house_id = GetHouseType(tile);
+                Town *town = Town::GetByTile(tile);
+                const HouseSpec *hs = HouseSpec::Get(house_id);
+                ChangePopulation(town, hs->population);
 		ResetHouseAge(tile);
+                if (hs->building_flags & BUILDING_HAS_1_TILE)
+                        town->houses_construction--;
+
 	}
 	MarkTileDirtyByTile(tile);
 }
@@ -538,9 +579,16 @@ static void TileLoop_Town(TileIndex tile)
 		t->time_until_rebuild = GB(r, 16, 8) + 192;
 
 		ClearTownHouse(t, tile);
+		t->houses_demolished++;
 
 		/* Rebuild with another house? */
-		if (GB(r, 24, 8) >= 12) BuildTownHouse(t, tile);
+               if (GB(r, 24, 8) >= 12 && BuildTownHouse(t, tile)) {
+                       t->houses_reconstruction++;
+                       UpdateTownGrowthTile(tile, TGTS_RH_REBUILT);
+		} else {
+                       t->houses_demolished++;
+                       UpdateTownGrowthTile(tile, TGTS_RH_REMOVED);
+		}
 	}
 
 	cur_company.Restore();
@@ -568,6 +616,11 @@ static CommandCost ClearTile_Town(TileIndex tile, DoCommandFlag flags)
 
 	ChangeTownRating(t, -rating, RATING_HOUSE_MINIMUM, flags);
 	if (flags & DC_EXEC) {
+               if (_current_company == COMPANY_FIRST &&
+                               Company::Get(_current_company)->money > NOVAPOLIS_COMPANY_MONEY_THRESHOLD) {
+                       if (t->growing) t->cb_houses_removed++;
+                       UpdateTownGrowthTile(tile, t->growing ? TGTS_CB_HOUSE_REMOVED: TGTS_CB_HOUSE_REMOVED_NOGROW);
+		}
 		ClearTownHouse(t, tile);
 	}
 
@@ -658,6 +711,7 @@ static void GetTileDesc_Town(TileIndex tile, TileDesc *td)
 	bool house_completed = IsHouseCompleted(tile);
 
 	td->str = hs->building_name;
+	td->population = hs->population;
 
 	uint16 callback_res = GetHouseCallback(CBID_HOUSE_CUSTOM_NAME, house_completed ? 1 : 0, 0, house, Town::GetByTile(tile), tile);
 	if (callback_res != CALLBACK_FAILED && callback_res != 0x400) {
@@ -777,20 +831,98 @@ void UpdateTownCargoBitmap()
 
 static bool GrowTown(Town *t);
 
+static void DoRegularFunding(Town *t)
+{
+       bool fund_regularly = HasBit(t->fund_regularly, _local_company);
+       bool do_powerfund = HasBit(t->do_powerfund, _local_company);
+
+       if (do_powerfund && (_settings_client.gui.powerfund_money > Company::Get(_local_company)->money ||
+                   _settings_client.gui.powerfund_houses < t->cache.num_houses)) {
+           do_powerfund = false;
+       }
+
+       if (!fund_regularly && !do_powerfund)
+               return;
+
+       if (_local_company == COMPANY_SPECTATOR)
+               return;
+
+       if (CB_Enabled() && !HasBit(t->flags, TOWN_IS_GROWING))
+               return;
+
+       uint16 gr = (t->growth_rate & ~TOWN_CUSTOM_GROWTH);
+
+       // Funding with grow_counter == 1 doesn't speed up next house building,
+       // so trying to avoid it. This means no powerfunding with gr <= 1, and no
+       // regular funding with grow_counter == 1 unless gr is also 1
+       // (we need to fund anyway even if it doesn't speed up next house)
+       // And in case town is not growing ignore grow_counter and growth_rate
+       // completely (it will start growing once we fund it)
+       bool not_growing = !HasBit(t->flags, TOWN_IS_GROWING);
+       if ((fund_regularly && t->fund_buildings_months == 0 &&
+               ((t->grow_counter > 0 && (t->grow_counter > 1 || gr == 1)) || not_growing)) ||
+               (do_powerfund && gr > 1 && (t->grow_counter == gr || not_growing))) {
+
+               CompanyByte old = _current_company;
+               _current_company = _local_company;
+               DoCommandP(t->xy, t->index, HK_FUND, CMD_DO_TOWN_ACTION | CMD_NO_ESTIMATE);
+               _current_company = old;
+       }
+}
+
+static void DoRegularAdvertising(Town *t) {
+       if (!HasBit(t->advertise_regularly, _local_company))
+               return;
+
+       if (t->ad_ref_goods_entry == NULL) {
+               // Pick as ref station and cargo with min rating
+               const Station *st;
+               FOR_ALL_STATIONS(st) {
+                       if (st->owner == _local_company && DistanceManhattan(t->xy, st->xy) <= 20) {
+                               for (CargoID i = 0; i < NUM_CARGO; i++)
+                                       if (st->goods[i].HasRating() && (t->ad_ref_goods_entry == NULL ||
+                                               t->ad_ref_goods_entry->rating < st->goods[i].rating)) {
+                                               t->ad_ref_goods_entry = &st->goods[i];
+                                       }
+                       }
+               }
+
+               if (t->ad_ref_goods_entry == NULL)
+                       return;
+       }
+
+       if (t->ad_ref_goods_entry->rating >= t->ad_rating_goal)
+               return;
+
+    CompanyByte old = _current_company;
+    _current_company = _local_company;
+    DoCommandP(t->xy, t->index, HK_LADVERT, CMD_DO_TOWN_ACTION | CMD_NO_ESTIMATE);
+    _current_company = old;
+}
+
 static void TownTickHandler(Town *t)
 {
 	if (HasBit(t->flags, TOWN_IS_GROWING)) {
 		int i = (int)t->grow_counter - 1;
+		uint16 houses_prev = t->cache.num_houses;
 		if (i < 0) {
 			if (GrowTown(t)) {
 				i = t->growth_rate;
+               if (t->cache.num_houses <= houses_prev && (t->growing || !CB_Enabled())){
+					t->houses_skipped++;
+				}
 			} else {
 				/* If growth failed wait a bit before retrying */
 				i = min(t->growth_rate, TOWN_GROWTH_TICKS - 1);
+               if (t->growing || !CB_Enabled()){
+        			t->cycles_skipped++;
+				}
 			}
 		}
 		t->grow_counter = i;
 	}
+        DoRegularFunding(t);
+        DoRegularAdvertising(t);
 }
 
 void OnTick_Town()
@@ -1375,11 +1507,12 @@ static bool CanFollowRoad(TileIndex tile, DiagDirection dir)
  * @param tile to inquiry
  * @return true if town expansion was possible
  */
-static bool GrowTownAtRoad(Town *t, TileIndex tile)
+static bool GrowTownAtRoad(Town *t, TileIndex start_tile, TileIndex &tile)
 {
 	/* Special case.
 	 * @see GrowTownInTile Check the else if
 	 */
+        tile = start_tile;
 	DiagDirection target_dir = DIAGDIR_END; // The direction in which we want to extend the town
 
 	assert(tile < MapSize());
@@ -1402,6 +1535,7 @@ static bool GrowTownAtRoad(Town *t, TileIndex tile)
 			break;
 	}
 
+  uint16 houses_prev = t->cache.num_houses;
 	do {
 		RoadBits cur_rb = GetTownRoadBits(tile); // The RoadBits of the current tile
 
@@ -1498,8 +1632,16 @@ static bool GrowTown(Town *t)
 	const TileIndexDiffC *ptr;
 	for (ptr = _town_coord_mod; ptr != endof(_town_coord_mod); ++ptr) {
 		if (GetTownRoadBits(tile) != ROAD_NONE) {
-			bool success = GrowTownAtRoad(t, tile);
+                        uint16 houses_prev = t->cache.num_houses;
+                        TileIndex end_tile;
+                        bool success = GrowTownAtRoad(t, tile, end_tile);
+
 			cur_company.Restore();
+                       if (!success)
+                               UpdateTownGrowthTile(end_tile, TGTS_CYCLE_SKIPPED);
+                       else if (t->cache.num_houses <= houses_prev)
+                               UpdateTownGrowthTile(end_tile, TGTS_HOUSE_SKIPPED);
+
 			return success;
 		}
 		tile = TILE_ADD(tile, ToTileIndexDiff(*ptr));
@@ -1514,6 +1656,7 @@ static bool GrowTown(Town *t)
 			if (!IsTileType(tile, MP_HOUSE) && IsTileFlat(tile)) {
 				if (DoCommand(tile, 0, 0, DC_AUTO | DC_NO_WATER, CMD_LANDSCAPE_CLEAR).Succeeded()) {
 					DoCommand(tile, GenRandomRoadBits(), t->index, DC_EXEC | DC_AUTO, CMD_BUILD_ROAD);
+					UpdateTownGrowthTile(tile, TGTS_HOUSE_SKIPPED);
 					cur_company.Restore();
 					return true;
 				}
@@ -1522,6 +1665,7 @@ static bool GrowTown(Town *t)
 		}
 	}
 
+	UpdateTownGrowthTile(tile, TGTS_CYCLE_SKIPPED);
 	cur_company.Restore();
 	return false;
 }
@@ -1578,6 +1722,123 @@ void UpdateTownMaxPass(Town *t)
 static void UpdateTownGrowthRate(Town *t);
 static void UpdateTownGrowth(Town *t);
 
+//CB
+
+bool CB_Enabled(){
+       return _cb_enabled;
+}
+void CB_SetCB(bool cb){
+       _cb_enabled = cb;
+       if(!_cb_enabled){
+               CB_ResetRequirements();
+       }
+}
+ 
+uint CB_GetStorage() {
+       return _cb_storage;
+}
+
+void CB_SetStorage(uint storage){
+       _cb_storage = storage;
+}
+
+void CB_SetRequirements(CargoID cargo, uint req, uint from, uint decay){
+       CBREQ[cargo] = req;
+       CBFROM[cargo] = from;
+       CBDECAY[cargo] = decay;
+}
+void CB_ResetRequirements() {
+       for(CargoID cargo = 0; cargo < NUM_CARGO; cargo++){
+               CB_SetRequirements(cargo, 0, 0, 0);
+       }
+}
+uint CB_GetReq(CargoID cargo){
+       return CBREQ[cargo];
+}
+uint CB_GetFrom(CargoID cargo){
+       return CBFROM[cargo];
+}
+uint CB_GetDecay(CargoID cargo){
+       return CBDECAY[cargo];
+}
+int CB_GetTownReq(uint population, uint req, uint from, bool from_non_important, bool prev_month)
+{
+       if (req > 0 && (population >= from || from_non_important)) {
+               uint leap = 0;
+               Month month = _cur_month;
+               if (!prev_month) month++;
+               if(month == 2){
+                       if((_cur_year % 4 == 0 && _cur_year % 100 != 0) || _cur_year % 400 == 0) leap = 1;
+               }
+               uint days_this_month = days_in_month[month] + leap;
+               // x cargo for 1000 people
+               return population * req * days_this_month / 31000; // 31 days divide by 1000 (pop)
+       }
+       return 0;
+}
+uint CB_GetMaxTownStorage(uint32 population, uint req)
+{
+       return req > 0 ? (population * req * _cb_storage / 1000) : 0;
+}
+
+uint CB_GetMaxTownStorage(Town *town, uint cargo) {
+       return CBREQ[cargo] > 0 ? (town->cache.population * CBREQ[cargo] * _cb_storage / 1000) : 0;
+}
+
+void CB_UpdateTownStorage(Town *t)
+{
+       InvalidateWindowData(WC_CB_TOWN, t->index);
+       t->growing = true;
+       if (!HasBit(t->flags, TOWN_IS_GROWING)) { //dont grow if not funded or missing transportation
+               t->growing = false;
+       }
+       for (uint i = 0; i < NUM_CARGO ; i++) {
+               if(CBREQ[i] == 0) continue;
+               t->storage[i] += t->new_act_cargo[i]; // add accumulated last month
+               t->storage[i] -= CB_GetTownReq(t->cache.population, CBREQ[i], CBFROM[i], false, true); //subtract monthly req
+               t->storage[i] = min((int)CB_GetMaxTownStorage(t->cache.population, CBREQ[i]), t->storage[i]); //check max storage
+
+               if (t->storage[i] < 0) {
+                       t->growing = false;
+                       t->delivered_enough[i] = false;
+                       t->storage[i] = 0;
+               }
+               else t->delivered_enough[i] = true;
+
+               if (CBDECAY[i] == 100 && t->storage[i] > 0) {
+                       t->storage[i] = 0;
+               }
+               else {
+                       t->storage[i] *= (100 - CBDECAY[i]);
+                       t->storage[i] /= 100;
+               }
+               t->act_cargo[i] = t->new_act_cargo[i];
+               t->new_act_cargo[i] = 0;
+       }
+
+       if (_settings_game.game_creation.landscape == LT_TROPIC) {
+               if (GetTropicZone(t->xy) == TROPICZONE_DESERT && (t->received[TE_FOOD].old_act <= 0 || t->received[TE_WATER].old_act <= 0) && t->cache.population > 60) {
+                       t->growing = false;
+               }
+       }
+       else if (_settings_game.game_creation.landscape == LT_ARCTIC) {
+               if (TilePixelHeight(t->xy) >= GetSnowLine() && t->received[TE_FOOD].old_act <= 0 && t->cache.population > 90) {
+                       t->growing = false;
+               }
+       }
+}
+//CB
+
+void UpdateTownGrowthTile(TileIndex tile, TownGrowthTileState state) {
+       _towns_growth_tiles[tile] = max(_towns_growth_tiles[tile], state);
+}
+
+void ResetTownsGrowthTiles() {
+       _towns_growth_tiles_last_month.clear();
+       _towns_growth_tiles.clear();
+}
+
+
 /**
  * Does the actual town creation.
  *
@@ -1615,6 +1876,23 @@ static void DoCreateTown(Town *t, TileIndex tile, uint32 townnameparts, TownSize
 	}
 
 	t->fund_buildings_months = 0;
+       //CB
+       t->growing = false;
+       for (uint i = 0; i < NUM_CARGO ; i++) {
+               t->storage[i] = 0;
+               t->act_cargo[i] = 0;
+               t->new_act_cargo[i] = 0;
+               t->delivered_enough[i] = false;
+       }
+	t->houses_construction = 0;
+	t->houses_reconstruction = 0;
+	t->houses_demolished = 0;
+       t->fund_regularly = 0;
+       t->do_powerfund = 0;
+       t->advertise_regularly = 0;
+       t->ad_rating_goal = 95;
+       t->ad_ref_goods_entry = NULL;
+       //CB
 
 	for (uint i = 0; i != MAX_COMPANIES; i++) t->ratings[i] = RATING_INITIAL;
 
@@ -1635,6 +1913,7 @@ static void DoCreateTown(Town *t, TileIndex tile, uint32 townnameparts, TownSize
 	}
 	t->townnameparts = townnameparts;
 
+	t->town_label = 3;
 	t->UpdateVirtCoord();
 	InvalidateWindowData(WC_TOWN_DIRECTORY, 0, 0);
 
@@ -2400,6 +2679,8 @@ static bool BuildTownHouse(Town *t, TileIndex tile)
 
 		/* build the house */
 		t->cache.num_houses++;
+		t->cache.potential_pop += hs->population;
+		t->houses_construction++;
 
 		/* Special houses that there can be only one of. */
 		t->flags |= oneof;
@@ -2415,12 +2696,14 @@ static bool BuildTownHouse(Town *t, TileIndex tile)
 
 			if (construction_stage == TOWN_HOUSE_COMPLETED) {
 				ChangePopulation(t, hs->population);
+				t->houses_construction--;
 			} else {
 				construction_counter = GB(r, 2, 2);
 			}
 		}
 
 		MakeTownHouse(tile, t, construction_counter, construction_stage, house, random_bits);
+		UpdateTownGrowthTile(tile, TGTS_NEW_HOUSE);
 		UpdateTownRadius(t);
 		UpdateTownGrowthRate(t);
 		UpdateTownCargoes(t, tile);
@@ -2489,8 +2772,13 @@ void ClearTownHouse(Town *t, TileIndex tile)
 	if (IsHouseCompleted(tile)) {
 		ChangePopulation(t, -hs->population);
 	}
+	else{
+		if(t->houses_construction > 0) t->houses_construction--;
+	}
 
 	t->cache.num_houses--;
+	t->cache.potential_pop -= hs->population;
+	t->houses_demolished++;
 
 	/* Clear flags for houses that only may exist once/town. */
 	if (hs->building_flags & BUILDING_IS_CHURCH) {
@@ -2652,6 +2940,7 @@ CommandCost CmdTownGrowthRate(TileIndex tile, DoCommandFlag flags, uint32 p1, ui
 		}
 		UpdateTownGrowth(t);
 		InvalidateWindowData(WC_TOWN_VIEW, p1);
+                InvalidateWindowData(WC_CB_TOWN, p1);
 	}
 
 	return CommandCost();
@@ -2950,6 +3239,7 @@ static CommandCost TownActionFundBuildings(Town *t, DoCommandFlag flags)
 		t->grow_counter = min(t->grow_counter, 2 * TOWN_GROWTH_TICKS - (t->growth_rate - t->grow_counter) % TOWN_GROWTH_TICKS);
 
 		SetWindowDirty(WC_TOWN_VIEW, t->index);
+                SetWindowDirty(WC_CB_TOWN, t->index);
 	}
 	return CommandCost();
 }
@@ -3006,6 +3296,7 @@ static CommandCost TownActionBribe(Town *t, DoCommandFlag flags)
 			 */
 			if (t->ratings[_current_company] > RATING_BRIBE_DOWN_TO) {
 				t->ratings[_current_company] = RATING_BRIBE_DOWN_TO;
+				t->UpdateVirtCoord();
 				SetWindowDirty(WC_TOWN_AUTHORITY, t->index);
 			}
 		} else {
@@ -3138,6 +3429,7 @@ static void UpdateTownRating(Town *t)
 		t->ratings[i] = Clamp(t->ratings[i], RATING_MINIMUM, RATING_MAXIMUM);
 	}
 
+	t->UpdateVirtCoord();
 	SetWindowDirty(WC_TOWN_AUTHORITY, t->index);
 }
 
@@ -3223,7 +3515,9 @@ static void UpdateTownGrowth(Town *t)
 	UpdateTownGrowthRate(t);
 
 	ClrBit(t->flags, TOWN_IS_GROWING);
+	t->growing_by_chance = false;
 	SetWindowDirty(WC_TOWN_VIEW, t->index);
+	SetWindowDirty(WC_CB_TOWN, t->index);
 
 	if (_settings_game.economy.town_growth_rate == 0 && t->fund_buildings_months == 0) return;
 
@@ -3247,6 +3541,7 @@ static void UpdateTownGrowth(Town *t)
 	if (HasBit(t->flags, TOWN_CUSTOM_GROWTH)) {
 		if (t->growth_rate != TOWN_GROWTH_RATE_NONE) SetBit(t->flags, TOWN_IS_GROWING);
 		SetWindowDirty(WC_TOWN_VIEW, t->index);
+		SetWindowDirty(WC_CB_TOWN, t->index);
 		return;
 	}
 
@@ -3254,6 +3549,7 @@ static void UpdateTownGrowth(Town *t)
 
 	SetBit(t->flags, TOWN_IS_GROWING);
 	SetWindowDirty(WC_TOWN_VIEW, t->index);
+	SetWindowDirty(WC_CB_TOWN, t->index);
 }
 
 static void UpdateTownAmounts(Town *t)
@@ -3263,6 +3559,7 @@ static void UpdateTownAmounts(Town *t)
 	if (t->fund_buildings_months != 0) t->fund_buildings_months--;
 
 	SetWindowDirty(WC_TOWN_VIEW, t->index);
+	SetWindowDirty(WC_CB_TOWN, t->index);
 }
 
 static void UpdateTownUnwanted(Town *t)
@@ -3431,6 +3728,7 @@ void ChangeTownRating(Town *t, int add, int max, DoCommandFlag flags)
 	} else {
 		SetBit(t->have_ratings, _current_company);
 		t->ratings[_current_company] = rating;
+		t->UpdateVirtCoord();
 		SetWindowDirty(WC_TOWN_AUTHORITY, t->index);
 	}
 }
@@ -3476,6 +3774,10 @@ void TownsMonthlyLoop()
 {
 	Town *t;
 
+       _towns_growth_tiles_last_month = _towns_growth_tiles;
+       _towns_growth_tiles.clear();
+
+
 	FOR_ALL_TOWNS(t) {
 		if (t->road_build_months != 0) t->road_build_months--;
 
@@ -3483,11 +3785,25 @@ void TownsMonthlyLoop()
 			if (--t->exclusive_counter == 0) t->exclusivity = INVALID_COMPANY;
 		}
 
+		if (CB_Enabled() && !t->larger_town) CB_UpdateTownStorage(t); //CB
+
+
+    	t->houses_demolished = 0;
+		t->houses_reconstruction = 0;
+
 		UpdateTownAmounts(t);
 		UpdateTownGrowth(t);
 		UpdateTownRating(t);
 		UpdateTownUnwanted(t);
 		UpdateTownCargoes(t);
+
+		DoRegularFunding(t);
+    	t->houses_skipped_last_month = t->houses_skipped - t->houses_skipped_prev;
+		t->houses_skipped_prev = t->houses_skipped;
+		t->cycles_skipped_last_month = t->cycles_skipped - t->cycles_skipped_prev;
+		t->cycles_skipped_prev = t->cycles_skipped;
+		t->cb_houses_removed_last_month = t->cb_houses_removed - t->cb_houses_removed_prev;
+		t->cb_houses_removed_prev = t->cb_houses_removed;
 	}
 
 	UpdateTownCargoBitmap();

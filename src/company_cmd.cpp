@@ -37,6 +37,7 @@
 #include "goal_base.h"
 #include "story_base.h"
 
+#include "cargo_type.h"
 #include "table/strings.h"
 
 #include "safeguards.h"
@@ -69,6 +70,7 @@ Company::Company(uint16 name_1, bool is_ai)
 
 	for (uint j = 0; j < 4; j++) this->share_owners[j] = COMPANY_SPECTATOR;
 	InvalidateWindowData(WC_PERFORMANCE_DETAIL, 0, INVALID_COMPANY);
+	InvalidateWindowClassesData( WC_WATCH_COMPANY1, 0 );
 }
 
 /** Destructor. */
@@ -89,6 +91,7 @@ void Company::PostDestructor(size_t index)
 	InvalidateWindowData(WC_PERFORMANCE_DETAIL, 0, (int)index);
 	InvalidateWindowData(WC_COMPANY_LEAGUE, 0, 0);
 	InvalidateWindowData(WC_LINKGRAPH_LEGEND, 0);
+	InvalidateWindowClassesData( WC_WATCH_COMPANY1, 0 );
 	/* If the currently shown error message has this company in it, then close it. */
 	InvalidateWindowData(WC_ERRMSG, 0);
 }
@@ -588,7 +591,26 @@ Company *DoStartupNewCompany(bool is_ai, CompanyID company = INVALID_COMPANY)
 	AI::BroadcastNewEvent(new ScriptEventCompanyNew(c->index), c->index);
 	Game::NewEvent(new ScriptEventCompanyNew(c->index));
 
+	if (!is_ai) UpdateAllTownVirtCoords(); //coloured rating
+
+	for (uint j = 0; j < NUM_CARGO; j++) {
+		c->cargo_income[j] = 0;
+		c->cargo_units[j] = 0;
+	}
+	cargo_iam_free(c);
+
+  if (!is_ai) UpdateAllTownVirtCoords(); //coloured rating
+
 	return c;
+}
+
+void cargo_iam_free(Company *c){
+	for (uint j = 0; j < NUM_CARGO; j++) {
+		c->cargo_units_period[0][j] = 0;
+		c->cargo_units_period[1][j] = 0;
+		c->cargo_income_period[0][j] = 0;
+		c->cargo_income_period[1][j] = 0;
+	}
 }
 
 /** Start the next competitor now. */
@@ -1088,6 +1110,7 @@ CommandCost CmdRenameCompany(TileIndex tile, DoCommandFlag flags, uint32 p1, uin
 		Company *c = Company::Get(_current_company);
 		free(c->name);
 		c->name = reset ? NULL : stredup(text);
+		InvalidateWindowClassesData( WC_WATCH_COMPANY1, 0 );
 		MarkWholeScreenDirty();
 		CompanyAdminUpdate(c);
 	}

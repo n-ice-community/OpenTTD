@@ -119,7 +119,7 @@ char *CrashLog::LogCompiler(char *buffer, const char *last) const
 char *CrashLog::LogOpenTTDVersion(char *buffer, const char *last) const
 {
 	return buffer + seprintf(buffer, last,
-			"OpenTTD version:\n"
+			"OpenTTD version: Patched admin client (Build 19301) \n\n\n"
 			" Version:    %s (%d)\n"
 			" NewGRF ver: %08x\n"
 			" Bits:       %d\n"
@@ -333,7 +333,7 @@ char *CrashLog::LogRecentNews(char *buffer, const char *last) const
 char *CrashLog::FillCrashLog(char *buffer, const char *last) const
 {
 	time_t cur_time = time(NULL);
-	buffer += seprintf(buffer, last, "*** OpenTTD Crash Report ***\n\n");
+	buffer += seprintf(buffer, last, "*** OpenTTD Crash Report ***\nPatched client\nPlease, unless you encounter same bug with unpatched OpenTTD version, report bug to admins of your community.\n\n");
 	buffer += seprintf(buffer, last, "Crash at: %s", asctime(gmtime(&cur_time)));
 
 	YearMonthDay ymd;

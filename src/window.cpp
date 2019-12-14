@@ -1213,6 +1213,7 @@ void ChangeWindowOwner(Owner old_owner, Owner new_owner)
 		switch (w->window_class) {
 			case WC_COMPANY_COLOUR:
 			case WC_FINANCES:
+			case WC_CARGOS:
 			case WC_STATION_LIST:
 			case WC_TRAINS_LIST:
 			case WC_ROADVEH_LIST:
@@ -1472,7 +1473,9 @@ void Window::InitializeData(WindowNumber window_number)
 	/* Give focus to the opened window unless a text box
 	 * of focused window has focus (so we don't interrupt typing). But if the new
 	 * window has a text box, then take focus anyway. */
-	if (!EditBoxInGlobalFocus() || this->nested_root->GetWidgetOfType(WWT_EDITBOX) != NULL) SetFocusedWindow(this);
+	//if (!EditBoxInGlobalFocus() || this->nested_root->GetWidgetOfType(WWT_EDITBOX) != NULL) SetFocusedWindow(this); //original
+	//if (!_scrolling_viewport && this->window_class != WC_OSK && (!EditBoxInGlobalFocus() || this->nested_root->GetWidgetOfType(WWT_EDITBOX) != NULL)) SetFocusedWindow(this); //removido
+	if (!_scrolling_viewport && this->window_class != WC_TOOLTIPS && this->window_class != WC_NEWS_WINDOW && this->window_class != WC_OSK && (!EditBoxInGlobalFocus() || this->nested_root->GetWidgetOfType(WWT_EDITBOX) != NULL)) SetFocusedWindow(this);
 
 	/* Insert the window into the correct location in the z-ordering. */
 	AddWindowToZOrdering(this);
@@ -2903,7 +2906,7 @@ static void MouseLoop(MouseClick click, int mousewheel)
 		switch (click) {
 			case MC_DOUBLE_LEFT:
 			case MC_LEFT:
-				if (HandleViewportClicked(vp, x, y)) return;
+				if (HandleViewportClicked(vp, x, y, click == MC_DOUBLE_LEFT)) return;
 				if (!(w->flags & WF_DISABLE_VP_SCROLL) &&
 						_settings_client.gui.scroll_mode == VSM_MAP_LMB) {
 					_scrolling_viewport = true;
