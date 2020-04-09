@@ -30,7 +30,15 @@
 
 #include "table/strings.h"
 
+#include "house.h"
+#include "town_map.h"
+#include "station_base.h"
+#include "viewport_func.h"
+#include "industry.h"
+
 #include "safeguards.h"
+
+void GuiShowTooltipsExtra(Window *parent, uint param, TooltipCloseCondition close_tooltip);
 
 /** Method to open the OSK. */
 enum OskActivation {
@@ -40,8 +48,8 @@ enum OskActivation {
 	OSKA_IMMEDIATELY,        ///< Focusing click already opens OSK.
 };
 
-
-static const NWidgetPart _nested_land_info_widgets[] = {
+//old
+static const NWidgetPart _nested_land_info_widgets_old[] = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_GREY),
 		NWidget(WWT_CAPTION, COLOUR_GREY), SetDataTip(STR_LAND_AREA_INFORMATION_CAPTION, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
@@ -50,8 +58,22 @@ static const NWidgetPart _nested_land_info_widgets[] = {
 	NWidget(WWT_PANEL, COLOUR_GREY, WID_LI_BACKGROUND), EndContainer(),
 };
 
-static WindowDesc _land_info_desc(
+//new
+static const NWidgetPart _nested_land_info_widgets[] = {
+	NWidget(WWT_PANEL, COLOUR_GREY, WID_LI_BACKGROUND), SetMinimalSize(64, 32),     EndContainer(),
+};
+
+//old
+static WindowDesc _land_info_desc_old(
 	WDP_AUTO, "land_info", 0, 0,
+	WC_LAND_INFO, WC_NONE,
+	0,
+        _nested_land_info_widgets_old, lengthof(_nested_land_info_widgets_old)
+);
+
+//new
+static WindowDesc _land_info_desc(
+        WDP_MANUAL, "land_info", 0, 0,
 	WC_LAND_INFO, WC_NONE,
 	0,
 	_nested_land_info_widgets, lengthof(_nested_land_info_widgets)
@@ -69,6 +91,19 @@ class LandInfoWindow : public Window {
 public:
 	char landinfo_data[LAND_INFO_LINE_END][LAND_INFO_LINE_BUFF_SIZE];
 	TileIndex tile;
+	TileIndex end_tile;  ///< For use in ruler(dragdrop) mode
+
+	Point OnInitialPosition(int16 sm_width, int16 sm_height, int window_number) override
+	{
+               int scr_top = GetMainViewTop() + 2;
+               int scr_bot = GetMainViewBottom() - 2;
+               Point pt;
+               pt.y = Clamp(_cursor.pos.y + _cursor.total_size.y + _cursor.total_offs.y + 5, scr_top, scr_bot);
+               if (pt.y + sm_height > scr_bot) pt.y = min(_cursor.pos.y + _cursor.total_offs.y - 5, scr_bot) - sm_height;
+               pt.x = sm_width >= _screen.width ? 0 : Clamp(_cursor.pos.x - (sm_width >> 1), 0, _screen.width - sm_width);
+               return pt;
+	}
+
 
 	void DrawWidget(const Rect &r, int widget) const override
 	{
@@ -112,9 +147,18 @@ public:
 		}
 	}
 
-	LandInfoWindow(TileIndex tile) : Window(&_land_info_desc), tile(tile)
+	//old
+	LandInfoWindow(TileIndex tile, TileIndex end_tile, bool oldinfo): Window(&_land_info_desc_old), tile(tile)
 	{
 		this->InitNested();
+	}
+
+	//new
+       LandInfoWindow(TileIndex tile, TileIndex end_tile=INVALID_TILE) :
+               Window(&_land_info_desc), tile(tile), end_tile(end_tile)
+	{
+		this->InitNested();
+                CLRBITS(this->flags, WF_WHITE_BORDER);
 
 #if defined(_DEBUG)
 #	define LANDINFOD_LEVEL 0
@@ -168,6 +212,7 @@ public:
 		td.road_speed = 0;
 		td.tramtype = STR_NULL;
 		td.tram_speed = 0;
+		td.population = 0;
 
 		td.grf = nullptr;
 
@@ -322,6 +367,14 @@ public:
 			line_nr++;
 		}
 
+               /* House pop */
+               if (td.population != 0) {
+                       SetDParam(0, td.population);
+                       GetString(this->landinfo_data[line_nr], STR_LAND_AREA_INFORMATION_POP, lastof(this->landinfo_data[line_nr]));
+                       line_nr++;
+               }
+
+
 		assert(line_nr < LAND_INFO_CENTERED_LINES);
 
 		/* Mark last line empty */
@@ -375,16 +428,34 @@ public:
 				break;
 		}
 	}
+
+
+       void OnMouseLoop() override
+       {
+		if (_settings_client.gui.enable_extra_tooltips) {
+	               /* Always close tooltips when the cursor is not in our window. */
+	               if (!_cursor.in_window) {
+	                       delete this;
+	                       return;
+	               }
+	               if (!_mouse_hovering) delete this;
+		}
+       }
+
 };
 
 /**
  * Show land information window.
  * @param tile The tile to show information about.
  */
-void ShowLandInfo(TileIndex tile)
+void ShowLandInfo(TileIndex tile, TileIndex end_tile)
 {
 	DeleteWindowById(WC_LAND_INFO, 0);
-	new LandInfoWindow(tile);
+	if (_settings_client.gui.enable_extra_tooltips) {
+		new LandInfoWindow(tile, end_tile);
+	} else {
+		new LandInfoWindow(tile, end_tile, true);
+	}
 }
 
 static const NWidgetPart _nested_about_widgets[] = {
@@ -674,11 +745,13 @@ struct TooltipsWindow : public Window
 	byte paramcount;                  ///< Number of string parameters in #string_id.
 	uint64 params[5];                 ///< The string parameters.
 	TooltipCloseCondition close_cond; ///< Condition for closing the window.
+	char buffer[DRAW_STRING_BUFFER];  ///< Text to draw
 
 	TooltipsWindow(Window *parent, StringID str, uint paramcount, const uint64 params[], TooltipCloseCondition close_tooltip) : Window(&_tool_tips_desc)
 	{
 		this->parent = parent;
 		this->string_id = str;
+		if (paramcount == 0) GetString(this->buffer, str, lastof(this->buffer)); // Get the text while params are still around
 		assert_compile(sizeof(this->params[0]) == sizeof(params[0]));
 		assert(paramcount <= lengthof(this->params));
 		if (paramcount > 0) memcpy(this->params, params, sizeof(this->params[0]) * paramcount);
@@ -729,10 +802,14 @@ struct TooltipsWindow : public Window
 		GfxFillRect(r.left, r.top, r.right, r.bottom, PC_BLACK);
 		GfxFillRect(r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_LIGHT_YELLOW);
 
-		for (uint arg = 0; arg < this->paramcount; arg++) {
-			SetDParam(arg, this->params[arg]);
+		if (this->paramcount == 0) {
+			DrawStringMultiLine(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, r.bottom - WD_FRAMERECT_BOTTOM, this->buffer, TC_FROMSTRING, SA_CENTER);
+		} else {
+			for (uint arg = 0; arg < this->paramcount; arg++) {
+				SetDParam(arg, this->params[arg]);
+			}
+			DrawStringMultiLine(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, r.bottom - WD_FRAMERECT_BOTTOM, this->string_id, TC_FROMSTRING, SA_CENTER);
 		}
-		DrawStringMultiLine(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, r.bottom - WD_FRAMERECT_BOTTOM, this->string_id, TC_FROMSTRING, SA_CENTER);
 	}
 
 	void OnMouseLoop() override
@@ -1273,4 +1350,259 @@ void ShowQuery(StringID caption, StringID message, Window *parent, QueryCallback
 	}
 
 	new QueryWindow(&_query_desc, caption, message, parent, callback);
+}
+
+
+/** Window for displaying a tooltip. */
+void GuiPrepareTooltipsExtra(Window *parent){
+       const Point p = GetTileBelowCursor();
+       if (p.x == -1) return;
+       const TileIndex tile = TileVirtXY(p.x, p.y);
+
+       //if (_cursor.sprite == SPR_CURSOR_QUERY) {  //original
+       if (_cursor.sprite_seq[0].sprite == SPR_CURSOR_QUERY) {  //test
+               // Land info tool active
+               ShowLandInfo(tile);
+               return;
+       }
+
+       if (!_settings_client.gui.enable_extra_tooltips)
+               return;
+
+       if (tile >= MapSize()) return;
+       uint param = 0;
+       switch (GetTileType(tile)) {
+               case MP_HOUSE: {
+                       const HouseID house = GetHouseType(tile);
+                       param = ((house & 0xFFFF) << 16) | MP_HOUSE;
+                       break;
+               }
+               case MP_INDUSTRY: {
+                       const Industry *ind = Industry::GetByTile(tile);
+                       if(ind->produced_cargo[0] == CT_INVALID && ind->produced_cargo[1] == CT_INVALID) return;
+                       param = ((ind->index & 0xFFFF) << 16) | MP_INDUSTRY;
+                       break;
+               }
+               case MP_STATION: {
+                       if (IsRailWaypoint(tile) || HasTileWaterGround(tile)) break;
+                       const Station *st = Station::GetByTile(tile);
+                       param |= ((st->index & 0xFFFF) << 16) | MP_STATION;
+                       break;
+               }
+               default:
+                       return;
+       }
+       if(param != 0) GuiShowTooltipsExtra(parent, param, TCC_HOVER);
+}
+
+static const NWidgetPart _nested_tooltips_extra_widgets[] = {
+       NWidget(WWT_PANEL, COLOUR_GREY, WID_TT_BACKGROUND), SetMinimalSize(64, 32),     EndContainer(),
+};
+
+static WindowDesc _tool_tips_extra_desc(
+       WDP_MANUAL, NULL, 0, 0,
+       WC_TOOLTIPS_EXTRA, WC_NONE,
+       0,
+       _nested_tooltips_extra_widgets, lengthof(_nested_tooltips_extra_widgets)
+);
+
+struct TooltipsExtraWindow : public Window
+{
+       TileType tiletype;
+       uint16 objIndex;
+       TooltipCloseCondition close_cond;
+
+       TooltipsExtraWindow(Window *parent, uint param, TooltipCloseCondition close_tooltip) : Window(&_tool_tips_extra_desc)
+       {
+               this->parent = parent;
+               this->tiletype = (TileType)(param & 0xFFFF);
+               this->objIndex = (uint16)((param >> 16) & 0xFFFF);
+               this->close_cond = close_tooltip;
+               this->InitNested();
+               CLRBITS(this->flags, WF_WHITE_BORDER);
+       }
+
+       Point OnInitialPosition(int16 sm_width, int16 sm_height, int window_number) override
+       {
+               int scr_top = GetMainViewTop() + 2;
+               int scr_bot = GetMainViewBottom() - 2;
+               Point pt;
+               pt.y = Clamp(_cursor.pos.y + _cursor.total_size.y + _cursor.total_offs.y + 5, scr_top, scr_bot);
+               if (pt.y + sm_height > scr_bot) pt.y = min(_cursor.pos.y + _cursor.total_offs.y - 5, scr_bot) - sm_height;
+               pt.x = sm_width >= _screen.width ? 0 : Clamp(_cursor.pos.x - (sm_width >> 1), 0, _screen.width - sm_width);
+               return pt;
+       }
+
+       void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+       {
+               uint icon_size = ScaleGUITrad(10);
+               uint line_height = max((uint)FONT_HEIGHT_NORMAL, icon_size) + 2;
+               uint icons_width = icon_size * 3 + 20;
+               size->width = 200;
+               size->height = FONT_HEIGHT_NORMAL + 6;
+               switch(this->tiletype) {
+                       case MP_HOUSE: {
+                              const HouseID house = (HouseID)this->objIndex;
+                              const HouseSpec *hs = HouseSpec::Get(house);
+
+                              size->height += line_height;
+                               SetDParam(0, 1000);
+                               size->width = GetStringBoundingBox(STR_TTE_HOUSE).width;
+                               if(hs == NULL) break;
+                              SetDParam(0, hs->building_name);
+                              size->width = max(GetStringBoundingBox(STR_TTE_HOUSE_NAME).width + WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT + 18, size->width);
+                               break;
+                       }
+                       case MP_INDUSTRY: {
+                               const Industry *ind = Industry::GetIfValid((IndustryID)this->objIndex);
+                               if(ind == NULL) break;
+
+                               for (CargoID i = 0; i < lengthof(ind->produced_cargo); i++) {
+                                       if (ind->produced_cargo[i] == CT_INVALID) continue;
+                                       const CargoSpec *cs = CargoSpec::Get(ind->produced_cargo[i]);
+                                       if(cs == NULL) continue;
+                                       size->height += line_height;
+                                       SetDParam(0, cs->name);
+                                       SetDParam(1, cs->Index());
+                                       SetDParam(2, ind->last_month_production[i]);
+                                       SetDParam(3, ToPercent8(ind->last_month_pct_transported[i]));
+                                       size->width = max(GetStringBoundingBox(STR_TTE_INDUSTRY).width + icons_width, size->width);
+                               }
+                               break;
+                       }
+                       case MP_STATION: {
+                               const Station *st = Station::GetIfValid((StationID)this->objIndex);
+                               if(st == NULL) break;
+
+                               for (int i = 0; i < _sorted_standard_cargo_specs_size; i++) {
+                                       const CargoSpec *cs = _sorted_cargo_specs[i];
+                                       if(cs == NULL) continue;
+                                       int cargoid = cs->Index();
+                                       if (HasBit(st->goods[cargoid].status, GoodsEntry::GES_RATING)) {
+                                               size->height += line_height;
+                                               SetDParam(0, cs->name);
+                                               SetDParam(1, cargoid);
+                                               SetDParam(2, st->goods[cargoid].cargo.TotalCount());
+                                               SetDParam(3, ToPercent8(st->goods[cargoid].rating));
+                                               size->width = max(GetStringBoundingBox(STR_TTE_STATION).width + icons_width, size->width);
+                                       }
+                               }
+                               break;
+                       }
+                       default:
+                               break;
+               }
+               size->width  += 2 + WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT;
+               size->height += 2 + WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
+       }
+
+       void DrawWidget(const Rect &r, int widget) const override
+       {
+               uint icon_size = ScaleGUITrad(10);
+               uint line_height = max((uint)FONT_HEIGHT_NORMAL, icon_size) + 2;
+               uint icons_width = icon_size * 3 + 10;
+               uint text_ofs = (line_height - FONT_HEIGHT_NORMAL) >> 1;
+               uint icon_ofs = (line_height - icon_size) >> 1;
+
+               GfxDrawLine(r.left,  r.top,    r.right, r.top,    PC_BLACK);
+               GfxDrawLine(r.left,  r.bottom, r.right, r.bottom, PC_BLACK);
+               GfxDrawLine(r.left,  r.top,    r.left,  r.bottom, PC_BLACK);
+               GfxDrawLine(r.right, r.top,    r.right, r.bottom, PC_BLACK);
+
+               int y = r.top + WD_FRAMERECT_TOP + 4;
+               int left = r.left + WD_FRAMERECT_LEFT + 4;
+
+               switch(this->tiletype) {
+                       case MP_HOUSE: {
+                               const HouseID house = (HouseID)this->objIndex;
+                               const HouseSpec *hs = HouseSpec::Get(house);
+
+
+                               if(hs == NULL) break;
+
+                               SetDParam(0, hs->building_name);
+                               DrawString(left, r.right - WD_FRAMERECT_RIGHT, y, STR_TTE_HOUSE_NAME, TC_BLACK, SA_CENTER);
+                               y += FONT_HEIGHT_NORMAL + 2;
+                               SetDParam(0, hs->population);
+                               DrawString(left, r.right - WD_FRAMERECT_RIGHT, y, STR_TTE_HOUSE, TC_BLACK, SA_CENTER);
+                               break;
+                       }
+                       case MP_INDUSTRY: {
+                               const Industry *ind = Industry::GetIfValid((IndustryID)this->objIndex);
+                               if(ind == NULL) break;
+
+                               SetDParam(0, ind->index);
+                               DrawString(left, r.right - WD_FRAMERECT_RIGHT, y, STR_TTE_INDUSTRY_NAME, TC_BLACK, SA_CENTER);
+                               y += FONT_HEIGHT_NORMAL + 2;
+
+                               for (CargoID i = 0; i < lengthof(ind->produced_cargo); i++) {
+                                       if (ind->produced_cargo[i] == CT_INVALID) continue;
+                                       const CargoSpec *cs = CargoSpec::Get(ind->produced_cargo[i]);
+                                       if(cs == NULL) continue;
+                                       SetDParam(0, cs->name);
+                                       SetDParam(1, cs->Index());
+                                       SetDParam(2, ind->last_month_production[i]);
+                                       SetDParam(3, ToPercent8(ind->last_month_pct_transported[i]));
+
+                                       this->DrawSpriteIcons(cs->GetCargoIcon(), left, y + icon_ofs);
+                                       DrawString(left + icons_width, r.right - WD_FRAMERECT_RIGHT, y + text_ofs, STR_TTE_INDUSTRY);
+                                       y += line_height;
+                               }
+                               break;
+                       }
+                       case MP_STATION: {
+                               const Station *st = Station::GetIfValid((StationID)this->objIndex);
+                               if(st == NULL) break;
+
+                               SetDParam(0, st->index);
+                               DrawString(left, r.right - WD_FRAMERECT_RIGHT, y, STR_TTE_STATION_NAME, TC_BLACK, SA_CENTER);
+                               y += FONT_HEIGHT_NORMAL + 2;
+
+                               for (int i = 0; i < _sorted_standard_cargo_specs_size; i++) {
+                                       const CargoSpec *cs = _sorted_cargo_specs[i];
+                                       if(cs == NULL) continue;
+                                       int cargoid = cs->Index();
+                                       if (HasBit(st->goods[cargoid].status, GoodsEntry::GES_RATING)) {
+                                               SetDParam(0, cs->name);
+                                               SetDParam(1, cargoid);
+                                               SetDParam(2, st->goods[cargoid].cargo.TotalCount());
+                                               SetDParam(3, ToPercent8(st->goods[cargoid].rating));
+                                               this->DrawSpriteIcons(cs->GetCargoIcon(), left, y + icon_ofs);
+                                               DrawString(left + icons_width, r.right - WD_FRAMERECT_RIGHT, y + text_ofs, STR_TTE_STATION);
+                                               y += line_height;
+                                       }
+                               }
+                               break;
+                       }
+                       default:
+                               break;
+               }
+       }
+
+       void OnMouseLoop() override
+       {
+               if (!_cursor.in_window) {
+                       delete this;
+                       return;
+               }
+
+               switch (this->close_cond) {
+                       case TCC_RIGHT_CLICK: if (!_right_button_down) delete this; break;
+                       case TCC_HOVER: if (!_mouse_hovering) delete this; break;
+               }
+       }
+
+       void DrawSpriteIcons(SpriteID sprite, int left, int top) const
+       {
+               uint step = ScaleGUITrad(10);
+               for(int i = 0; i < 3; i++) {
+                       DrawSprite(sprite, PAL_NONE, left + i * step, top);
+               }
+       }
+};
+
+void GuiShowTooltipsExtra(Window *parent, uint param, TooltipCloseCondition close_tooltip)
+{
+       DeleteWindowById(WC_TOOLTIPS_EXTRA, 0);
+       new TooltipsExtraWindow(parent, param, close_tooltip);
 }

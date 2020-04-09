@@ -3,6 +3,7 @@ airport.cpp
 animated_tile.cpp
 articulated_vehicles.cpp
 autoreplace.cpp
+base64.cpp
 bmp.cpp
 cargoaction.cpp
 cargomonitor.cpp
@@ -91,6 +92,7 @@ tgp.cpp
 tile_map.cpp
 tilearea.cpp
 townname.cpp
+triphistory_cmd.cpp
 #if WIN32
 #else
 	#if OS2
@@ -133,12 +135,14 @@ autoreplace_func.h
 autoreplace_gui.h
 autoreplace_type.h
 autoslope.h
+base64.h
 base_media_base.h
 base_media_func.h
 base_station_base.h
 bitmap_type.h
 bmp.h
 bridge.h
+cargo_table_gui.h
 cargo_type.h
 cargoaction.h
 cargomonitor.h
@@ -238,6 +242,7 @@ livery.h
 map_func.h
 map_type.h
 mixer.h
+triphistory.h
 network/network.h
 network/network_admin.h
 network/network_base.h
@@ -287,9 +292,11 @@ news_type.h
 music/midi.h
 music/midifile.hpp
 music/null_m.h
+commands_token_gui.h
 sound/null_s.h
 video/null_v.h
 object.h
+triphistory_gui.cpp
 object_base.h
 object_type.h
 openttd.h
@@ -394,6 +401,7 @@ viewport_func.h
 viewport_kdtree.h
 viewport_sprite_sorter.h
 viewport_type.h
+watch_gui_1.h
 water.h
 waypoint_base.h
 waypoint_func.h
@@ -408,6 +416,7 @@ window_type.h
 sound/xaudio2_s.h
 zoom_func.h
 zoom_type.h
+zoning.h
 #if WIN32
 #else
 	music/bemidi.h
@@ -462,6 +471,7 @@ autoreplace_gui.cpp
 bootstrap_gui.cpp
 bridge_gui.cpp
 build_vehicle_gui.cpp
+cargo_table_gui.cpp
 cheat_gui.cpp
 company_gui.cpp
 console_gui.cpp
@@ -489,6 +499,7 @@ network/network_gui.cpp
 newgrf_debug_gui.cpp
 newgrf_gui.cpp
 news_gui.cpp
+commands_token_gui.cpp
 object_gui.cpp
 order_gui.cpp
 osk_gui.cpp
@@ -513,7 +524,9 @@ transparency_gui.cpp
 tree_gui.cpp
 vehicle_gui.cpp
 viewport_gui.cpp
+watch_gui_1.cpp
 waypoint_gui.cpp
+zoning_gui.cpp
 
 # Widgets
 widgets/airport_widget.h
@@ -522,6 +535,7 @@ widgets/autoreplace_widget.h
 widgets/bootstrap_widget.h
 widgets/bridge_widget.h
 widgets/build_vehicle_widget.h
+widgets/cargo_table_widget.h
 widgets/cheat_widget.h
 widgets/company_widget.h
 widgets/console_widget.h
@@ -603,6 +617,7 @@ vehicle_cmd.cpp
 void_cmd.cpp
 water_cmd.cpp
 waypoint_cmd.cpp
+zoning_cmd.cpp
 
 # Save/Load handlers
 saveload/afterload.cpp

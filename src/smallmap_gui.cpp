@@ -252,6 +252,20 @@ static const LegendAndColour * const _legend_table[] = {
 
 #include "table/heightmap_colours.h"
 
+/**
+ * Colour Coding for Stuck Counter
+ */
+static const uint32 _stuck_counter_colours[] = {
+	MKCOLOUR(0xD0D0D0D0),
+	MKCOLOUR(0xCECECECE),
+	MKCOLOUR(0xBFBFBFBF),
+	MKCOLOUR(0xBDBDBDBD),
+	MKCOLOUR(0xBABABABA),
+	MKCOLOUR(0xB8B8B8B8),
+	MKCOLOUR(0xB6B6B6B6),
+	MKCOLOUR(0xB4B4B4B4),
+};
+
 /** Colour scheme of the smallmap. */
 struct SmallMapColourScheme {
 	uint32 *height_colours;            ///< Cached colours for each level in a map.
@@ -462,13 +476,18 @@ static inline uint32 GetSmallMapRoutesPixels(TileIndex tile, TileType t)
 			}
 
 		case MP_RAILWAY: {
+			byte c = GetStuckCounter(tile);
+			if (c == 0) return 0;
+			return _stuck_counter_colours[(uint)c * lengthof(_stuck_counter_colours) / (MAX_UVALUE(byte) + 1)];
+			/* TODO: Check what this is about
 			AndOr andor = {
 				MKCOLOUR_0XX0(GetRailTypeInfo(GetRailType(tile))->map_colour),
 				_smallmap_contours_andor[t].mand
 			};
 
 			const SmallMapColourScheme *cs = &_heightmap_schemes[_settings_client.gui.smallmap_land_colour];
-			return ApplyMask(cs->default_colour, &andor);
+			return ApplyMask(cs->default_colour, &andor); 
+			*/
 		}
 
 		case MP_ROAD: {
@@ -920,7 +939,7 @@ void SmallMapWindow::DrawTowns(const DrawPixelInfo *dpi) const
 				y < dpi->top + dpi->height) {
 			/* And draw it. */
 			SetDParam(0, t->index);
-			DrawString(x, x + t->cache.sign.width_small, y, STR_SMALLMAP_TOWN);
+			DrawString(x, x + t->cache.sign.width_small, y, (t->larger_town ? STR_SMALLMAP_TOWN_LARGE : STR_SMALLMAP_TOWN));
 		}
 	}
 }

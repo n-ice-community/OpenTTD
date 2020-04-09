@@ -29,6 +29,7 @@
 #include "../genworld.h"
 #include "../map_type.h"
 #include "../guitimer_func.h"
+#include "../error.h"
 
 #include "../widgets/network_widget.h"
 
@@ -39,6 +40,9 @@
 
 #include "../safeguards.h"
 
+#include "../commands_token_gui.h"
+ 
+ClientID invitedid;
 
 static void ShowNetworkStartServerWindow();
 static void ShowNetworkLobbyWindow(NetworkGameList *ngl);
@@ -233,6 +237,7 @@ protected:
 	QueryString name_editbox;     ///< Client name editbox.
 	QueryString filter_editbox;   ///< Editbox for filter on servers
 	GUITimer requery_timer;       ///< Timer for network requery
+	bool UDP_CC_queried;
 
 	int lock_offset; ///< Left offset for lock icon.
 	int blot_offset; ///< Left offset for green/yellow/red compatibility icon.
@@ -473,6 +478,10 @@ public:
 
 		this->querystrings[WID_NG_FILTER] = &this->filter_editbox;
 		this->filter_editbox.cancel_button = QueryString::ACTION_CLEAR;
+		//if community is chosen, filter by default
+		this->UDP_CC_queried = false;
+		if(_settings_client.gui.community == 1) this->filter_editbox.text.Assign("n-ice");
+		else if(_settings_client.gui.community == 2) this->filter_editbox.text.Assign("BTPro");
 		this->SetFocusedWidget(WID_NG_FILTER);
 
 		this->last_joined = NetworkGameListAddItem(NetworkAddress(_settings_client.network.last_host, _settings_client.network.last_port));
@@ -783,6 +792,24 @@ public:
 			case WID_NG_NEWGRF_MISSING: // Find missing content online
 				if (this->server != nullptr) ShowMissingContentWindow(this->server->info.grfconfig);
 				break;
+
+			case WID_NG_CC_NICE:
+			case WID_NG_CC_BTPRO:
+			case WID_NG_CC_REDDIT:
+			case WID_NG_CC_CITYMANIA:
+				if(!UDP_CC_queried){ 
+					NetworkUDPQueryMasterServer();
+					UDP_CC_queried = true;
+				}
+				if(widget == WID_NG_CC_NICE) this->filter_editbox.text.Assign("n-ice");
+				else if(widget == WID_NG_CC_BTPRO) this->filter_editbox.text.Assign("BTPro");
+				else if(widget == WID_NG_CC_REDDIT) this->filter_editbox.text.Assign("reddit");
+				else if(widget == WID_NG_CC_CITYMANIA) this->filter_editbox.text.Assign("CityMania");
+				this->servers.ForceRebuild();
+				this->BuildGUINetworkGameList();
+				this->ScrollToSelectedServer();
+				this->SetDirty();
+				break;
 		}
 	}
 
@@ -949,7 +976,12 @@ static const NWidgetPart _nested_network_game_widgets[] = {
 						NWidget(WWT_TEXT, COLOUR_LIGHT_BLUE, WID_NG_CONNECTION), SetDataTip(STR_NETWORK_SERVER_LIST_ADVERTISED, STR_NULL),
 						NWidget(WWT_DROPDOWN, COLOUR_LIGHT_BLUE, WID_NG_CONN_BTN),
 											SetDataTip(STR_BLACK_STRING, STR_NETWORK_SERVER_LIST_ADVERTISED_TOOLTIP),
-						NWidget(NWID_SPACER), SetFill(1, 0), SetResize(1, 0),
+						//NWidget(NWID_SPACER), SetFill(1, 0), SetResize(1, 0),
+						NWidget(NWID_SPACER), SetMinimalSize(20, 0),SetFill(1, 0), SetResize(1, 0),
+						NWidget(WWT_PUSHTXTBTN, COLOUR_WHITE, WID_NG_CC_REDDIT), SetFill(1, 0), SetDataTip(STR_NETWORK_CC_SELECT_REDDIT, STR_NETWORK_CC_SELECT_REDDIT_TOOLTIP),
+						NWidget(WWT_PUSHTXTBTN, COLOUR_WHITE, WID_NG_CC_CITYMANIA), SetFill(1, 0), SetDataTip(STR_NETWORK_CC_SELECT_CITYMANIA, STR_NETWORK_CC_SELECT_CITYMANIA_TOOLTIP),
+						NWidget(WWT_PUSHTXTBTN, COLOUR_WHITE, WID_NG_CC_NICE), SetFill(1, 0), SetDataTip(STR_NETWORK_CC_SELECT_NICE, STR_NETWORK_CC_SELECT_NICE_TOOLTIP),
+						NWidget(WWT_PUSHTXTBTN, COLOUR_WHITE, WID_NG_CC_BTPRO), SetFill(1, 0), SetDataTip(STR_NETWORK_CC_SELECT_BTPRO, STR_NETWORK_CC_SELECT_BTPRO_TOOLTIP),
 					EndContainer(),
 					NWidget(NWID_HORIZONTAL), SetPIP(0, 7, 0),
 						NWidget(WWT_TEXT, COLOUR_LIGHT_BLUE, WID_NG_FILTER_LABEL), SetDataTip(STR_LIST_FILTER_TITLE, STR_NULL),
@@ -1695,6 +1727,28 @@ static void ClientList_Ban(const NetworkClientInfo *ci)
 	NetworkServerKickOrBanIP(ci->client_id, true, nullptr);
 }
 
+static void ClientList_Get_Token(const NetworkClientInfo *ci)
+{	//if community server, get token
+	 if (_settings_client.gui.community != 0) CommunityLoginManagerSend();
+}
+
+static void ClientListInviteYesCallback(Window *w, bool confirmed)
+{
+	if (confirmed) {
+		const NetworkClientInfo *ci = NetworkClientInfo::GetByClientID(invitedid);
+		char msg[128];
+		seprintf(msg, lastof(msg), "!invite %s", ci->client_name);
+		NetworkClientSendChat(NETWORK_ACTION_CHAT, DESTTYPE_BROADCAST, 0 , msg);
+	}
+}
+
+static void ClientList_Invite(const NetworkClientInfo *ci)
+{
+	invitedid = ci->client_id;
+	SetDParamStr(0, ci->client_name);
+	ShowQuery(STR_NETWORK_CLIENTLIST_INVITE_CAPTION, STR_NETWORK_CLIENTLIST_INVITE_QUESTION, NULL, ClientListInviteYesCallback);
+}
+
 static void ClientList_GiveMoney(const NetworkClientInfo *ci)
 {
 	ShowNetworkGiveMoneyWindow(ci->client_playas);
@@ -1761,6 +1815,14 @@ struct NetworkClientListPopupWindow : Window {
 			if (Company::IsValidID(_local_company) && Company::IsValidID(ci->client_playas) && _settings_game.economy.give_money) {
 				this->AddAction(STR_NETWORK_CLIENTLIST_GIVE_MONEY, &ClientList_GiveMoney);
 			}
+		}
+		if (_settings_client.gui.community != 0 && _network_own_client_id == ci->client_id) {
+			this->AddAction(STR_NETWORK_CLIENTLIST_GET_TOKEN, &ClientList_Get_Token);
+		}
+		if (_settings_client.gui.community != 0 && _network_own_client_id != ci->client_id
+			&& ci->client_id != CLIENT_ID_SERVER && Company::IsValidID(_local_company))
+		{
+			this->AddAction(STR_NETWORK_CLIENTLIST_INVITE, &ClientList_Invite);
 		}
 
 		/* A server can kick clients (but not himself). */

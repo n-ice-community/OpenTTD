@@ -722,8 +722,10 @@ void VideoDriver_SDL::MainLoop()
 			next_tick = cur_ticks + MILLISECONDS_PER_TICK;
 
 			bool old_ctrl_pressed = _ctrl_pressed;
+			bool old_alt_pressed = _alt_pressed;
 
 			_ctrl_pressed  = !!(mod & KMOD_CTRL);
+			_alt_pressed = !!(mod & KMOD_ALT);
 			_shift_pressed = !!(mod & KMOD_SHIFT);
 
 			/* determine which directional keys are down */

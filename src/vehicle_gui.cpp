@@ -35,7 +35,9 @@
 #include "engine_func.h"
 #include "station_base.h"
 #include "tilehighlight_func.h"
+#include "triphistory.h"
 #include "zoom_func.h"
+#include "hotkeys.h"
 
 #include "safeguards.h"
 
@@ -1792,6 +1794,7 @@ static const NWidgetPart _nested_nontrain_vehicle_details_widgets[] = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_GREY),
 		NWidget(WWT_CAPTION, COLOUR_GREY, WID_VD_CAPTION), SetDataTip(STR_VEHICLE_DETAILS_CAPTION, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
+		NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_VD_TRIP_HISTORY),SetMinimalSize(44, 0),SetDataTip(STR_TRIP_HISTORY, STR_TRIP_HISTORY_TOOLTIP),
 		NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_VD_RENAME_VEHICLE), SetMinimalSize(40, 0), SetMinimalTextLines(1, WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM + 2), SetDataTip(STR_VEHICLE_NAME_BUTTON, STR_NULL /* filled in later */),
 		NWidget(WWT_SHADEBOX, COLOUR_GREY),
 		NWidget(WWT_DEFSIZEBOX, COLOUR_GREY),
@@ -1816,6 +1819,7 @@ static const NWidgetPart _nested_train_vehicle_details_widgets[] = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_GREY),
 		NWidget(WWT_CAPTION, COLOUR_GREY, WID_VD_CAPTION), SetDataTip(STR_VEHICLE_DETAILS_CAPTION, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
+		NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_VD_TRIP_HISTORY),SetMinimalSize(44, 0),SetDataTip(STR_TRIP_HISTORY, STR_TRIP_HISTORY_TOOLTIP),
 		NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_VD_RENAME_VEHICLE), SetMinimalSize(40, 0), SetMinimalTextLines(1, WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM + 2), SetDataTip(STR_VEHICLE_NAME_BUTTON, STR_NULL /* filled in later */),
 		NWidget(WWT_SHADEBOX, COLOUR_GREY),
 		NWidget(WWT_DEFSIZEBOX, COLOUR_GREY),
@@ -2162,6 +2166,12 @@ struct VehicleDetailsWindow : Window {
 	void OnClick(Point pt, int widget, int click_count) override
 	{
 		switch (widget) {
+			case WID_VD_TRIP_HISTORY: {
+				const Vehicle *v = Vehicle::Get(this->window_number);
+				ShowTripHistoryWindow(v);
+				break;
+			}
+		  
 			case WID_VD_RENAME_VEHICLE: { // rename
 				const Vehicle *v = Vehicle::Get(this->window_number);
 				SetDParam(0, v->index);
@@ -2305,24 +2315,6 @@ static const NWidgetPart _nested_vehicle_view_widgets[] = {
 	EndContainer(),
 };
 
-/** Vehicle view window descriptor for all vehicles but trains. */
-static WindowDesc _vehicle_view_desc(
-	WDP_AUTO, "view_vehicle", 250, 116,
-	WC_VEHICLE_VIEW, WC_NONE,
-	0,
-	_nested_vehicle_view_widgets, lengthof(_nested_vehicle_view_widgets)
-);
-
-/**
- * Vehicle view window descriptor for trains. Only minimum_height and
- *  default_height are different for train view.
- */
-static WindowDesc _train_view_desc(
-	WDP_AUTO, "view_vehicle_train", 250, 134,
-	WC_VEHICLE_VIEW, WC_NONE,
-	0,
-	_nested_vehicle_view_widgets, lengthof(_nested_vehicle_view_widgets)
-);
 
 
 /* Just to make sure, nobody has changed the vehicle type constants, as we are
@@ -2514,6 +2506,7 @@ public:
 		DeleteWindowById(WC_VEHICLE_REFIT, this->window_number, false);
 		DeleteWindowById(WC_VEHICLE_DETAILS, this->window_number, false);
 		DeleteWindowById(WC_VEHICLE_TIMETABLE, this->window_number, false);
+		DeleteWindowById(WC_VEHICLE_TRIP_HISTORY, this->window_number, false);
 	}
 
 	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
@@ -2789,8 +2782,45 @@ public:
 	{
 		::ShowNewGRFInspectWindow(GetGrfSpecFeature(Vehicle::Get(this->window_number)->type), this->window_number);
 	}
+
+	virtual EventState OnHotkey(int hotkey)
+	{
+		if (this->owner != _local_company) return ES_NOT_HANDLED;
+		return Window::OnHotkey(hotkey);
+	}
+
+	static HotkeyList hotkeys;
 };
 
+static Hotkey vehiclegui_hotkeys[] = {
+	Hotkey('G', "vehicle_orders", WID_VV_SHOW_ORDERS),
+	Hotkey('F', "vehicle_go", WID_VV_START_STOP),
+	Hotkey((uint16)0, "vehicle_refit", WID_VV_REFIT),
+	Hotkey((uint16)0, "vehicle_clone", WID_VV_CLONE),
+	HOTKEY_LIST_END
+};	//WID_VV_CENTER_MAIN_VIEW	WID_VV_GOTO_DEPOT WID_VV_SHOW_DETAILS WID_VV_TURN_AROUND WID_VV_FORCE_PROCEED
+HotkeyList VehicleViewWindow::hotkeys("vehiclegui", vehiclegui_hotkeys);
+
+/** Vehicle view window descriptor for all vehicles but trains. */
+static WindowDesc _vehicle_view_desc(
+	WDP_AUTO, "view_vehicle", 250, 116,
+	WC_VEHICLE_VIEW, WC_NONE,
+	0,
+	_nested_vehicle_view_widgets, lengthof(_nested_vehicle_view_widgets),
+	&VehicleViewWindow::hotkeys
+);
+
+/**
+ * Vehicle view window descriptor for trains. Only minimum_height and
+ *  default_height are different for train view.
+ */
+static WindowDesc _train_view_desc(
+	WDP_AUTO, "view_vehicle_train", 250, 134,
+	WC_VEHICLE_VIEW, WC_NONE,
+	0,
+	_nested_vehicle_view_widgets, lengthof(_nested_vehicle_view_widgets),
+	&VehicleViewWindow::hotkeys
+);
 
 /** Shows the vehicle view window of the given vehicle. */
 void ShowVehicleViewWindow(const Vehicle *v)

@@ -86,6 +86,15 @@ struct GUISettings {
 	bool   vehicle_income_warn;              ///< if a vehicle isn't generating income, show a warning
 	bool   show_finances;                    ///< show finances at end of year
 	bool   sg_new_nonstop;                   ///< ttdpatch compatible nonstop handling read from pre v93 savegames
+	bool   enable_ctrl_click_start_stop;     ///< allow ctrl+click to start or stop vehicles
+	uint8  goto_shortcuts_ctrl_lclick;       ///< goto action shortcut CTRL+LEFT-CLICK
+	uint8  goto_shortcuts_shift_lclick;      ///< goto action shortcut SHIFT+LEFT-CLICK
+	uint8  goto_shortcuts_ctrlshift_lclick;  ///< goto action shortcut CTRL+SHIFT+LEFT-CLICK
+	uint8  goto_shortcuts_alt_lclick;        ///< goto action shortcut ALT+LEFT-CLICK
+	uint8  goto_shortcuts_altshift_lclick;   ///< goto action shortcut ALT+SHIFT+LEFT-CLICK
+	uint8  goto_shortcuts_altctrl_lclick;    ///< goto action shortcut ALT+CTRL+LEFT-CLICK
+	bool   auto_noload_on_transfer;          ///< automatically set no-loading when ordering to transfer all cargo
+	bool   auto_noload_on_unloadall;         ///< automatically set no-loading when ordering to unload all cargo
 	bool   new_nonstop;                      ///< ttdpatch compatible nonstop handling
 	uint8  stop_location;                    ///< what is the default stop location of trains?
 	uint8  auto_scrolling;                   ///< scroll when moving mouse to the edge (see #ViewportAutoscrolling)
@@ -165,6 +174,13 @@ struct GUISettings {
 	uint8  settings_restriction_mode;        ///< selected restriction mode in adv. settings GUI. @see RestrictionMode
 	bool   newgrf_show_old_versions;         ///< whether to show old versions in the NewGRF list
 	uint8  newgrf_default_palette;           ///< default palette to use for NewGRFs without action 14 palette information
+	bool   enable_extra_tooltips;            ///< enable extra tooltips when hovering over various elements
+        uint8  cb_distance_check;                ///< zoning cb distance
+        uint32 powerfund_money;                  ///< minimum amount of money for powerfund to work
+        uint16 powerfund_houses;                 ///< powerfunding maximum houses limit
+
+	uint8  community;                        ///< chosen community nice=0, btpro=1
+	uint32  btpro_version;
 
 	/**
 	 * Returns true when the user has sufficient privileges to edit newgrfs on a running game
@@ -273,6 +289,8 @@ struct NetworkSettings {
 	char   last_host[NETWORK_HOSTNAME_LENGTH];            ///< IP address of the last joined server
 	uint16 last_port;                                     ///< port of the last joined server
 	bool   no_http_content_downloads;                     ///< do not do content downloads over HTTP
+	char   community_user[2][NETWORK_NAME_LENGTH];           ///< webpage user to retrieve Token
+	char   community_password[2][NETWORK_PASSWORD_LENGTH];///< webpage password to retrieve Token
 };
 
 /** Settings related to the creation of games. */

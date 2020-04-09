@@ -31,6 +31,13 @@
 #include "tilehighlight_func.h"
 #include "hotkeys.h"
 #include "guitimer_func.h"
+#include "watch_gui_1.h"
+#include "industry.h"
+#include "town_map.h"
+ 
+#include "station_gui.h"
+#include "station_base.h"
+#include "cargotype.h"
 
 #include "saveload/saveload.h"
 
@@ -102,7 +109,7 @@ bool HandlePlacePushButton(Window *w, int widget, CursorID cursor, HighLightStyl
 	if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
 	w->SetDirty();
 
-	if (w->IsWidgetLowered(widget)) {
+	if (w->IsWidgetLowered(widget) && mode == _thd.place_mode) {
 		ResetObjectToPlace();
 		return false;
 	}
@@ -213,6 +220,7 @@ static const struct NWidgetPart _nested_main_window_widgets[] = {
 
 enum {
 	GHK_QUIT,
+	GHK_WATCH_WINDOW,
 	GHK_ABANDON,
 	GHK_CONSOLE,
 	GHK_BOUNDING_BOXES,
@@ -399,6 +407,8 @@ struct MainWindow : Window
 				ResetRestoreAllTransparency();
 				break;
 
+            case GHK_WATCH_WINDOW:	ShowWatchWindow1( INVALID_COMPANY );	break;
+
 			case GHK_CHAT: // smart chat; send to team if any, otherwise to all
 				if (_networking) {
 					const NetworkClientInfo *cio = NetworkClientInfo::GetByClientID(_network_own_client_id);
@@ -469,6 +479,97 @@ struct MainWindow : Window
 		InvalidateWindowData(WC_MAIN_TOOLBAR, 0, data, true);
 	}
 
+  virtual void OnMouseOver(Point pt, int widget)
+	{
+		if (_game_mode != GM_MENU && _settings_client.gui.enable_extra_tooltips && pt.x != -1) {
+			GuiPrepareTooltipsExtra(this);
+		/* Show tooltip with last month production or town name */
+		} else if (pt.x != -1 && _game_mode != GM_MENU) {
+			TileIndex tile;
+			const bool viewport_is_in_map_mode = (this->viewport->zoom > ZOOM_LVL_MAX);
+			//const bool viewport_is_in_map_mode = (this->viewport->zoom >= ZOOM_LVL_MAX);
+			//const bool viewport_is_in_map_mode = (this->viewport->zoom >= ZOOM_LVL_DRAW_MAP);
+			if (viewport_is_in_map_mode) {
+        // Disable, for now :)
+				/*const int a = ((ScaleByZoom(pt.x, this->viewport->zoom) + this->viewport->virtual_left) >> 2) / ZOOM_LVL_BASE;
+				const int b = ((ScaleByZoom(pt.y, this->viewport->zoom) + this->viewport->virtual_top) >> 1) / ZOOM_LVL_BASE;
+				tile = TileVirtXY(b - a, b + a);*/
+			} else {
+				const Point p = GetTileBelowCursor();
+				tile = TileVirtXY(p.x, p.y);
+			}
+			if (tile >= MapSize()) return;
+
+			switch (GetTileType(tile)) {
+				case MP_ROAD:
+					if (IsRoadDepot(tile)) return;
+					/* FALL THROUGH */
+				case MP_HOUSE: {
+					if (HasBit(_display_opt, DO_SHOW_TOWN_NAMES)) return; // No need for a town name tooltip when it is already displayed
+					if (!viewport_is_in_map_mode) return;
+					const TownID tid = GetTownIndex(tile);
+					if (!tid) return;
+					SetDParam(0, tid);
+					GuiShowTooltips(this, STR_TOWN_NAME_TOOLTIP, 0, NULL, TCC_HOVER);
+					break;
+				}
+				case MP_INDUSTRY: {
+					const Industry *ind = Industry::GetByTile(tile);
+					const IndustrySpec *indsp = GetIndustrySpec(ind->type);
+
+					StringID str = STR_INDUSTRY_VIEW_TRANSPORTED_TOOLTIP;
+					uint prm_count = 0;
+					SetDParam(prm_count++, indsp->name);
+					for (byte i = 0; i < lengthof(ind->produced_cargo); i++) {
+						if (ind->produced_cargo[i] != CT_INVALID) {
+							SetDParam(prm_count++, ind->produced_cargo[i]);
+							SetDParam(prm_count++, ind->last_month_production[i]);
+							SetDParam(prm_count++, ToPercent8(ind->last_month_pct_transported[i]));
+							str++;
+						}
+					}
+					if (prm_count <= 19) {
+            GuiShowTooltips(this, str, 0, NULL, TCC_HOVER);
+          }
+					break;
+				}
+				case MP_STATION: {
+          if (!IsRailWaypoint(tile)) {
+            if (!HasTileWaterGround(tile)) {
+              const Station *st = Station::GetByTile(tile);
+              StringID str = STR_STATION_VIEW_TRANSPORTED_TOOLTIP;
+              uint prm_count = 0;
+              SetDParam(prm_count++, st->index);
+              for (int i = 0; i < _sorted_standard_cargo_specs_size; i++) {
+                const CargoSpec *cs = _sorted_cargo_specs[i];
+                //const CargoSpec *cs = CargoSpec::Get(i);
+                if(cs == NULL) continue;
+                int cargoid = cs->Index();
+                //if (HasBit(st->goods[i].status,GoodsEntry::GES_RATING)) {
+                if (HasBit(st->goods[cargoid].status, GoodsEntry::GES_RATING)) {
+                  SetDParam(prm_count++, cs->Index());
+                  SetDParam(prm_count++, st->goods[cargoid].cargo.TotalCount());
+                  SetDParam(prm_count++, ToPercent8(st->goods[cargoid].rating));
+                  str++;
+                  if (prm_count == 19) {
+                    str++;
+                    i = _sorted_standard_cargo_specs_size;
+                  }
+                }
+              }
+              if (prm_count <= 19) {
+                GuiShowTooltips(this, str, 0, NULL, TCC_HOVER);
+              }
+            }
+          }
+					break;
+				}
+				default:
+					return;
+			}
+		}
+	}
+
 	static HotkeyList hotkeys;
 };
 
@@ -520,6 +621,7 @@ static Hotkey global_hotkeys[] = {
 	Hotkey(_ghk_chat_all_keys, "chat_all", GHK_CHAT_ALL),
 	Hotkey(_ghk_chat_company_keys, "chat_company", GHK_CHAT_COMPANY),
 	Hotkey(_ghk_chat_server_keys, "chat_server", GHK_CHAT_SERVER),
+  	Hotkey('O', "show_watch_window", GHK_WATCH_WINDOW),
 	HOTKEY_LIST_END
 };
 HotkeyList MainWindow::hotkeys("global", global_hotkeys);
