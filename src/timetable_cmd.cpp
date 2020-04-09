@@ -389,6 +389,7 @@ void UpdateVehicleTimetable(Vehicle *v, bool travelling)
 
 	/* This vehicle is arriving at the first destination in the timetable. */
 	if (v->cur_real_order_index == first_manual_order && travelling) {
+		v->trip_history.NewRound();
 		/* If the start date hasn't been set, or it was set automatically when
 		 * the vehicle last arrived at the first destination, update it to the
 		 * current time. Otherwise set the late counter appropriately to when

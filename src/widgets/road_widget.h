@@ -36,6 +36,7 @@ enum BuildRoadDepotWidgets {
 	WID_BROD_DEPOT_SE,  ///< Depot with SE entry.
 	WID_BROD_DEPOT_SW,  ///< Depot with SW entry.
 	WID_BROD_DEPOT_NW,  ///< Depot with NW entry.
+	WID_BROD_DEPOT_AUTO, ///< Depot, autodetect entry.
 };
 
 /** Widgets of the #BuildRoadStationWindow class. */
@@ -49,6 +50,8 @@ enum BuildRoadStationWidgets {
 	WID_BROS_STATION_NW,    ///< Terminal station with NW entry.
 	WID_BROS_STATION_X,     ///< Drive-through station in x-direction.
 	WID_BROS_STATION_Y,     ///< Drive-through station in y-direction.
+	WID_BROS_STATION_AUTO,     ///< Terminal station, autoselect entry.
+	WID_BROS_STATION_XY_AUTO,  ///< Drive-through station, autoselect direction.
 	WID_BROS_LT_OFF,        ///< Turn off area highlight.
 	WID_BROS_LT_ON,         ///< Turn on area highlight.
 	WID_BROS_INFO,          ///< Station acceptance info.

@@ -625,9 +625,12 @@ void VideoDriver_SDL::InputLoop()
 	Uint8 *keys = SDL_GetKeyState(&numkeys);
 
 	bool old_ctrl_pressed = _ctrl_pressed;
+	bool old_alt_pressed = _alt_pressed;
 
 	_ctrl_pressed  = !!(mod & KMOD_CTRL);
+	_alt_pressed   = !!(mod & KMOD_ALT);
 	_shift_pressed = !!(mod & KMOD_SHIFT);
+	_alt_pressed = !!(mod & KMOD_ALT);
 
 #if defined(_DEBUG)
 	this->fast_forward_key_pressed = _shift_pressed;
@@ -646,6 +649,7 @@ void VideoDriver_SDL::InputLoop()
 
 	if (old_ctrl_pressed != _ctrl_pressed) HandleCtrlChanged();
 }
+			bool old_alt_pressed = _alt_pressed;
 
 void VideoDriver_SDL::MainLoop()
 {

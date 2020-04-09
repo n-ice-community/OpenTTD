@@ -53,6 +53,7 @@ extern bool _fullscreen;
 extern byte _support8bpp;
 extern CursorVars _cursor;
 extern bool _ctrl_pressed;   ///< Is Ctrl pressed?
+extern bool _alt_pressed;    ///< Is Alt pressed?
 extern bool _shift_pressed;  ///< Is Shift pressed?
 extern uint16 _game_speed;
 

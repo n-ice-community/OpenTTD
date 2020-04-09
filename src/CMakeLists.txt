@@ -54,6 +54,8 @@ add_files(
     autoreplace_gui.h
     autoreplace_type.h
     autoslope.h
+    base64.cpp
+    base64.h
     base_consist.cpp
     base_consist.h
     base_media_base.h
@@ -68,6 +70,8 @@ add_files(
     bridge_map.cpp
     bridge_map.h
     build_vehicle_gui.cpp
+    cargo_table_gui.cpp
+    cargo_table_gui.h
     cargo_type.h
     cargoaction.cpp
     cargoaction.h
@@ -88,6 +92,8 @@ add_files(
     command.cpp
     command_func.h
     command_type.h
+    commands_token_gui.cpp
+    commands_token_gui.h
     company_base.h
     company_cmd.cpp
     company_func.h
@@ -442,6 +448,9 @@ add_files(
     tree_cmd.cpp
     tree_gui.cpp
     tree_map.h
+    triphistory.h
+    triphistory_cmd.cpp
+    triphistory_gui.cpp
     tunnel_map.cpp
     tunnel_map.h
     tunnelbridge.h
@@ -465,6 +474,8 @@ add_files(
     viewport_type.h
     void_cmd.cpp
     void_map.h
+    watch_gui_1.cpp
+    watch_gui_1.h
     water.h
     water_cmd.cpp
     water_map.h
@@ -481,4 +492,7 @@ add_files(
     window_type.h
     zoom_func.h
     zoom_type.h
+    zoning.h
+    zoning_cmd.cpp
+    zoning_gui.cpp
 )

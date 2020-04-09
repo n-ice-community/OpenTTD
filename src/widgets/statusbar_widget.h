@@ -15,6 +15,8 @@ enum StatusbarWidgets {
 	WID_S_LEFT,   ///< Left part of the statusbar; date is shown there.
 	WID_S_MIDDLE, ///< Middle part; current news or company name or *** SAVING *** or *** PAUSED ***.
 	WID_S_RIGHT,  ///< Right part; bank balance.
+	WID_S_RULES,
+	WID_S_USER,
 };
 
 #endif /* WIDGETS_STATUSBAR_WIDGET_H */

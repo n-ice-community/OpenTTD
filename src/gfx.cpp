@@ -33,6 +33,7 @@ bool _fullscreen;
 byte _support8bpp;
 CursorVars _cursor;
 bool _ctrl_pressed;   ///< Is Ctrl pressed?
+bool _alt_pressed;    ///< Is Alt pressed?
 bool _shift_pressed;  ///< Is Shift pressed?
 uint16 _game_speed = 100; ///< Current game-speed; 100 is 1x, 0 is infinite.
 bool _left_button_down;     ///< Is left mouse button pressed?
