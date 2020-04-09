@@ -185,6 +185,19 @@ struct StatusBarWindow : Window {
 					DrawSprite(SPR_UNREAD_NEWS, PAL_NONE, r.right - WD_FRAMERECT_RIGHT - icon_size.width, r.top + WD_FRAMERECT_TOP + (int)(FONT_HEIGHT_NORMAL - icon_size.height) / 2);
 				}
 				break;
+
+      case WID_S_USER:
+        if(_settings_client.gui.community != 0){
+          SetDParamStr(0, (char*)_settings_client.network.community_user[_settings_client.gui.community-1]);
+          DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, STR_CC_WIKI_USER_PAGE, TC_FROMSTRING, SA_HOR_CENTER);
+        }
+				break;
+
+			case WID_S_RULES:
+				if(_settings_client.gui.community != 0){
+					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, STR_CC_WIKI_RULES_PAGE_STATUS, TC_FROMSTRING, SA_HOR_CENTER);
+				}
+				break;
 		}
 	}
 
@@ -211,8 +224,17 @@ struct StatusBarWindow : Window {
 
 	void OnClick(Point pt, int widget, int click_count) override
 	{
+    extern void OpenBrowser(const char *url);
 		switch (widget) {
 			case WID_S_MIDDLE: ShowLastNewsMessage(); break;
+			case WID_S_USER: 
+        if(_settings_client.gui.community == 1) OpenBrowser("http://n-ice.org/openttd");
+				else if(_settings_client.gui.community == 2) OpenBrowser("https://openttd.btpro.nl");
+				break;
+			case WID_S_RULES: 
+				if(_settings_client.gui.community == 1) OpenBrowser("https://wiki.x-base.info/OpenTTD/Rules");
+				else if(_settings_client.gui.community == 2) OpenBrowser("https://openttd.btpro.nl/wiki/index.php/Server_Rules");
+				break;
 			case WID_S_RIGHT:  if (_local_company != COMPANY_SPECTATOR) ShowCompanyFinances(_local_company); break;
 			default: ResetObjectToPlace();
 		}
@@ -240,7 +262,9 @@ struct StatusBarWindow : Window {
 static const NWidgetPart _nested_main_status_widgets[] = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_PANEL, COLOUR_GREY, WID_S_LEFT), SetMinimalSize(140, 12), EndContainer(),
+		NWidget(WWT_PUSHBTN, COLOUR_CREAM, WID_S_RULES), SetMinimalSize(80, 12), SetDataTip(0x0, STR_CC_WIKI_RULES_PAGE_STATUS_TOOLTIP),
 		NWidget(WWT_PUSHBTN, COLOUR_GREY, WID_S_MIDDLE), SetMinimalSize(40, 12), SetDataTip(0x0, STR_STATUSBAR_TOOLTIP_SHOW_LAST_NEWS), SetResize(1, 0),
+		NWidget(WWT_PUSHBTN, COLOUR_GREY, WID_S_USER), SetMinimalSize(80, 12), SetDataTip(0x0, STR_CC_WIKI_USER_PAGE_TOOLTIP),
 		NWidget(WWT_PUSHBTN, COLOUR_GREY, WID_S_RIGHT), SetMinimalSize(140, 12),
 	EndContainer(),
 };

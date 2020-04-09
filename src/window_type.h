@@ -107,6 +107,7 @@ enum WindowClass {
 	 *   - 0 = #ToolTipsWidgets
 	 */
 	WC_TOOLTIPS,
+        WC_TOOLTIPS_EXTRA,
 
 	/**
 	 * Query string window; %Window numbers:
@@ -215,6 +216,12 @@ enum WindowClass {
 	 *   - #VehicleID = #VehicleTimetableWidgets
 	 */
 	WC_VEHICLE_TIMETABLE,
+
+	/**
+	 * Vehicle trip history; %Window numbers:
+	 *   - #VehicleID = #VehicleTripHistoryWidgets
+	 */
+	WC_VEHICLE_TRIP_HISTORY,
 
 	/**
 	 * Company colour selection; %Window numbers:
@@ -514,6 +521,7 @@ enum WindowClass {
 	 *   - #CompanyID = #CompanyWidgets
 	 */
 	WC_FINANCES,
+	WC_CARGOS,
 
 	/**
 	 * Income graph; %Window numbers:
@@ -666,6 +674,8 @@ enum WindowClass {
 	 *   - 0 = #SpriteAlignerWidgets
 	 */
 	WC_SPRITE_ALIGNER,
+	WC_ZONING_TOOLBAR,
+        WC_CB_TOWN,
 
 	/**
 	 * Linkgraph legend; %Window numbers:
@@ -696,6 +706,9 @@ enum WindowClass {
 	 *   - 0 = #ScreenshotWidgets
 	 */
 	WC_SCREENSHOT,
+
+	WC_CC_TOKENLOGIN,
+	WC_WATCH_COMPANY1,
 
 	WC_INVALID = 0xFFFF, ///< Invalid window.
 };

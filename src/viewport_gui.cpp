@@ -14,6 +14,12 @@
 #include "strings_func.h"
 #include "zoom_func.h"
 #include "window_func.h"
+#include "gfx_func.h"
+#include "industry.h"
+#include "town_map.h"
+#include "station_gui.h"
+#include "station_base.h"
+#include "cargotype.h"
 
 #include "widgets/viewport_widget.h"
 
@@ -151,6 +157,98 @@ public:
 		if (!gui_scope) return;
 		/* Only handle zoom message if intended for us (msg ZOOM_IN/ZOOM_OUT) */
 		HandleZoomMessage(this, this->viewport, WID_EV_ZOOM_IN, WID_EV_ZOOM_OUT);
+	}
+
+  virtual void OnMouseOver(Point pt, int widget)
+	{
+		/* Show tooltip with last month production or town name */
+		if (pt.x != -1 && _settings_client.gui.enable_extra_tooltips) {
+			GuiPrepareTooltipsExtra(this);
+		} else if (pt.x != -1) {
+			TileIndex tile;
+			const bool viewport_is_in_map_mode = (this->viewport->zoom > ZOOM_LVL_MAX);
+			//const bool viewport_is_in_map_mode = (this->viewport->zoom >= ZOOM_LVL_MAX);
+			//const bool viewport_is_in_map_mode = (this->viewport->zoom >= ZOOM_LVL_DRAW_MAP);
+			if (viewport_is_in_map_mode) {
+        // Disabled, for now :)
+				/*NWidgetViewport *nvp = this->GetWidget<NWidgetViewport>(WID_EV_VIEWPORT);
+				const int a = ((ScaleByZoom(pt.x - nvp->pos_x, this->viewport->zoom) + this->viewport->virtual_left) >> 2) / ZOOM_LVL_BASE;
+				const int b = ((ScaleByZoom(pt.y - nvp->pos_y, this->viewport->zoom) + this->viewport->virtual_top) >> 1) / ZOOM_LVL_BASE;
+				tile = TileVirtXY(b - a, b + a);*/
+			} else {
+				const Point p = GetTileBelowCursor();
+				tile = TileVirtXY(p.x, p.y);
+			}
+			if (tile >= MapSize()) return;
+
+			switch (GetTileType(tile)) {
+				case MP_ROAD:
+					if (IsRoadDepot(tile)) return;
+					/* FALL THROUGH */
+				case MP_HOUSE: {
+					if (HasBit(_display_opt, DO_SHOW_TOWN_NAMES)) return; // No need for a town name tooltip when it is already displayed
+					if (!viewport_is_in_map_mode) return;
+					const TownID tid = GetTownIndex(tile);
+					if (!tid) return;
+					SetDParam(0, tid);
+					GuiShowTooltips(this, STR_TOWN_NAME_TOOLTIP, 0, NULL, TCC_HOVER);
+					break;
+				}
+				case MP_INDUSTRY: {
+					const Industry *ind = Industry::GetByTile(tile);
+					const IndustrySpec *indsp = GetIndustrySpec(ind->type);
+
+					StringID str = STR_INDUSTRY_VIEW_TRANSPORTED_TOOLTIP;
+					uint prm_count = 0;
+					SetDParam(prm_count++, indsp->name);
+					for (byte i = 0; i < lengthof(ind->produced_cargo); i++) {
+						if (ind->produced_cargo[i] != CT_INVALID) {
+							SetDParam(prm_count++, ind->produced_cargo[i]);
+							SetDParam(prm_count++, ind->last_month_production[i]);
+							SetDParam(prm_count++, ToPercent8(ind->last_month_pct_transported[i]));
+							str++;
+						}
+					}
+					if (prm_count <= 19) {
+            GuiShowTooltips(this, str, 0, NULL, TCC_HOVER);
+          }
+					break;
+				}
+				case MP_STATION: {
+          if (!IsRailWaypoint(tile)) {
+            if (!HasTileWaterGround(tile)) {
+              const Station *st = Station::GetByTile(tile);
+              StringID str = STR_STATION_VIEW_TRANSPORTED_TOOLTIP;
+              uint prm_count = 0;
+              SetDParam(prm_count++, st->index);
+              for (int i = 0; i < _sorted_standard_cargo_specs_size; i++) {
+                const CargoSpec *cs = _sorted_cargo_specs[i];
+                //const CargoSpec *cs = CargoSpec::Get(i);
+                if(cs == NULL) continue;
+                int cargoid = cs->Index();
+                //if (HasBit(st->goods[i].status,GoodsEntry::GES_RATING)) {
+                if (HasBit(st->goods[cargoid].status, GoodsEntry::GES_RATING)) {
+                  SetDParam(prm_count++, cs->Index());
+                  SetDParam(prm_count++, st->goods[cargoid].cargo.TotalCount());
+                  SetDParam(prm_count++, ToPercent8(st->goods[cargoid].rating));
+                  str++;
+                  if (prm_count == 19) {
+                    str++;
+                    i = _sorted_standard_cargo_specs_size;
+                  }
+                }
+              }
+              if (prm_count <= 19) {
+                GuiShowTooltips(this, str, 0, NULL, TCC_HOVER);
+              }
+            }
+          }
+					break;
+				}
+				default:
+					return;
+			}
+		}
 	}
 };
 
