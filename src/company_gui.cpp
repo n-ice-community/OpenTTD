@@ -46,8 +46,25 @@
 static const uint EXP_LINESPACE  = 2;      ///< Amount of vertical space for a horizontal (sub-)total line.
 static const uint EXP_BLOCKSPACE = 10;     ///< Amount of vertical space between two blocks of numbers.
 
+/* Selected community */
+typedef enum {
+    AC_NONE = 0,
+    AC_NICE = 1,
+    AC_BTPRO = 2,
+    AC_LAST = AC_BTPRO,
+} active_community_t;
+static active_community_t GetActiveCommunity(void) {
+    active_community_t ret = (active_community_t)_settings_client.gui.community;
+
+    if (ret > AC_LAST) {
+        return AC_NONE;
+    }
+    return ret;
+}
+
 static void DoSelectCompanyManagerFace(Window *parent);
 static void ShowCompanyInfrastructure(CompanyID company);
+Window *ShowAdminCompanyButtons(Window *link = NULL, int companyid = INVALID_COMPANY);
 
 /** Standard unsorted list of expenses. */
 static ExpensesType _expenses_list_1[] = {
@@ -2182,6 +2199,10 @@ static const NWidgetPart _nested_company_widgets[] = {
 							NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_C_RELOCATE_HQ), SetFill(1, 0), SetDataTip(STR_COMPANY_VIEW_RELOCATE_HQ, STR_COMPANY_VIEW_RELOCATE_COMPANY_HEADQUARTERS),
 							NWidget(NWID_SPACER), SetMinimalSize(90, 0),
 						EndContainer(),
+						NWidget(WWT_TEXTBTN, COLOUR_GREY, CW_WIDGET_COMPANY_RESET), SetFill(1, 0), SetDataTip(STR_CC_RESET, STR_CC_RESET_TOOLTIP),
+						NWidget(WWT_TEXTBTN, COLOUR_GREY, CW_WIDGET_COMPANY_KNOWN), SetFill(1, 0), SetDataTip(STR_CC_KNOWN, STR_CC_KNOWN_TOOLTIP),
+						NWidget(WWT_TEXTBTN, COLOUR_GREY, CW_WIDGET_COMPANY_ADMIN), SetFill(1, 0), SetMinimalSize(90, 32), SetDataTip(STR_CC_ADMIN_COMPANY, STR_CC_ADMIN_COMPANY_TOOLTIP),
+						NWidget(NWID_SPACER), SetMinimalSize(90, 0),
 						NWidget(NWID_SPACER), SetFill(0, 1),
 					EndContainer(),
 				EndContainer(),
@@ -2215,6 +2236,7 @@ static const NWidgetPart _nested_company_widgets[] = {
 								NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_C_COMPANY_PASSWORD), SetFill(1, 0), SetDataTip(STR_COMPANY_VIEW_PASSWORD, STR_COMPANY_VIEW_PASSWORD_TOOLTIP),
 								NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_C_COMPANY_JOIN), SetFill(1, 0), SetDataTip(STR_COMPANY_VIEW_JOIN, STR_COMPANY_VIEW_JOIN_TOOLTIP),
 							EndContainer(),
+							NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, CW_WIDGET_COMPANY_JOIN2), SetFill(1, 0), SetDataTip(STR_COMPANY_VIEW_JOIN, STR_COMPANY_VIEW_JOIN_TOOLTIP),
 						EndContainer(),
 					EndContainer(),
 				EndContainer(),
@@ -2248,7 +2270,15 @@ int GetAmountOwnedBy(const Company *c, Owner owner)
 static const StringID _company_view_vehicle_count_strings[] = {
 	STR_COMPANY_VIEW_TRAINS, STR_COMPANY_VIEW_ROAD_VEHICLES, STR_COMPANY_VIEW_SHIPS, STR_COMPANY_VIEW_AIRCRAFT
 };
-
+static void cg_ResetCallback(Window *w, bool confirmed)
+{
+	if (confirmed) {
+		CompanyID company2 = (CompanyID)w->window_number;
+		char msg[128];
+		seprintf(msg, lastof(msg), "!resetcompany %i", company2 + 1);
+		NetworkClientSendChat(NETWORK_ACTION_CHAT_CLIENT, DESTTYPE_CLIENT, CLIENT_ID_SERVER, msg);
+	}
+}
 /**
  * Window with general information about a company
  */
@@ -2347,7 +2377,14 @@ struct CompanyWindow : Window
 				return;
 			}
 		}
-
+		if(!_networking || GetActiveCommunity() == AC_NONE){
+			this->SetWidgetDisabledState(CW_WIDGET_COMPANY_KNOWN, true);
+			this->SetWidgetDisabledState(CW_WIDGET_COMPANY_RESUME, true);
+			this->SetWidgetDisabledState(CW_WIDGET_COMPANY_SUSPEND, true);
+			this->SetWidgetDisabledState(CW_WIDGET_COMPANY_RESET, true);
+			this->SetWidgetDisabledState(CW_WIDGET_COMPANY_ADMIN, true);
+			this->SetWidgetDisabledState(CW_WIDGET_COMPANY_JOIN2, true);
+		}
 		this->DrawWidgets();
 	}
 
@@ -2621,6 +2658,36 @@ struct CompanyWindow : Window
 					/* just send the join command */
 					NetworkClientRequestMove(company);
 				}
+				MarkWholeScreenDirty();
+ 				break;
+ 			}
+
+			case CW_WIDGET_COMPANY_JOIN2:{
+				this->query_widget = CW_WIDGET_COMPANY_JOIN2;
+				CompanyID company2 = (CompanyID)this->window_number;
+				char msg[128];
+				seprintf(msg, lastof(msg),"!move #%i %i", _network_own_client_id, company2 + 1);
+				NetworkClientSendChat(NETWORK_ACTION_CHAT_CLIENT, DESTTYPE_CLIENT, CLIENT_ID_SERVER, msg);
+				MarkWholeScreenDirty();
+ 				break;
+ 			}
+ 			case CW_WIDGET_COMPANY_RESET:{
+				this->query_widget = CW_WIDGET_COMPANY_RESET;
+				ShowQuery(STR_CC_RESET_CAPTION, STR_CC_REALY_RESET, this, cg_ResetCallback);
+				MarkWholeScreenDirty();
+				break;
+			}
+			case CW_WIDGET_COMPANY_KNOWN:{
+				this->query_widget = CW_WIDGET_COMPANY_KNOWN;
+				CompanyID company2 = (CompanyID)this->window_number;
+				char msg[128];
+				seprintf(msg, lastof(msg),"!known %i", company2 + 1);
+				NetworkClientSendChat(NETWORK_ACTION_CHAT_CLIENT, DESTTYPE_CLIENT, CLIENT_ID_SERVER, msg);
+				MarkWholeScreenDirty();
+				break;
+			}
+			case CW_WIDGET_COMPANY_ADMIN:{
+				if (_networking && GetActiveCommunity() != AC_NONE) ShowAdminCompanyButtons(this, this->window_number);
 				break;
 			}
 		}
@@ -2823,4 +2890,182 @@ static WindowDesc _buy_company_desc(
 void ShowBuyCompanyDialog(CompanyID company)
 {
 	AllocateWindowDescFront<BuyCompanyWindow>(&_buy_company_desc, company);
+}
+
+/* admin company buttons */
+static const NWidgetPart _nested_admin_company_buttons_desc[] = {
+	NWidget(NWID_HORIZONTAL),
+		NWidget(WWT_CLOSEBOX, COLOUR_GREY),
+		NWidget(WWT_CAPTION, COLOUR_GREY, WID_AC_CAPTION), SetDataTip(STR_ADMIN_COMPANY_BUTTONS_CAPTION, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
+	EndContainer(),
+	NWidget(WWT_PANEL, COLOUR_GREY), SetFill(0, 1),
+		NWidget(NWID_HORIZONTAL),
+			NWidget(NWID_VERTICAL, NC_EQUALSIZE), SetPIP(0, 2, 0),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_C_COMPANY_EMPTY), SetMinimalSize(75, 20), SetFill(1, 0), SetDataTip(STR_CC_EMPTY, STR_CC_EMPTY_TOOLTIP),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_C_COMPANY_LOCK), SetMinimalSize(75, 20), SetFill(1, 0), SetDataTip(STR_CC_LOCK, STR_CC_LOCK_TOOLTIP),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_C_COMPANY_UNLOCK), SetMinimalSize(75, 20), SetFill(1, 0), SetDataTip(STR_CC_UNLOCK, STR_CC_UNLOCK_TOOLTIP),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_C_COMPANY_NEWSTICKET), SetMinimalSize(75, 20), SetFill(1, 0), SetDataTip(STR_CC_COMPANY_NEWSTICKET_BUTTON, STR_CC_COMPANY_NEWSTICKET_BUTTON_TOOLTIP),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_C_COMPANY_NEWSTICKET_COMP), SetMinimalSize(75, 20), SetFill(1, 0), SetDataTip(STR_CC_COMPANY_NEWSTICKET_BUTTON_COMP, STR_CC_COMPANY_NEWSTICKET_BUTTON_COMP_TOOLTIP),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_C_COMPANY_TOWNSTATS), SetMinimalSize(0, 2), SetFill(0, 1), SetDataTip(STR_CC_TOWNSTATS, STR_CC_TOWNSTATS_TOOLTIP),
+			EndContainer(),
+			NWidget(NWID_SPACER), SetMinimalSize(2, 0), SetFill(0, 1),
+			NWidget(NWID_VERTICAL), SetPIP(0, 2, 0),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_C_COMPANY_RESET), SetMinimalSize(75, 20), SetFill(1, 0), SetDataTip(STR_CC_RESET, STR_CC_RESET_TOOLTIP),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_C_COMPANY_RESET_SPEC), SetMinimalSize(75, 20), SetFill(1, 0), SetDataTip(STR_CC_RESET_SPEC, STR_CC_RESET_SPEC_TOOLTIP),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_C_COMPANY_RESET_KICK), SetMinimalSize(75, 20), SetFill(1, 0), SetDataTip(STR_CC_RESET_KICK, STR_CC_RESET_KICK_TOOLTIP),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_C_RESET_COMPANY_TIMER5), SetMinimalSize(75, 20), SetFill(1, 0), SetDataTip(STR_CC_RESET_TIMER5, STR_CC_RESET_TIMER5_TOOLTIP),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_C_RESET_COMPANY_TIMER), SetMinimalSize(75, 20), SetFill(1, 0), SetDataTip(STR_CC_RESET_TIMER, STR_CC_RESET_TIMER_TOOLTIP),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_C_RESET_COMPANY_TIMER_CANCEL), SetMinimalSize(75, 20), SetFill(1, 0), SetDataTip(STR_CC_RESET_TIMER_CANCEL, STR_CC_RESET_TIMER_CANCEL_TOOLTIP),
+			EndContainer(),
+		EndContainer(),
+		NWidget(NWID_SPACER), SetMinimalSize(0, 2), SetFill(0, 1),
+	EndContainer(),
+};
+
+class AdminCompanyButtonsWindow : public Window
+{
+	protected:
+		AdminCompanyButtonsQuery query_widget;
+		CompanyID company;
+
+	public:
+		AdminCompanyButtonsWindow(WindowDesc *desc, int window_number) : Window(desc)
+		{
+			this->InitNested( window_number);
+			this->company = (CompanyID)window_number;
+			this->owner = (Owner)this->window_number;
+		}
+
+	virtual void OnPaint()
+	{
+		this->DrawWidgets();
+	}
+
+	virtual void OnClick(Point pt, int widget, int click_count)
+	{
+		if(!_networking) return;
+		char msg[128];
+		switch (widget) {
+			case WID_C_COMPANY_EMPTY:
+				seprintf(msg, lastof(msg),"!emptycompany %i", this->company+ 1);
+				NetworkClientSendChat(NETWORK_ACTION_CHAT_CLIENT, DESTTYPE_CLIENT, CLIENT_ID_SERVER, msg);
+				break;
+		case WID_C_COMPANY_RESET_KICK:
+				seprintf(msg,lastof(msg), "!resetcompanykick %i", this->company + 1);
+				NetworkClientSendChat(NETWORK_ACTION_CHAT_CLIENT, DESTTYPE_CLIENT, CLIENT_ID_SERVER, msg);
+				break;
+			case WID_C_COMPANY_RESET_SPEC:
+				seprintf(msg,lastof(msg), "!resetcompanyspec %i", this->company + 1);
+				NetworkClientSendChat(NETWORK_ACTION_CHAT_CLIENT, DESTTYPE_CLIENT, CLIENT_ID_SERVER, msg);
+				break;
+			case WID_C_COMPANY_RESET:
+				seprintf(msg, lastof(msg),"!resetcompany %i", this->company + 1);
+				NetworkClientSendChat(NETWORK_ACTION_CHAT_CLIENT, DESTTYPE_CLIENT, CLIENT_ID_SERVER, msg);
+				break;
+			case WID_C_RESET_COMPANY_TIMER:
+				this->query_widget = WID_CQ_RESET_COMPANY_TIMER;
+				SetDParam(0, this->window_number);
+				ShowQueryString(STR_EMPTY, STR_CC_RESET_TIMER_VALUE, 25, this, CS_NUMERAL, QSF_NONE);
+				break;
+			case WID_C_RESET_COMPANY_TIMER5:
+				seprintf(msg,lastof(msg), "!resetcompanytimer %i 300", this->company + 1);
+				NetworkClientSendChat(NETWORK_ACTION_CHAT_CLIENT, DESTTYPE_CLIENT, CLIENT_ID_SERVER , msg);
+				break;
+			case WID_C_RESET_COMPANY_TIMER_CANCEL:
+				seprintf(msg, lastof(msg), "!cancelresetcompany %i", this->company + 1);
+				NetworkClientSendChat(NETWORK_ACTION_CHAT_CLIENT, DESTTYPE_CLIENT, CLIENT_ID_SERVER , msg);
+				break;
+			case WID_C_COMPANY_LOCK:
+				seprintf(msg, lastof(msg),"!lockcompany %i", this->company + 1);
+				NetworkClientSendChat(NETWORK_ACTION_CHAT_CLIENT, DESTTYPE_CLIENT, CLIENT_ID_SERVER , msg);
+				break;
+			case WID_C_COMPANY_UNLOCK:
+				seprintf(msg, lastof(msg),"!unlockcompany %i", this->company + 1);
+				NetworkClientSendChat(NETWORK_ACTION_CHAT_CLIENT, DESTTYPE_CLIENT, CLIENT_ID_SERVER , msg);
+				break;
+			case WID_C_COMPANY_TOWNSTATS:{
+				seprintf(msg, lastof(msg),"!townstats %i", (CompanyID)this->window_number + 1);
+				NetworkClientSendChat(NETWORK_ACTION_CHAT_CLIENT, DESTTYPE_CLIENT, CLIENT_ID_SERVER , msg);
+				break;
+			}
+			case WID_C_COMPANY_NEWSTICKET:
+				this->query_widget = WID_CQ_COMPANY_NEWSTICKET;
+				SetDParam(0, this->window_number);
+				ShowQueryString(STR_EMPTY, STR_CC_PLAYER_NEWSTICKET, 250, this, CS_ALPHANUMERAL, QSF_NONE);
+				break;
+			case WID_C_COMPANY_NEWSTICKET_COMP:
+				this->query_widget = WID_CQ_COMPANY_NEWSTICKET_COMP;
+				SetDParam(0, this->window_number);
+				ShowQueryString(STR_EMPTY, STR_CC_PLAYER_NEWSTICKET, 250, this, CS_ALPHANUMERAL, QSF_NONE);
+				break;
+		}
+	}
+
+	void OnQueryTextFinished(char *str)
+	{
+		if (str == NULL) return;
+		char msg[512];
+		switch (this->query_widget) {
+			default: NOT_REACHED();
+
+			case WID_CQ_RESET_COMPANY_TIMER:
+				seprintf(msg, lastof(msg),"!resetcompanytimer %i %s", (this->company + 1), str);
+				NetworkClientSendChat(NETWORK_ACTION_CHAT_CLIENT, DESTTYPE_CLIENT, CLIENT_ID_SERVER, msg);
+				break;
+			case WID_CQ_COMPANY_NEWSTICKET: {
+				CompanyID company2 = (CompanyID)this->window_number;
+				char msg[128];
+				char buffer[128];
+				char buffer2[128];
+				GetString(buffer, STR_COLOUR_DARK_BLUE + _company_colours[company2], lastof(buffer));
+				SetDParam(0, company2);
+				GetString(buffer2, STR_COMPANY_NAME, lastof(buffer2));
+				seprintf(msg, lastof(msg),"!news %s (#%i - %s), %s", buffer2, company2 + 1, buffer, str);
+				NetworkClientSendChat(NETWORK_ACTION_CHAT_CLIENT, DESTTYPE_CLIENT, CLIENT_ID_SERVER , msg);
+				//MarkWholeScreenDirty();
+				break;
+			}
+			case WID_CQ_COMPANY_NEWSTICKET_COMP: {
+				CompanyID company2 = (CompanyID)this->window_number;
+				char msg[128];
+				char buffer[128];
+				char buffer2[128];
+				GetString(buffer, STR_COLOUR_DARK_BLUE + _company_colours[company2], lastof(buffer));
+				SetDParam(0, company2);
+				GetString(buffer2, STR_COMPANY_NAME, lastof(buffer2));
+				seprintf(msg, lastof(msg),"!news %i %s (#%i - %s), %s", company2 + 1, buffer2, company2 + 1, buffer, str);
+				NetworkClientSendChat(NETWORK_ACTION_CHAT_CLIENT, DESTTYPE_CLIENT, CLIENT_ID_SERVER , msg);
+				//MarkWholeScreenDirty();
+			break;
+			}
+		}
+	}
+};
+
+static WindowDesc _admin_company_buttons_desc(
+	WDP_AUTO, NULL,0, 0,
+	WC_BUY_COMPANY, WC_NONE,
+	WC_ADMIN_COMPANY_BUTTONS,
+	_nested_admin_company_buttons_desc, lengthof(_nested_admin_company_buttons_desc)
+);
+
+Window *ShowAdminCompanyButtons(Window *link, int companyid)
+{
+	if (!Company::IsValidID((CompanyID)companyid)) return NULL;
+	Window *w;
+	if (link == NULL) {
+		w = AllocateWindowDescFront<AdminCompanyButtonsWindow>(&_admin_company_buttons_desc, companyid);
+		return w;
+	}
+	/* Delete the window to place it again. */
+	DeleteWindowById(WC_ADMIN_COMPANY_BUTTONS, companyid, true);
+	w = AllocateWindowDescFront<AdminCompanyButtonsWindow>(&_admin_company_buttons_desc, companyid);
+	/* Align the window next to the company window. */
+	if(w != NULL && _screen.width > (link->left + link->width + 160)){ //windows has to fit
+		w->left = link->left + link->width;
+		w->top = link->top;
+		w->SetDirty();
+		//link->SetDirty();
+	}
+	return w;
 }

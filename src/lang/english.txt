@@ -5469,3 +5469,99 @@ STR_TOWN_CB_CARGO_FROM_NOT                                      :{SILVER}{COMMA}
 
 STR_CB_GUI_TOWN_VIEW_BUTTON                                     :{BLACK}Town view
 STR_CB_GUI_TOWN_VIEW_TOOLTIP                                    :{BLACK}Show information on town
+
+STR_ADMIN_COMPANY_BUTTONS_CAPTION                               :{WHITE}Admin Company Buttons
+STR_CC_ADMIN_COMPANY                                            :{BLACK}ADMIN BUTTONS
+STR_CC_ADMIN_COMPANY_TOOLTIP                                    :{BLACK}Launch Admin company buttons
+STR_CC_OTHER_ADMIN_LOGIN                                        :{BLACK}Admin Login
+STR_CC_OTHER_ADMIN_LOGOUT                                       :{BLACK}Admin Logout
+STR_CC_BAN                                                      :{RED}BanHammer
+STR_CC_BAN_TOOLTIP                                              :{BLACK}Ban player out of the game
+STR_CC_BAN_TITLE                                                :{WHITE}Reason
+STR_CC_WATCH                                                    :Watch
+STR_CC_ENABLE                                                   :{BLACK}En/Dis
+STR_CC_JOIN                                                     :{BLACK}Join
+STR_CC_JOIN_TOOLTIP                                             :{BLACK}Join this company as Admin
+STR_CC_LOCK                                                     :{BLACK}Lock Comp
+STR_CC_LOCK_TOOLTIP                                             :{BLACK}Lock Company. All players on it will be sent to spectators. Need to be Unlocked later to players be able to join again.
+STR_CC_UNLOCK                                                   :{BLACK}Unlock Comp
+STR_CC_UNLOCK_TOOLTIP                                           :{BLACK}Unlock Company making possible player(s) joining it again.
+STR_CC_KICK                                                     :{ORANGE}Kick
+STR_CC_KICK_TOOLTIP                                             :{BLACK}Kick player out of the game.
+STR_CC_KICKC                                                    :{BLACK}Kick from Comp
+STR_CC_KICKC_TOOLTIP                                            :{BLACK}Kick player from company, send him to Spectators.
+STR_CC_EMPTY                                                    :{BLACK}Empty Comp
+STR_CC_EMPTY_TOOLTIP                                            :{BLACK}Send players in company to Spectators.
+STR_CC_NOTE_PLAYER                                              :{BLACK}.:Add Note:.
+STR_CC_NOTE_PLAYER_TOOLTIP                                      :{BLACK}Add a short Note about player behaviour / violation of the rules.
+STR_CC_NOTE_PLAYER_TITLE                                        :{BLACK}Short Note about rules violation:
+STR_CC_SHOW_NOTES                                               :{BLACK}Show Notes
+STR_CC_SHOW_NOTES_TOOLTIP                                       :{BLACK}Show existing Notes of a Player/ID/IP/Account
+STR_CC_SHOW_NOTES_TITLE                                         :{BLACK}Parameter to filter Notes (Player/ID/IP/Account)
+STR_CC_PLAYER_ATTENTION                                         :{BLACK}.:Attention:.
+STR_CC_PLAYER_ATTENTION_TOOLTIP                                 :{BLACK}Asks for player attention, with "Player, are you here?"
+STR_CC_RESET                                                    :{BLACK}Reset Comp
+STR_CC_RESET_TOOLTIP                                            :{BLACK}Reset the company. The company must be empty.
+STR_CC_RESET_SPEC                                               :{BLACK}Reset Spec
+STR_CC_RESET_SPEC_TOOLTIP                                       :{BLACK}Reset company and send player(s) to spectators.
+STR_CC_RESET_KICK                                               :{BLACK}Reset Kick
+STR_CC_RESET_KICK_TOOLTIP                                       :{BLACK}Reset company and Kick out of the game player(s) on it.
+STR_CC_RESET_TIMER5                                             :{BLACK}Reset T. 5m
+STR_CC_RESET_TIMER5_TOOLTIP                                     :{BLACK}Starts a timer to reset company when after 5 minutes countdown.
+STR_CC_RESET_TIMER                                              :{BLACK}Reset T....
+STR_CC_RESET_TIMER_TOOLTIP                                      :{BLACK}Starts a timer to reset company when time expire (time is Admin input).
+STR_CC_RESET_TIMER_VALUE                                        :{BLACK}Time to Reset (seconds):
+STR_CC_RESET_TIMER_CANCEL                                       :{BLACK}Cancel Reset
+STR_CC_RESET_TIMER_CANCEL_TOOLTIP                               :{BLACK}Cancel the Reset timer.
+STR_CC_MOVE_PLAYER_TO_TITLE                                     :{BLACK}Move player to company number:
+STR_CC_MOVE_PLAYER_TO                                           :{BLACK}Move to ...
+STR_CC_MOVE_PLAYER_TO_TOOLTIP                                   :{BLACK}Move the player to company number specified by Admin
+STR_CC_PLAYER_NEWSTICKET_BUTTON                                 :{BLACK}News (Player)
+STR_CC_PLAYER_NEWSTICKET_BUTTON_TOOLTIP                         :{BLACK}Open a Newspapper message directed to Player
+STR_CC_COMPANYW                                                 :{BLACK}Company Window
+STR_CC_COMPANYW_TOOLTIP                                         :{BLACK}Open this player's Company Window
+
+STR_CC_PLAYERS                                                  :{BLACK}List Players
+STR_CC_COMPANIES                                                :{BLACK}List Companies
+STR_CC_KNOWN                                                    :{BLACK}.:Known:.
+STR_CC_KNOWN_TOOLTIP                                            :{BLACK}Shows the Known Players in the company.
+STR_CC_SCROLL_TO_COORDS                                         :{BLACK}Go to Coord ...
+STR_CC_SCROLL_TO_COORDS_TOOLTIP                                 :{BLACK}Scroll to Map coordinates specified by Admin
+STR_CC_SCROLL_TO_COORDS_TITLE                                   :{BLACK}Scroll to Coordinates ( {WHITE}X {BLACK}<space> {WHITE}Y {BLACK} or HEX)
+
+STR_CC_PUBLIC_PLAYER_MESSAGE                                    :{BLACK}.{RED}P{BLACK}.
+STR_CC_PUBLIC_PLAYER_MESSAGE_TOOLTIP                            :{BLACK}Send a Custom public message to this player (includes player name, company name & colour)
+STR_CC_PUBLIC_PLAYER_MESSAGE_TITLE                              :{BLACK}Type Custom message to this Player (Public)
+STR_CC_PUBLIC_COMPANY_MESSAGE                                   :{BLACK}.{RED}C{BLACK}.
+STR_CC_PUBLIC_COMPANY_MESSAGE_TOOLTIP                           :{BLACK}Send a Custom public message to this player (includes company name & colour)
+STR_CC_PUBLIC_COMPANY_MESSAGE_TITLE                             :{BLACK}Type Custom message to this Company (Public)
+STR_CC_PRIVATE_PLAYER_MESSAGE                                   :{BLACK}.{GREEN}P{BLACK}.
+STR_CC_PRIVATE_PLAYER_MESSAGE_TOOLTIP                           :{BLACK}Send a Custom private message to this player
+STR_CC_PRIVATE_PLAYER_MESSAGE_TITLE                             :{BLACK}Type Custom message to this Player (private)
+STR_CC_PRIVATE_COMPANY_MESSAGE                                  :{BLACK}.{GREEN}C{BLACK}.
+STR_CC_PRIVATE_COMPANY_MESSAGE_TOOLTIP                          :{BLACK}Send a Custom private message to this company
+STR_CC_PRIVATE_COMPANY_MESSAGE_TITLE                            :{BLACK}Type Custom message to this Company (private)
+###
+STR_CC_REALY_RESET                                              :{WHITE}Are you sure?.
+STR_CC_RESET_CAPTION                                            :{WHITE}Reset
+STR_CC_COMPANY_ADMIN_CAPTION                                    :{WHITE}Admin Commands:
+
+STR_CC_JOIN2                                                    :{BLACK}A. Join
+STR_CC_JOIN2_TOOLTIP                                            :{BLACK}Join this company as Admin
+STR_CC_CLIENTS                                                  :{YELLOW}Clients
+STR_CC_ENABLE_TOOLTIP                                           :{BLACK}Enable or Disable the Admin commands
+STR_CC_ENABLE_SHOW_TOOLTIP                                      :{BLACK}Enable the Admin commands
+STR_CC_ENABLE_HIDE_TOOLTIP                                      :{BLACK}Disable (Hide) the Admin commands
+STR_CC_TOWNSTATS                                                :{BLACK}Town Stats
+STR_CC_TOWNSTATS_TOOLTIP                                        :{BLACK}Shows the Town Statistics of this company (only on CB).
+
+STR_CC_COMPANY_NEWSTICKET_BUTTON                                :{BLACK}News (Comp.)
+STR_CC_COMPANY_NEWSTICKET_BUTTON_TOOLTIP                        :{BLACK}Open a Newspapper message directed to Company
+STR_CC_COMPANY_NEWSTICKET_BUTTON_COMP                           :{BLACK}News (P. C.)
+STR_CC_COMPANY_NEWSTICKET_BUTTON_COMP_TOOLTIP                   :{BLACK}Open a Newspapper message only showed to Company
+STR_CC_GLOBAL_NEWSTICKET_BUTTON                                 :{BLACK}News (Global)
+STR_CC_GLOBAL_NEWSTICKET_BUTTON_TOOLTIP                         :{BLACK}Open a Newspapper message directed to All (Global)
+STR_CC_PLAYER_NEWSTICKET                                        :{BLACK}Type message as newspapper ticket to this Player
+STR_CC_COMPANY_NEWSTICKET                                       :{BLACK}Type message as newspapper ticket to this Company
+STR_CC_COMPANY_NEWSTICKET_COMP                                  :{BLACK}Type message as newspapper ticket ONLY to this Company
+STR_CC_GLOBAL_NEWSTICKET                                        :{BLACK}Type message as newspapper ticket to All (Global)

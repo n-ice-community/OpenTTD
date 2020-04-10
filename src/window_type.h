@@ -710,6 +710,8 @@ enum WindowClass {
 	WC_CC_TOKENLOGIN,
 	WC_WATCH_COMPANY1,
 
+	WC_ADMIN_COMPANY_BUTTONS,
+
 	WC_INVALID = 0xFFFF, ///< Invalid window.
 };
 
