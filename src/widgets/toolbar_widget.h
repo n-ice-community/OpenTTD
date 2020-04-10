@@ -22,6 +22,7 @@ enum ToolbarNormalWidgets {
 	WID_TN_TOWNS,         ///< Town menu.
 	WID_TN_SUBSIDIES,     ///< Subsidy menu.
 	WID_TN_STATIONS,      ///< Station menu.
+	WID_TN_PATCHES,       ///< Patches menu.
 	WID_TN_FINANCES,      ///< Finance menu.
 	WID_TN_COMPANIES,     ///< Company menu.
 	WID_TN_STORY,         ///< Story menu.

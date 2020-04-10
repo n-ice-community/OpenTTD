@@ -143,6 +143,10 @@ public:
 		}
 	}
 
+	virtual void OnMouseOver(Point pt, int widget)
+	{
+		if (pt.x != -1) GuiPrepareTooltipsExtra(this);
+	}
 	/**
 	 * Some data on this window has become invalid.
 	 * @param data Information about the changed data.

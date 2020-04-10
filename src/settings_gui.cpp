@@ -1623,6 +1623,19 @@ static SettingsContainer &GetSettingsTree()
 				routing->Add(new SettingEntry("pf.pathfinder_for_roadvehs"));
 				routing->Add(new SettingEntry("pf.pathfinder_for_ships"));
 			}
+			SettingsPage *orders = vehicles->Add(new SettingsPage(STR_CONFIG_SETTING_VEHICLES_ORDERS));
+			{
+				orders->Add(new SettingEntry("gui.enable_ctrl_click_start_stop"));
+				orders->Add(new SettingEntry("gui.auto_noload_on_transfer"));
+				orders->Add(new SettingEntry("gui.auto_noload_on_unloadall"));
+				orders->Add(new SettingEntry("gui.goto_shortcuts_ctrl_lclick"));
+				orders->Add(new SettingEntry("gui.goto_shortcuts_shift_lclick"));
+				orders->Add(new SettingEntry("gui.goto_shortcuts_ctrlshift_lclick"));
+				orders->Add(new SettingEntry("gui.goto_shortcuts_alt_lclick"));
+				orders->Add(new SettingEntry("gui.goto_shortcuts_altshift_lclick"));
+				orders->Add(new SettingEntry("gui.goto_shortcuts_altctrl_lclick"));
+			}
+			
 
 			vehicles->Add(new SettingEntry("order.no_servicing_if_no_breakdowns"));
 			vehicles->Add(new SettingEntry("order.serviceathelipad"));

@@ -54,6 +54,10 @@ map.cpp
 misc.cpp
 mixer.cpp
 music.cpp
+nc_community_window.cpp
+nc_csettings.cpp
+nc_intro_gui.cpp
+nc_util.cpp
 network/network.cpp
 network/network_admin.cpp
 network/network_client.cpp
@@ -240,6 +244,11 @@ livery.h
 map_func.h
 map_type.h
 mixer.h
+nc_community_window.h
+nc_csettings.h
+nc_intro_gui.h
+nc_receiver.h
+nc_util.h
 network/network.h
 network/network_admin.h
 network/network_base.h
@@ -295,6 +304,8 @@ order_backup.h
 order_base.h
 order_func.h
 order_type.h
+overlay.h
+overlay_cmd.h
 pbs.h
 progress.h
 querystring_gui.h
@@ -387,6 +398,7 @@ viewport_func.h
 viewport_sprite_sorter.h
 viewport_type.h
 water.h
+watch_gui.h
 waypoint_base.h
 waypoint_func.h
 widget_type.h
@@ -502,6 +514,7 @@ transparency_gui.cpp
 tree_gui.cpp
 vehicle_gui.cpp
 viewport_gui.cpp
+watch_gui.cpp
 waypoint_gui.cpp
 
 # Widgets
@@ -574,6 +587,7 @@ industry_cmd.cpp
 misc_cmd.cpp
 object_cmd.cpp
 order_cmd.cpp
+overlay_cmd.cpp
 rail_cmd.cpp
 road_cmd.cpp
 roadveh_cmd.cpp

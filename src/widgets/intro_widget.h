@@ -33,6 +33,25 @@ enum SelectGameIntroWidgets {
 	WID_SGI_CONTENT_DOWNLOAD,      ///< Content Download button.
 	WID_SGI_AI_SETTINGS,           ///< AI button.
 	WID_SGI_EXIT,                  ///< Exit button.
+	WID_NC_HEADER,
+	WID_NC_ADD_COMM,
+	WID_NC_COMMUNITY_DROPDOWN,
+	WID_NC_GROUP_DROPDOWN,
+	WID_NC_SERVERS,
+	
+	WID_NC_LIST,
+	WID_NC_LIST_END = WID_NC_LIST + 50, 
+	WID_NC_GROUPS,
+	WID_NC_GROUPS_END = WID_NC_GROUPS + 50, 
+	
+	WID_NC_ACCOUNT,
+	WID_NC_LINKS,
 };
+ 
+enum SelectGameQuery {
+	SGQ_NC_USER,
+	SGQ_NC_PASSWORD,
+};
+
 
 #endif /* WIDGETS_INTRO_WIDGET_H */

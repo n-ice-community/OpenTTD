@@ -29,6 +29,9 @@
 
 #include "table/strings.h"
 
+#include "window_func.h"
+#include "watch_gui.h"
+
 #include "safeguards.h"
 
 CommandProc CmdBuildRailroadTrack;
@@ -754,6 +757,16 @@ CommandCost DoCommandPInternal(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd,
 	if (tile != 0) {
 		Company *c = Company::GetIfValid(_current_company);
 		if (c != NULL) c->last_build_coordinate = tile;
+	}
+	
+	/* Send Tile Number to Watching Company Windows */
+	int watching_window = 0;
+	WatchCompany *wc;
+	wc = dynamic_cast<WatchCompany*>(FindWindowById(WC_WATCH_COMPANY, watching_window));
+	while (wc!=NULL) {
+		wc->OnDoCommand( _current_company, tile );
+		watching_window++;
+		wc = dynamic_cast<WatchCompany*>(FindWindowById(WC_WATCH_COMPANY, watching_window));
 	}
 
 	SubtractMoneyFromCompany(res2);

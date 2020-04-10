@@ -37,6 +37,7 @@
 #include "../core/pool_func.hpp"
 #include "../gfx_func.h"
 #include "../error.h"
+#include "../nc_csettings.h"
 
 #include "../safeguards.h"
 
@@ -690,6 +691,9 @@ void NetworkClientConnectGame(NetworkAddress address, CompanyID join_as, const c
 	_network_join_server_password = join_server_password;
 	_network_join_company_password = join_company_password;
 
+	//where did we join? - IP check
+	IConsolePrintF(CC_WHITE, "ip   %s", _settings_client.network.last_host);	
+	CSettings::get().SetSelectedByIP(_settings_client.network.last_host);
 	NetworkDisconnect();
 	NetworkInitialize();
 

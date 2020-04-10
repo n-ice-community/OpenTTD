@@ -44,6 +44,7 @@
 typedef SmallVector<Train *, 16> TrainList;
 
 RailtypeInfo _railtypes[RAILTYPE_END];
+TileIndex _rail_track_endtile; ///< The end of a rail track; as hidden return from the rail build/remove command for GUI purposes.
 
 assert_compile(sizeof(_original_railtypes) <= sizeof(_railtypes));
 
@@ -561,6 +562,7 @@ CommandCost CmdBuildSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 	}
 
 	cost.AddCost(RailBuildCost(railtype));
+	_rail_track_endtile = tile;
 	return cost;
 }
 
@@ -705,6 +707,7 @@ CommandCost CmdRemoveSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 		if (v != NULL) TryPathReserve(v, true);
 	}
 
+	_rail_track_endtile = tile;
 	return cost;
 }
 
@@ -2353,6 +2356,8 @@ static void DrawTile_Track(TileInfo *ti)
 
 		if (HasBit(_display_opt, DO_FULL_DETAIL)) DrawTrackDetails(ti, rti);
 
+		DrawOverlay(ti, MP_RAILWAY);
+
 		if (HasCatenaryDrawn(GetRailType(ti->tile))) DrawCatenary(ti);
 
 		if (HasSignals(ti->tile)) DrawSignals(ti->tile, rails, rti);
@@ -2427,6 +2432,8 @@ static void DrawTile_Track(TileInfo *ti)
 		}
 		int depot_sprite = GetCustomRailSprite(rti, ti->tile, RTSG_DEPOT);
 		relocation = depot_sprite != 0 ? depot_sprite - SPR_RAIL_DEPOT_SE_1 : rti->GetRailtypeSpriteOffset();
+
+		DrawOverlay(ti, MP_RAILWAY);
 
 		if (HasCatenaryDrawn(GetRailType(ti->tile))) DrawCatenary(ti);
 

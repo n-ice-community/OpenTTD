@@ -1313,10 +1313,13 @@ static void DrawTile_Road(TileInfo *ti)
 	switch (GetRoadTileType(ti->tile)) {
 		case ROAD_TILE_NORMAL:
 			DrawRoadBits(ti);
+			DrawOverlay(ti, MP_ROAD);
 			break;
 
 		case ROAD_TILE_CROSSING: {
 			if (ti->tileh != SLOPE_FLAT) DrawFoundation(ti, FOUNDATION_LEVELED);
+
+			DrawOverlay(ti, MP_ROAD);
 
 			PaletteID pal = PAL_NONE;
 			const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(ti->tile));
@@ -1393,6 +1396,7 @@ static void DrawTile_Road(TileInfo *ti)
 			}
 
 			DrawGroundSprite(dts->ground.sprite, PAL_NONE);
+			DrawOverlay(ti, MP_ROAD);
 			DrawOrigTileSeq(ti, dts, TO_BUILDINGS, palette);
 			break;
 		}

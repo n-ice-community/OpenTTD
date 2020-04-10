@@ -80,6 +80,15 @@ struct GUISettings {
 	bool   show_finances;                    ///< show finances at end of year
 	bool   sg_new_nonstop;                   ///< ttdpatch compatible nonstop handling read from pre v93 savegames
 	bool   new_nonstop;                      ///< ttdpatch compatible nonstop handling
+	bool   enable_ctrl_click_start_stop;     ///< allow ctrl+click to start or stop vehicles
+	uint8  goto_shortcuts_ctrl_lclick;       ///< goto action shortcut CTRL+LEFT-CLICK
+	uint8  goto_shortcuts_shift_lclick;      ///< goto action shortcut SHIFT+LEFT-CLICK
+	uint8  goto_shortcuts_ctrlshift_lclick;  ///< goto action shortcut CTRL+SHIFT+LEFT-CLICK
+	uint8  goto_shortcuts_alt_lclick;        ///< goto action shortcut ALT+LEFT-CLICK
+	uint8  goto_shortcuts_altshift_lclick;   ///< goto action shortcut ALT+SHIFT+LEFT-CLICK
+	uint8  goto_shortcuts_altctrl_lclick;    ///< goto action shortcut ALT+CTRL+LEFT-CLICK
+	bool   auto_noload_on_transfer;          ///< automatically set no-loading when ordering to transfer all cargo
+	bool   auto_noload_on_unloadall;         ///< automatically set no-loading when ordering to unload all cargo
 	uint8  stop_location;                    ///< what is the default stop location of trains?
 	uint8  auto_scrolling;                   ///< scroll when moving mouse to the edge (see #ViewportAutoscrolling)
 	byte   errmsg_duration;                  ///< duration of error message

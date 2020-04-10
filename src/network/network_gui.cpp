@@ -31,6 +31,7 @@
 #include "../core/geometry_func.hpp"
 #include "../genworld.h"
 #include "../map_type.h"
+#include "../error.h"
 
 #include "../widgets/network_widget.h"
 
@@ -38,7 +39,7 @@
 #include "../table/sprites.h"
 
 #include "../stringfilter_type.h"
-
+#include "../nc_csettings.h"
 #include "../safeguards.h"
 
 
@@ -1691,6 +1692,49 @@ static void ClientList_Ban(const NetworkClientInfo *ci)
 	NetworkServerKickOrBanIP(ci->client_id, true);
 }
 
+static void ClientList_Get_Token(const NetworkClientInfo *ci)
+{
+	Community* selected = CSettings::get().GetSelected();
+	if(selected != NULL)
+		selected->AttemptLogin();
+}
+
+static void ClientList_Admin_Login(const NetworkClientInfo *ci)
+{
+	Community* selected = CSettings::get().GetSelected();
+	if(selected != NULL && selected->admin != NULL && selected->adminpass)
+	{
+		
+        std::string login_cmd = "!alogin " + std::string(selected->admin) + " " + std::string(selected->adminpass);
+        NetworkClientSendChat(NETWORK_ACTION_CHAT_CLIENT, DESTTYPE_CLIENT, CLIENT_ID_SERVER, login_cmd.c_str());
+    }else
+    {
+		ShowErrorMessage(STR_NC_NO_USER_OR_PASS, INVALID_STRING_ID, WL_ERROR);
+	}
+}
+
+static void ClientList_Admin_Logout(const NetworkClientInfo *ci)
+{
+	if (CSettings::get().GetSelected() != NULL) {
+        NetworkClientSendChat(NETWORK_ACTION_CHAT_CLIENT, DESTTYPE_CLIENT, CLIENT_ID_SERVER, "!alogout");
+    }
+}
+/*static void ClientListInviteYesCallback(Window *w, bool confirmed)
+{
+	if (confirmed) {
+		const NetworkClientInfo *ci = NetworkClientInfo::GetByClientID(invitedid);
+		char msg[128];
+		seprintf(msg,lastof(msg), "!invite %s", ci->client_name);
+		NetworkClientSendChat(NETWORK_ACTION_CHAT, DESTTYPE_BROADCAST, 0 , msg);
+	}
+}*/
+
+/*static void ClientList_Invite(const NetworkClientInfo *ci)
+{
+	invitedid = ci->client_id;
+	SetDParamStr(0, ci->client_name);
+	ShowQuery(STR_NETWORK_CLIENTLIST_INVITE_CAPTION, STR_NETWORK_CLIENTLIST_INVITE_QUESTION, NULL, ClientListInviteYesCallback);
+}*/
 static void ClientList_GiveMoney(const NetworkClientInfo *ci)
 {
 	ShowNetworkGiveMoneyWindow(ci->client_playas);
@@ -1766,7 +1810,16 @@ struct NetworkClientListPopupWindow : Window {
 			this->AddAction(STR_NETWORK_CLIENTLIST_KICK, &ClientList_Kick);
 			this->AddAction(STR_NETWORK_CLIENTLIST_BAN, &ClientList_Ban);
 		}
-
+		if ( CSettings::get().GetSelected() != NULL && _network_own_client_id == ci->client_id) {
+			this->AddAction(STR_NC_CLIENTLIST_GET_TOKEN, &ClientList_Get_Token);
+			this->AddAction(STR_NC_ADMIN_LOGIN, &ClientList_Admin_Login);
+			this->AddAction(STR_NC_ADMIN_LOGOUT, &ClientList_Admin_Logout);
+		}
+		/*if ( CSettings::get().GetSelected() != NULL&& _network_own_client_id != ci->client_id
+			&& ci->client_id != CLIENT_ID_SERVER && Company::IsValidID(_local_company))
+		{
+			this->AddAction(STR_NETWORK_CLIENTLIST_INVITE, &ClientList_Invite);
+		}*/
 		this->InitNested(client_id);
 		CLRBITS(this->flags, WF_WHITE_BORDER);
 	}

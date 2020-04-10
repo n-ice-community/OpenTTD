@@ -107,7 +107,7 @@ bool HandlePlacePushButton(Window *w, int widget, CursorID cursor, HighLightStyl
 	if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
 	w->SetDirty();
 
-	if (w->IsWidgetLowered(widget)) {
+	if (w->IsWidgetLowered(widget) && mode == _thd.place_mode) {
 		ResetObjectToPlace();
 		return false;
 	}
@@ -463,6 +463,10 @@ struct MainWindow : Window
 		if (!gui_scope) return;
 		/* Forward the message to the appropriate toolbar (ingame or scenario editor) */
 		InvalidateWindowData(WC_MAIN_TOOLBAR, 0, data, true);
+	}
+	virtual void OnMouseOver(Point pt, int widget)
+	{
+		if (_game_mode != GM_MENU && pt.x != -1) GuiPrepareTooltipsExtra(this);
 	}
 
 	static HotkeyList hotkeys;

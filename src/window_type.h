@@ -109,6 +109,7 @@ enum WindowClass {
 	 *   - 0 = #ToolTipsWidgets
 	 */
 	WC_TOOLTIPS,
+	WC_TOOLTIPS_EXTRA,
 
 	/**
 	 * Query string window; %Window numbers:
@@ -382,6 +383,7 @@ enum WindowClass {
 	 *   - #TransportType = #BuildBridgeSelectionWidgets
 	 */
 	WC_BUILD_BRIDGE,
+	WC_WATCH_COMPANY,
 
 	/**
 	 * Build station; %Window numbers:
@@ -680,7 +682,21 @@ enum WindowClass {
 	 *   - 0 = #SavePresetWidgets
 	 */
 	WC_SAVE_PRESET,
-
+	
+	WC_NC_COMM_WINDOW,
+	/*
+	* Account Menu window
+	*/
+	WC_NC_ACCOUNT_MENU,
+	/*
+	* Links list window
+	*/
+	WC_NC_LINKS_LIST,
+	/*
+	* Add Community window
+	*/
+	WC_NC_ADD_COMM,
+	WC_ADMIN_COMPANY_BUTTONS,
 	WC_INVALID = 0xFFFF, ///< Invalid window.
 };
 

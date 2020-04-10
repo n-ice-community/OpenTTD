@@ -137,6 +137,26 @@ void Town::InitializeLayout(TownLayout layout)
 
 	this->layout = TileHash(TileX(this->xy), TileY(this->xy)) % (NUM_TLS - 1);
 }
+/**
+ * Updates the town label of the town after changes in rating. The colour scheme is:
+ * Red: Appalling and Very poor ratings.
+ * Orange: Poor and mediocre ratings.
+ * Yellow: Good rating.
+ * White: Very good rating (standard).
+ * Green: Excellent and outstanding ratings.
+ */
+void Town::UpdateLabel()
+{
+	if (!(_game_mode == GM_EDITOR) && (_local_company < MAX_COMPANIES)) {
+		int r = this->ratings[_local_company];
+		(this->town_label = 0, r <= RATING_VERYPOOR)  || // Appalling and Very Poor
+		(this->town_label++,   r <= RATING_MEDIOCRE)  || // Poor and Mediocre
+		(this->town_label++,   r <= RATING_GOOD)      || // Good
+		(this->town_label++,   r <= RATING_VERYGOOD)  || // Very Good
+		(this->town_label++,   true);                    // Excellent and Outstanding
+	}
+}
+
 
 /**
  * Return a random valid town.
@@ -231,7 +251,9 @@ static void DrawTile_Town(TileInfo *ti)
 	if (ti->tileh != SLOPE_FLAT) DrawFoundation(ti, FOUNDATION_LEVELED);
 
 	DrawGroundSprite(dcts->ground.sprite, dcts->ground.pal);
-
+	
+	DrawOverlay(ti, MP_HOUSE);
+	
 	/* If houses are invisible, do not draw the upper part */
 	if (IsInvisibilitySet(TO_HOUSES)) return;
 
@@ -250,7 +272,7 @@ static void DrawTile_Town(TileInfo *ti)
 
 		if (IsTransparencySet(TO_HOUSES)) return;
 	}
-
+	
 	{
 		int proc = dcts->draw_proc - 1;
 
@@ -373,12 +395,11 @@ static bool IsCloseToTown(TileIndex tile, uint dist)
  */
 void Town::UpdateVirtCoord()
 {
+        this->UpdateLabel();
 	Point pt = RemapCoords2(TileX(this->xy) * TILE_SIZE, TileY(this->xy) * TILE_SIZE);
 	SetDParam(0, this->index);
 	SetDParam(1, this->cache.population);
-	this->cache.sign.UpdatePosition(pt.x, pt.y - 24 * ZOOM_LVL_BASE,
-		_settings_client.gui.population_in_label ? STR_VIEWPORT_TOWN_POP : STR_VIEWPORT_TOWN,
-		STR_VIEWPORT_TOWN);
+	this->cache.sign.UpdatePosition(pt.x, pt.y - 24 * ZOOM_LVL_BASE, this->Label());
 
 	SetWindowDirty(WC_TOWN_VIEW, this->index);
 }
@@ -2960,6 +2981,7 @@ static CommandCost TownActionBribe(Town *t, DoCommandFlag flags)
 			 */
 			if (t->ratings[_current_company] > RATING_BRIBE_DOWN_TO) {
 				t->ratings[_current_company] = RATING_BRIBE_DOWN_TO;
+				t->UpdateVirtCoord();
 				SetWindowDirty(WC_TOWN_AUTHORITY, t->index);
 			}
 		} else {
@@ -3091,7 +3113,7 @@ static void UpdateTownRating(Town *t)
 	for (uint i = 0; i < MAX_COMPANIES; i++) {
 		t->ratings[i] = Clamp(t->ratings[i], RATING_MINIMUM, RATING_MAXIMUM);
 	}
-
+	t->UpdateVirtCoord();
 	SetWindowDirty(WC_TOWN_AUTHORITY, t->index);
 }
 
@@ -3343,6 +3365,7 @@ void ChangeTownRating(Town *t, int add, int max, DoCommandFlag flags)
 	} else {
 		SetBit(t->have_ratings, _current_company);
 		t->ratings[_current_company] = rating;
+		t->UpdateVirtCoord();
 		SetWindowDirty(WC_TOWN_AUTHORITY, t->index);
 	}
 }

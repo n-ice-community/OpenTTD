@@ -295,6 +295,12 @@ public:
 	uint GetConsistTotalCapacity() const;
 
 	/**
+	 * Is this vehicle drawn?
+	 * @return true if it is drawn
+	 */
+	bool IsDrawn() const;
+
+	/**
 	 * Marks the vehicles to be redrawn and updates cached variables
 	 *
 	 * This method marks the area of the vehicle on the screen as dirty.

@@ -323,3 +323,120 @@ void IniLoadFile::LoadFromDisk(const char *filename, Subdirectory subdir)
 	fclose(in);
 }
 
+/**
+ * Load the Ini file's data from a string
+ * @param text the string with ini format
+ * @pre nothing has been loaded yet.
+ */
+void IniLoadFile::LoadFromString(std::string text)
+{
+	assert(this->last_group == &this->group);
+
+	char buffer[1024];
+	IniGroup *group = NULL;
+
+	char *comment = NULL;
+	uint comment_size = 0;
+	uint comment_alloc = 0;
+
+	if (text.empty()) return;
+
+	uint pos = 0;
+	size_t pos2 = 0;
+	/* for each line in the string */
+	while (pos <= text.length() && pos2 != std::string::npos) {
+		strecpy(buffer,text.substr(pos, ((pos2 = text.find('\n',pos+1)) == std::string::npos ? text.length() : pos2)-pos).c_str(),lastof(buffer));
+		pos = pos2+1;
+		char c, *s;
+		/* trim whitespace from the left side */
+		for (s = buffer; *s == ' ' || *s == '\t'; s++) {}
+
+		/* trim whitespace from right side. */
+		char *e = s + strlen(s);
+		while (e > s && ((c = e[-1]) == '\n' || c == '\r' || c == ' ' || c == '\t')) e--;
+		*e = '\0';
+
+		/* Skip comments and empty lines outside IGT_SEQUENCE groups. */
+		if ((group == NULL || group->type != IGT_SEQUENCE) && (*s == '#' || *s == ';' || *s == '\0')) {
+			uint ns = comment_size + (e - s + 1);
+			uint a = comment_alloc;
+			/* add to comment */
+			if (ns > a) {
+				a = max(a, 128U);
+				do a *= 2; while (a < ns);
+				comment = ReallocT(comment, comment_alloc = a);
+			}
+			uint pos = comment_size;
+			comment_size += (e - s + 1);
+			comment[pos + e - s] = '\n'; // comment newline
+			memcpy(comment + pos, s, e - s); // copy comment contents
+			continue;
+		}
+
+		/* it's a group? */
+		if (s[0] == '[') {
+			if (e[-1] != ']') {
+				this->ReportFileError("ini: invalid group name '", buffer, "'");
+			} else {
+				e--;
+			}
+			s++; // skip [
+			group = new IniGroup(this, s, e - 1);
+			if (comment_size != 0) {
+				group->comment = stredup(comment, comment + comment_size - 1);
+				comment_size = 0;
+			}
+		} else if (group != NULL) {
+			if (group->type == IGT_SEQUENCE) {
+				/* A sequence group, use the line as item name without further interpretation. */
+				IniItem *item = new IniItem(group, buffer, e - 1);
+				if (comment_size) {
+					item->comment = stredup(comment, comment + comment_size - 1);
+					comment_size = 0;
+				}
+				continue;
+			}
+			char *t;
+			/* find end of keyname */
+			if (*s == '\"') {
+				s++;
+				for (t = s; *t != '\0' && *t != '\"'; t++) {}
+				if (*t == '\"') *t = ' ';
+			} else {
+				for (t = s; *t != '\0' && *t != '=' && *t != '\t' && *t != ' '; t++) {}
+			}
+
+			/* it's an item in an existing group */
+			IniItem *item = new IniItem(group, s, t - 1);
+			if (comment_size != 0) {
+				item->comment = stredup(comment, comment + comment_size - 1);
+				comment_size = 0;
+			}
+
+			/* find start of parameter */
+			while (*t == '=' || *t == ' ' || *t == '\t') t++;
+
+			bool quoted = (*t == '\"');
+			/* remove starting quotation marks */
+			if (*t == '\"') t++;
+			/* remove ending quotation marks */
+			e = t + strlen(t);
+			if (e > t && e[-1] == '\"') e--;
+			*e = '\0';
+
+			/* If the value was not quoted and empty, it must be NULL */
+			item->value = (!quoted && e == t) ? NULL : stredup(t);
+			if (item->value != NULL) str_validate(item->value, item->value + strlen(item->value));
+		} else {
+			/* it's an orphan item */
+			this->ReportFileError("ini: '", buffer, "' outside of group");
+		}
+	}
+
+	if (comment_size > 0) {
+		this->comment = stredup(comment, comment + comment_size - 1);
+		comment_size = 0;
+	}
+
+	free(comment);
+}

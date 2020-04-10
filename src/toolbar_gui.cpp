@@ -54,6 +54,11 @@
 #include "network/network_gui.h"
 #include "network/network_func.h"
 
+#include "watch_gui.h"
+
+#include "nc_community_window.h"
+#include "nc_csettings.h"
+
 #include "safeguards.h"
 
 
@@ -561,7 +566,26 @@ static CallBackFunction MenuClickStations(int index)
 	ShowCompanyStations((CompanyID)index);
 	return CBF_NONE;
 }
-
+/* --- Slot for patches --- */
+static CallBackFunction ToolbarPatchesClick(Window *w)
+{
+	PopupMainToolbMenu(w, WID_TN_PATCHES, STR_WATCH_WINDOW, 2);
+	return CBF_NONE;
+}
+/**
+ * Handle click on the entry in the Graphs menu.
+ *
+ * @param index Graph to show.
+ * @return #CBF_NONE
+ */
+static CallBackFunction MenuClickPatches(int index)
+{
+	switch (index) {
+		case 0: ShowWatchWindow((CompanyID)INVALID_COMPANY );break;
+		case 1: ShowCommunityWindow();break;
+	}
+	return CBF_NONE;
+}
 /* --- Finances button menu --- */
 
 static CallBackFunction ToolbarFinancesClick(Window *w)
@@ -1280,6 +1304,7 @@ static MenuClickedProc * const _menu_clicked_procs[] = {
 	MenuClickTown,        // 5
 	MenuClickSubsidies,   // 6
 	MenuClickStations,    // 7
+	MenuClickPatches,     // 7.5
 	MenuClickFinances,    // 8
 	MenuClickCompany,     // 9
 	MenuClickStory,       // 10
@@ -1467,35 +1492,35 @@ class NWidgetMainToolbarContainer : public NWidgetToolbarContainer {
 		static const uint SMALLEST_ARRANGEMENT = 14;
 		static const uint BIGGEST_ARRANGEMENT  = 20;
 		static const byte arrange14[] = {
-			0,  1, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 29,
-			2,  3,  4,  5,  6,  7,  8,  9, 12, 14, 26, 27, 28, 29,
+			0,  1, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 30,
+			2,  3,  4,  5,  6,  7,  8,  9, 12, 14, 26, 27, 28, 30,
 		};
 		static const byte arrange15[] = {
-			0,  1,  4, 15, 16, 17, 18, 21, 22, 23, 24, 25, 19, 20, 29,
-			0,  2,  4,  3,  5,  6,  7,  8,  9, 12, 14, 26, 27, 28, 29,
+			0,  1,  4, 15, 16, 17, 18, 21, 22, 23, 24, 25, 19, 20, 30,
+			0,  2,  4,  3,  5,  6,  7,  8,  9, 12, 14, 26, 27, 28, 30,
 		};
 		static const byte arrange16[] = {
-			0,  1,  2,  4, 15, 16, 17, 18, 21, 22, 23, 24, 25, 19, 20, 29,
-			0,  1,  3,  5,  6,  7,  8,  9, 12, 14, 26, 27, 28, 19, 20, 29,
+			0,  1,  2,  4, 15, 16, 17, 18, 21, 22, 23, 24, 25, 19, 20, 30,
+			0,  1,  3,  5,  6,  7,  8,  9, 12, 14, 26, 27, 28, 19, 20, 30,
 		};
 		static const byte arrange17[] = {
-			0,  1,  2,  4,  6, 15, 16, 17, 18, 21, 22, 23, 24, 25, 19, 20, 29,
-			0,  1,  3,  4,  6,  5,  7,  8,  9, 12, 14, 26, 27, 28, 19, 20, 29,
+			0,  1,  2,  4,  6, 15, 16, 17, 18, 21, 22, 23, 24, 25, 19, 20, 30,
+			0,  1,  3,  4,  6,  5,  7,  8,  9, 12, 14, 26, 27, 28, 19, 20, 30,
 		};
 		static const byte arrange18[] = {
-			0,  1,  2,  4,  5,  6,  7,  8,  9, 14, 21, 22, 23, 24, 25, 19, 20, 29,
-			0,  1,  3,  4,  5,  6,  7, 12, 15, 16, 17, 18, 26, 27, 28, 19, 20, 29,
+			0,  1,  2,  4,  5,  6,  7,  8,  9, 14, 21, 22, 23, 24, 25, 19, 20, 30,
+			0,  1,  3,  4,  5,  6,  7, 12, 15, 16, 17, 18, 26, 27, 28, 19, 20, 30,
 		};
 		static const byte arrange19[] = {
-			0,  1,  2,  4,  5,  6, 15, 16, 17, 18, 21, 22, 23, 24, 25, 26, 19, 20, 29,
-			0,  1,  3,  4,  7,  8,  9, 12, 14, 27, 21, 22, 23, 24, 25, 28, 19, 20, 29,
+			0,  1,  2,  4,  5,  6, 15, 16, 17, 18, 21, 22, 23, 24, 25, 26, 19, 20, 30,
+			0,  1,  3,  4,  7,  8,  9, 12, 14, 27, 21, 22, 23, 24, 25, 28, 19, 20, 30,
 		};
 		static const byte arrange20[] = {
-			0,  1,  2,  4,  5,  6, 15, 16, 17, 18, 21, 22, 23, 24, 25, 26, 11, 19, 20, 29,
-			0,  1,  3,  4,  7,  8,  9, 12, 14, 27, 21, 22, 23, 24, 25, 10, 28, 19, 20, 29,
+			0,  1,  2,  4,  5,  6, 15, 16, 17, 18, 21, 22, 23, 24, 25, 26, 11, 19, 20, 30,
+			0,  1,  3,  4,  7,  8,  9, 12, 14, 27, 21, 22, 23, 24, 25, 10, 28, 19, 20, 30,
 		};
 		static const byte arrange_all[] = {
-			0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28
+			0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29
 		};
 
 		/* If at least BIGGEST_ARRANGEMENT fit, just spread all the buttons nicely */
@@ -1537,14 +1562,14 @@ class NWidgetScenarioToolbarContainer : public NWidgetToolbarContainer {
 	/* virtual */ const byte *GetButtonArrangement(uint &width, uint &arrangable_count, uint &button_count, uint &spacer_count) const
 	{
 		static const byte arrange_all[] = {
-			0, 1, 2, 3, 4, 18, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 26, 28,
+			0, 1, 2, 3, 4, 18, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 27, 29,
 		};
 		static const byte arrange_nopanel[] = {
-			0, 1, 2, 3, 18, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 26, 28,
+			0, 1, 2, 3, 18, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 27, 29,
 		};
 		static const byte arrange_switch[] = {
-			18,  8, 11, 12, 13, 14, 15, 16, 17, 29,
-			 0,  1,  2,  3, 18,  9, 10, 26, 28, 29,
+			18,  8, 11, 12, 13, 14, 15, 16, 17, 30,
+			 0,  1,  2,  3, 18,  9, 10, 27, 29, 30,
 		};
 
 		/* If we can place all buttons *and* the panels, show them. */
@@ -1589,6 +1614,7 @@ static ToolbarButtonProc * const _toolbar_button_procs[] = {
 	ToolbarTownClick,
 	ToolbarSubsidiesClick,
 	ToolbarStationsClick,
+	ToolbarPatchesClick,
 	ToolbarFinancesClick,
 	ToolbarCompaniesClick,
 	ToolbarStoryClick,
@@ -1652,6 +1678,7 @@ enum MainToolbarHotkeys {
 	MTHK_EXTRA_VIEWPORT,
 	MTHK_CLIENT_LIST,
 	MTHK_SIGN_LIST,
+	MTHK_NC_COMM_WINDOW,
 };
 
 /** Main toolbar. */
@@ -1745,6 +1772,7 @@ struct MainToolbarWindow : Window {
 			case MTHK_EXTRA_VIEWPORT: ShowExtraViewPortWindowForTileUnderCursor(); break;
 #ifdef ENABLE_NETWORK
 			case MTHK_CLIENT_LIST: if (_networking) ShowClientList(); break;
+			case MTHK_NC_COMM_WINDOW: if (_networking && CSettings::get().GetSelected() != NULL) ShowCommunityWindow(); break;
 #endif
 			case MTHK_SIGN_LIST: ShowSignList(); break;
 			default: return ES_NOT_HANDLED;
@@ -1850,6 +1878,7 @@ static Hotkey maintoolbar_hotkeys[] = {
 	Hotkey('V', "extra_viewport", MTHK_EXTRA_VIEWPORT),
 #ifdef ENABLE_NETWORK
 	Hotkey((uint16)0, "client_list", MTHK_CLIENT_LIST),
+	Hotkey('N', "community_window", MTHK_NC_COMM_WINDOW),
 #endif
 	Hotkey((uint16)0, "sign_list", MTHK_SIGN_LIST),
 	HOTKEY_LIST_END
@@ -1868,6 +1897,7 @@ static NWidgetBase *MakeMainToolbar(int *biggest_index)
 		SPR_IMG_TOWN,            // WID_TN_TOWNS
 		SPR_IMG_SUBSIDIES,       // WID_TN_SUBSIDIES
 		SPR_IMG_COMPANY_LIST,    // WID_TN_STATIONS
+		SPR_IMG_QUERY,           // WID_TN_PATCHES
 		SPR_IMG_COMPANY_FINANCE, // WID_TN_FINANCES
 		SPR_IMG_COMPANY_GENERAL, // WID_TN_COMPANIES
 		SPR_IMG_STORY_BOOK,      // WID_TN_STORY
@@ -1895,7 +1925,7 @@ static NWidgetBase *MakeMainToolbar(int *biggest_index)
 	NWidgetMainToolbarContainer *hor = new NWidgetMainToolbarContainer();
 	for (uint i = 0; i < WID_TN_END; i++) {
 		switch (i) {
-			case 4: case 8: case 15: case 19: case 21: case 26: hor->Add(new NWidgetSpacer(0, 0)); break;
+			case 4: case 8: case 16: case 20: case 22: case 27: hor->Add(new NWidgetSpacer(0, 0)); break;
 		}
 		hor->Add(new NWidgetLeaf(i == WID_TN_SAVE ? WWT_IMGBTN_2 : WWT_IMGBTN, COLOUR_GREY, i, toolbar_button_sprites[i], STR_TOOLBAR_TOOLTIP_PAUSE_GAME + i));
 	}
@@ -2242,5 +2272,11 @@ void AllocateToolbar()
 		new ScenarioEditorToolbarWindow(&_toolb_scen_desc);
 	} else {
 		new MainToolbarWindow(&_toolb_normal_desc);
+#ifdef ENABLE_NETWORK
+		if (_networking && CSettings::get().GetSelected() != NULL) { //extra windows upon join
+			ShowClientList();
+			ShowCommunityWindow();
+		}
+#endif /* ENABLE_NETWORK */
 	}
 }

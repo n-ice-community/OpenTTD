@@ -1095,4 +1095,29 @@ void ClientNetworkContentSocketHandler::OnDownloadComplete(ContentID cid)
 	}
 }
 
+SimpleTxtDownloader::SimpleTxtDownloader(const char* addr, Receiver *rec) 
+{
+	this->rec = rec;
+	printf("New Request! To: %s.\n", addr);
+	NetworkHTTPSocketHandler::Connect(const_cast<char *>(addr), this);
+}
+
+void SimpleTxtDownloader::OnFailure() 
+{
+	this->rec->Failed(); // let the caller handle the fail
+	delete this; // XXX is this safe?
+}
+void SimpleTxtDownloader::OnReceiveData( const char *data, size_t length) 
+{
+	if (data == 0) 
+	{
+		this->rec->DataReceived(this->data);
+		delete this; // XXX is this safe?
+		
+	} else 
+	{
+		this->data.append(data,length);
+	}
+}
+
 #endif /* ENABLE_NETWORK */

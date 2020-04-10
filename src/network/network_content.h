@@ -14,6 +14,7 @@
 
 #include "core/tcp_content.h"
 #include "core/tcp_http.h"
+#include "../nc_receiver.h"
 
 #if defined(ENABLE_NETWORK)
 
@@ -152,6 +153,23 @@ extern ClientNetworkContentSocketHandler _network_content_client;
 void ShowNetworkContentListWindow(ContentVector *cv = NULL, ContentType type = CONTENT_TYPE_END);
 
 void ShowMissingContentWindow(const struct GRFConfig *list);
+
+#include <string>
+/**
+* Class to handle the process of getting txt files from the internet
+* The data parsing is left to the caller!
+* @param OnAllDataReceived Asynchronous callback! It is only called when we have the whole data. It is called after we return! Don't expect data afer the object construction.
+*/
+class SimpleTxtDownloader: public HTTPCallback {
+public:
+	SimpleTxtDownloader(const char* addr, Receiver *rec);
+	virtual void OnReceiveData( const char *data, size_t length);
+	virtual void OnFailure(); 
+private:
+	NetworkHTTPContentConnecter *conn;
+	std::string data; 
+	Receiver *rec;
+};
 
 #else
 static inline void ShowNetworkContentListWindow() {}

@@ -326,6 +326,10 @@ public:
 		if (widget == WID_TV_CAPTION) SetDParam(0, this->town->index);
 	}
 
+	virtual void OnHundrethTick() {
+		this->SetDirty();
+	}
+
 	virtual void DrawWidget(const Rect &r, int widget) const
 	{
 		if (widget != WID_TV_INFO) return;
@@ -344,6 +348,12 @@ public:
 		SetDParam(1, this->town->supplied[CT_MAIL].old_max);
 		DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_LEFT, y += FONT_HEIGHT_NORMAL, STR_TOWN_VIEW_MAIL_LAST_MONTH_MAX);
 
+		SetDParam(0, ((this->town->growth_rate & (~TOWN_GROW_RATE_CUSTOM)) * TOWN_GROWTH_TICKS + DAY_TICKS) / DAY_TICKS);
+		SetDParam(1, ((this->town->grow_counter & (~TOWN_GROW_RATE_CUSTOM)) * TOWN_GROWTH_TICKS + DAY_TICKS) / DAY_TICKS);
+		SetDParam(2, ((this->town->time_until_rebuild & (~TOWN_GROW_RATE_CUSTOM)) * TOWN_GROWTH_TICKS + DAY_TICKS) / DAY_TICKS);
+		SetDParam(3, (int)HasBit(this->town->flags, TOWN_IS_GROWING));
+		SetDParam(4, this->town->fund_buildings_months);
+		DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_LEFT, y += FONT_HEIGHT_NORMAL, STR_TOWN_VIEW_GROWTH);
 		bool first = true;
 		for (int i = TE_BEGIN; i < TE_END; i++) {
 			if (this->town->goal[i] == 0) continue;
@@ -464,7 +474,7 @@ public:
 	 */
 	uint GetDesiredInfoHeight(int width) const
 	{
-		uint aimed_height = 3 * FONT_HEIGHT_NORMAL + WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
+		uint aimed_height = 4 * FONT_HEIGHT_NORMAL + WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
 
 		bool first = true;
 		for (int i = TE_BEGIN; i < TE_END; i++) {

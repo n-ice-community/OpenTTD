@@ -52,6 +52,12 @@ enum CompanyWidgets {
 	WID_C_SELECT_MULTIPLAYER,         ///< Multiplayer selection panel.
 	WID_C_COMPANY_PASSWORD,           ///< Button to set company password.
 	WID_C_COMPANY_JOIN,               ///< Button to join company.
+	CW_WIDGET_COMPANY_JOIN2,
+	CW_WIDGET_COMPANY_RESET,
+	CW_WIDGET_COMPANY_SUSPEND,
+	CW_WIDGET_COMPANY_RESUME,
+	CW_WIDGET_COMPANY_KNOWN,
+	CW_WIDGET_COMPANY_ADMIN,
 };
 
 /** Widgets of the #CompanyFinancesWindow class. */
@@ -187,6 +193,27 @@ enum BuyCompanyWidgets {
 	WID_BC_QUESTION, ///< Question text.
 	WID_BC_NO,       ///< No button.
 	WID_BC_YES,      ///< Yes button.
+};
+enum AdminCompanyButtons {
+	WID_AC_CAPTION,
+	WID_C_COMPANY_EMPTY,
+	WID_C_COMPANY_LOCK,
+	WID_C_COMPANY_UNLOCK,
+	WID_C_COMPANY_NEWSTICKET,
+	WID_C_COMPANY_NEWSTICKET_COMP,
+	WID_C_COMPANY_RESET,
+	WID_C_COMPANY_RESET_SPEC,
+	WID_C_COMPANY_RESET_KICK,
+	WID_C_RESET_COMPANY_TIMER5,
+	WID_C_RESET_COMPANY_TIMER,
+	WID_C_RESET_COMPANY_TIMER_CANCEL,
+	WID_C_COMPANY_TOWNSTATS,
+};
+
+enum AdminCompanyButtonsQuery {
+	WID_CQ_RESET_COMPANY_TIMER,
+	WID_CQ_COMPANY_NEWSTICKET,
+	WID_CQ_COMPANY_NEWSTICKET_COMP,
 };
 
 #endif /* WIDGETS_COMPANY_WIDGET_H */

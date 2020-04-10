@@ -30,6 +30,8 @@
 #include "sortlist_type.h"
 #include "core/geometry_func.hpp"
 #include "vehiclelist.h"
+#include "core/math_func.hpp"
+#include "overlay_cmd.h"
 #include "town.h"
 #include "linkgraph/linkgraph.h"
 #include "zoom_func.h"
@@ -777,6 +779,8 @@ static const NWidgetPart _nested_station_view_widgets[] = {
 	NWidget(WWT_PANEL, COLOUR_GREY, WID_SV_ACCEPT_RATING_LIST), SetMinimalSize(249, 23), SetResize(1, 0), EndContainer(),
 	NWidget(NWID_HORIZONTAL),
 		NWidget(NWID_HORIZONTAL, NC_EQUALSIZE),
+		NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_SV_COVERAGE), SetMinimalSize(60, 12), SetResize(1, 0), SetFill(1, 1),
+					SetDataTip(STR_BUTTON_COVERAGE, STR_STATION_VIEW_COVERAGE_TIP),
 			NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_SV_LOCATION), SetMinimalSize(45, 12), SetResize(1, 0), SetFill(1, 1),
 					SetDataTip(STR_BUTTON_LOCATION, STR_STATION_VIEW_CENTER_TOOLTIP),
 			NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_SV_ACCEPTS_RATINGS), SetMinimalSize(46, 12), SetResize(1, 0), SetFill(1, 1),
@@ -1404,6 +1408,9 @@ struct StationViewWindow : public Window {
 		this->SetWidgetDisabledState(WID_SV_CLOSE_AIRPORT, !(st->facilities & FACIL_AIRPORT) || st->owner != _local_company || st->owner == OWNER_NONE); // Also consider SE, where _local_company == OWNER_NONE
 		this->SetWidgetLoweredState(WID_SV_CLOSE_AIRPORT, (st->facilities & FACIL_AIRPORT) && (st->airport.flags & AIRPORT_CLOSED_block) != 0);
 
+		/* check lowered stated for some buttons */
+		this->SetWidgetLoweredState(WID_SV_COVERAGE, Overlays::Instance()->HasStation(st));
+
 		this->DrawWidgets();
 
 		if (!this->IsShaded()) {
@@ -1893,6 +1900,11 @@ struct StationViewWindow : public Window {
 				}
 				break;
 
+			case WID_SV_COVERAGE:
+				Overlays::Instance()->ToggleStation(Station::Get(this->window_number));
+				MarkWholeScreenDirty();
+				break;
+
 			case WID_SV_ACCEPTS_RATINGS: {
 				/* Swap between 'accepts' and 'ratings' view. */
 				int height_change;
@@ -2075,6 +2087,8 @@ struct StationViewWindow : public Window {
 			}
 		}
 	}
+protected:
+	void Get(WindowNumber window_number);
 };
 
 const StringID StationViewWindow::_sort_names[] = {
@@ -2109,7 +2123,12 @@ static WindowDesc _station_view_desc(
  */
 void ShowStationViewWindow(StationID station)
 {
-	AllocateWindowDescFront<StationViewWindow>(&_station_view_desc, station);
+	if (_ctrl_pressed) {
+		Overlays::Instance()->ToggleStation(Station::Get(station));
+		MarkWholeScreenDirty();
+	} else {
+		AllocateWindowDescFront<StationViewWindow>(&_station_view_desc, station);
+	}
 }
 
 /** Struct containing TileIndex and StationID */

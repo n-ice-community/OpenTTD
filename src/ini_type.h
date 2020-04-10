@@ -12,6 +12,7 @@
 #ifndef INI_TYPE_H
 #define INI_TYPE_H
 
+#include <string>
 #include "fileio_type.h"
 
 /** Types of groups */
@@ -65,6 +66,7 @@ struct IniLoadFile {
 	void RemoveGroup(const char *name);
 
 	void LoadFromDisk(const char *filename, Subdirectory subdir);
+	void LoadFromString(std::string text);
 
 	/**
 	 * Open the INI file.
