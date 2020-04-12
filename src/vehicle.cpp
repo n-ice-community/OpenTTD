@@ -882,6 +882,8 @@ Vehicle::~Vehicle()
 
 	/* sometimes, eg. for disaster vehicles, when company bankrupts, when removing crashed/flooded vehicles,
 	 * it may happen that vehicle chain is deleted when visible */
+	if (!(this->vehstatus & VS_HIDDEN)) this->MarkAllViewportsDirty();
+	//if (this->IsDrawn()) MarkSingleVehicleDirty(this); // OLD solution
 	if (this->IsDrawn()) this->MarkAllViewportsDirty();
 
 	Vehicle *v = this->Next();

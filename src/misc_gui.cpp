@@ -30,6 +30,11 @@
 
 #include "table/strings.h"
 
+#include "network/network.h"
+#include "network/network_func.h"
+#include "network/network_base.h"
+#include "network/network_type.h"
+
 #include "house.h"
 #include "town_map.h"
 #include "station_base.h"
@@ -48,14 +53,41 @@ enum OskActivation {
 	OSKA_IMMEDIATELY,        ///< Focusing click already opens OSK.
 };
 
+
+int x_coordi;
+int y_coordi;
+
 //old
 static const NWidgetPart _nested_land_info_widgets_old[] = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_GREY),
 		NWidget(WWT_CAPTION, COLOUR_GREY), SetDataTip(STR_LAND_AREA_INFORMATION_CAPTION, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
+		NWidget(WWT_PANEL, COLOUR_GREY), SetFill(1, 1),
+      NWidget(NWID_HORIZONTAL), SetPadding(2, 2, 0, 2), // top/right/bottom/left
+        NWidget(WWT_PANEL, COLOUR_GREY), SetFill(1, 1),
+          NWidget( WWT_TEXT, COLOUR_GREY, WID_LI_SCROLL_TO ), SetDataTip( STR_LANG_AREA_INFORMATION_SCROLL_TO, STR_LANG_AREA_INFORMATION_SCROLL_TO_TOOLTIP ), SetMinimalSize(25, 10),
+        EndContainer(),
+      EndContainer(),
+    EndContainer(),
 		NWidget(WWT_DEBUGBOX, COLOUR_GREY),
 	EndContainer(),
 	NWidget(WWT_PANEL, COLOUR_GREY, WID_LI_BACKGROUND), EndContainer(),
+	NWidget(WWT_PANEL, COLOUR_GREY), SetFill(1, 1),
+    NWidget(NWID_HORIZONTAL), SetPadding(2, 2, 2, 2), // top/right/bottom/left
+      NWidget(WWT_PANEL, COLOUR_GREY), SetFill(1, 1),
+        NWidget( WWT_TEXT, COLOUR_GREY, WID_LI_LOGS ), SetDataTip( STR_LANG_AREA_INFORMATION_LOGS, STR_LANG_AREA_INFORMATION_LOGS_TOOLTIP ), SetMinimalSize(30, 10),
+      EndContainer(),
+      NWidget( WWT_TEXT, COLOUR_GREY ), SetDataTip( STR_CC_SPACES, STR_NULL ), SetMinimalSize(3, 10),
+      NWidget(WWT_PANEL, COLOUR_GREY), SetFill(1, 1),
+        NWidget( WWT_TEXT, COLOUR_GREY, WID_LI_LOG ), SetDataTip( STR_LANG_AREA_INFORMATION_LOG, STR_LANG_AREA_INFORMATION_LOG_TOOLTIP ), SetMinimalSize(25, 10),
+      EndContainer(),
+      NWidget( WWT_TEXT, COLOUR_GREY ), SetDataTip( STR_CC_SPACES, STR_NULL ), SetMinimalSize(3, 10),
+      NWidget(WWT_PANEL, COLOUR_GREY), SetFill(1, 1),
+        NWidget( WWT_TEXT, COLOUR_GREY, WID_LI_CHAT ), SetDataTip( STR_LANG_AREA_INFORMATION_CHAT, STR_LANG_AREA_INFORMATION_CHAT_TOOLTIP ), SetMinimalSize(50, 10),
+      EndContainer(),
+      NWidget( WWT_TEXT, COLOUR_GREY ), SetDataTip( STR_CC_SPACES, STR_NULL ), SetMinimalSize(3, 10),
+    EndContainer(),
+  EndContainer(),
 };
 
 //new
@@ -89,6 +121,7 @@ class LandInfoWindow : public Window {
 	static const uint LAND_INFO_LINE_BUFF_SIZE = 512;
 
 public:
+  int query_widget;
 	char landinfo_data[LAND_INFO_LINE_END][LAND_INFO_LINE_BUFF_SIZE];
 	TileIndex tile;
 	TileIndex end_tile;  ///< For use in ruler(dragdrop) mode
@@ -146,6 +179,61 @@ public:
 			size->height += GetStringHeight(STR_JUST_RAW_STRING, size->width - WD_FRAMETEXT_LEFT - WD_FRAMETEXT_RIGHT);
 		}
 	}
+
+  void OnClick(Point pt, int widget, int click_count)
+  {
+//   if (!_settings_client.gui.enable_extra_tooltips) {
+    char msg[128];
+    switch (widget) {
+      case WID_LI_SCROLL_TO: {
+        //ScrollMainWindowToTile(TileXY(x_coordi, y_coordi));
+        ScrollMainWindowToTile(tile);
+        SetRedErrorSquare(tile);
+        ShowErrorMessage(STR_CC_OTHER_SELECTED_TILE, INVALID_STRING_ID, WL_INFO, x_coordi, y_coordi);
+      } break;
+      case WID_LI_LOG: {
+        if (_networking) {
+          this->query_widget = WID_Q_LOG;
+          SetDParam(0, this->window_number);
+          ShowQueryString(STR_EMPTY, STR_LANG_AREA_INFORMATION_LOG_TITLE, 128, this, CS_ALPHANUMERAL, QSF_NONE);
+        } else {
+          ShowErrorMessage(STR_NETWORK_BT_AVAILABLE_NETWORK, INVALID_STRING_ID, WL_ERROR);
+        }
+      } break;
+      case WID_LI_LOGS: {
+        if (_networking) {
+          seprintf(msg, lastof(msg), "!watch logs %#x", tile);
+          NetworkClientSendChat(NETWORK_ACTION_CHAT_CLIENT, DESTTYPE_CLIENT, CLIENT_ID_SERVER , msg);
+        } else {
+          ShowErrorMessage(STR_NETWORK_BT_AVAILABLE_NETWORK, INVALID_STRING_ID, WL_ERROR);
+        }
+      } break;
+      case WID_LI_CHAT: {
+        if (_networking) {
+          seprintf(msg, lastof(msg), "Coordinates: %ix%i - %#x", x_coordi, y_coordi, tile);
+          NetworkClientSendChat(NETWORK_ACTION_CHAT, DESTTYPE_BROADCAST, 0 , msg);
+        } else {
+          ShowErrorMessage(STR_NETWORK_BT_AVAILABLE_NETWORK, INVALID_STRING_ID, WL_ERROR);
+        }
+      } break;
+    }
+//  }
+  }
+
+  void OnQueryTextFinished(char *str)
+  {
+//   if (!_settings_client.gui.enable_extra_tooltips) {
+    char msg[128];
+    switch (this->query_widget) {
+      case WID_Q_LOG: {
+        if (str != NULL) {
+          seprintf(msg, lastof(msg), "!watch log %s %#x", str, tile);
+          NetworkClientSendChat(NETWORK_ACTION_CHAT_CLIENT, DESTTYPE_CLIENT, CLIENT_ID_SERVER , msg);
+        }
+      } break;
+    }
+//  }
+  }
 
 	//old
 	LandInfoWindow(TileIndex tile, TileIndex end_tile, bool oldinfo): Window(&_land_info_desc_old), tile(tile)
@@ -264,6 +352,7 @@ public:
 		SetDParam(1, TileY(tile));
 		SetDParam(2, GetTileZ(tile));
 		SetDParamStr(3, tmp);
+		x_coordi = TileX(tile); y_coordi = TileY(tile);
 		GetString(this->landinfo_data[line_nr], STR_LAND_AREA_INFORMATION_LANDINFO_COORDS, lastof(this->landinfo_data[line_nr]));
 		line_nr++;
 
@@ -1442,15 +1531,15 @@ struct TooltipsExtraWindow : public Window
                size->height = FONT_HEIGHT_NORMAL + 6;
                switch(this->tiletype) {
                        case MP_HOUSE: {
-                              const HouseID house = (HouseID)this->objIndex;
-                              const HouseSpec *hs = HouseSpec::Get(house);
+                               const HouseID house = (HouseID)this->objIndex;
+                               const HouseSpec *hs = HouseSpec::Get(house);
 
-                              size->height += line_height;
+                               size->height += line_height;
                                SetDParam(0, 1000);
                                size->width = GetStringBoundingBox(STR_TTE_HOUSE).width;
                                if(hs == NULL) break;
-                              SetDParam(0, hs->building_name);
-                              size->width = max(GetStringBoundingBox(STR_TTE_HOUSE_NAME).width + WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT + 18, size->width);
+                               SetDParam(0, hs->building_name);
+                               size->width = max(GetStringBoundingBox(STR_TTE_HOUSE_NAME).width + WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT + 18, size->width);
                                break;
                        }
                        case MP_INDUSTRY: {
@@ -1588,6 +1677,8 @@ struct TooltipsExtraWindow : public Window
 
                switch (this->close_cond) {
                        case TCC_RIGHT_CLICK: if (!_right_button_down) delete this; break;
+					   //FIXME
+					   //case TCC_LEFT_CLICK: if (!_left_button_down) delete this; break;
                        case TCC_HOVER: if (!_mouse_hovering) delete this; break;
                }
        }

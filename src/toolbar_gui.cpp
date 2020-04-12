@@ -496,6 +496,7 @@ static CallBackFunction ToolbarMapClick(Window *w)
 	list.emplace_back(new DropDownListStringItem(STR_MAP_MENU_EXTRA_VIEW_PORT,         MME_SHOW_EXTRAVIEWPORTS,    false));
 	list.emplace_back(new DropDownListStringItem(STR_MAP_MENU_LINGRAPH_LEGEND,         MME_SHOW_LINKGRAPH,         false));
 	list.emplace_back(new DropDownListStringItem(STR_MAP_MENU_WATCH_COMPANY,           MME_WATCH_COMPANY,          false));
+	list.emplace_back(new DropDownListStringItem(STR_MAP_MENU_COMMUNITY_COMMANDS,      MME_GLOBAL_NICE_COMMANDS,   false));
 	list.emplace_back(new DropDownListStringItem(STR_MAP_MENU_SIGN_LIST,               MME_SHOW_SIGNLISTS,         false));
 	PopupMainToolbMenu(w, WID_TN_SMALL_MAP, std::move(list), 0);
 	return CBF_NONE;
@@ -529,6 +530,7 @@ static CallBackFunction MenuClickMap(int index)
 		case MME_SHOW_TOWNDIRECTORY:  ShowTownDirectory();       break;
 		case MME_SHOW_INDUSTRYDIRECTORY: ShowIndustryDirectory(); break;
 		case MME_WATCH_COMPANY:       ShowWatchWindow1( (CompanyID) INVALID_COMPANY ); break;
+		case MME_GLOBAL_NICE_COMMANDS: ShowCCCommands();
 	}
 	return CBF_NONE;
 }
@@ -2753,13 +2755,9 @@ void AllocateToolbar()
 	} else {
 		new MainToolbarWindow(&_toolb_normal_desc);
 		//ShowSmallMap();
-		if (_networking && _settings_client.gui.community != 0) { //extra windows upon join
-			//ShowClientList();
-			//if(_current_company != COMPANY_SPECTATOR){ ShowGoalsList(_current_company); }
-			ShowTokenLogin();
-			/* if (_settings_client.gui.btpro_version > 19201) {
-			  ShowErrorMessage(STR_BT_NEW_CLIENT_AVAILABLE, INVALID_STRING_ID, WL_ERROR);
-			} */
-		}
+    if (_networking) {
+      ShowSignList();
+			ShowClientList();
+      }
 	}
 }

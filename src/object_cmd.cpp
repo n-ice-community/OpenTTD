@@ -404,6 +404,8 @@ static void DrawTile_Object(TileInfo *ti)
 		DrawNewObjectTile(ti, spec);
 	}
 
+  DrawOverlay(ti, MP_OBJECT);
+
 	DrawBridgeMiddle(ti);
 }
 

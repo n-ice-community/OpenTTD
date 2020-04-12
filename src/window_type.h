@@ -707,7 +707,8 @@ enum WindowClass {
 	 */
 	WC_SCREENSHOT,
 
-	WC_CC_TOKENLOGIN,
+	WC_CC_COMMANDS,
+	WC_WATCH_COMPANY,
 	WC_WATCH_COMPANY1,
 
 	WC_INVALID = 0xFFFF, ///< Invalid window.

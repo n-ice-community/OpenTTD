@@ -56,6 +56,7 @@
 #include "../disaster_vehicle.h"
 #include "../ship.h"
 #include "../water.h"
+#include "../overlay_cmd.h"
 
 
 #include "saveload_internal.h"
@@ -240,6 +241,8 @@ void ClearAllCachedNames()
  */
 static void InitializeWindowsAndCaches()
 {
+  Overlays::Instance()->Clear(); //CORAGEM
+
 	/* Initialize windows */
 	ResetWindowSystem();
 	SetupColoursAndInitialWindow();
@@ -904,6 +907,9 @@ bool AfterLoadGame()
 				/* Waypoints don't have road stops/oil rigs in the old format */
 				if (!Station::IsExpected(bst)) break;
 				Station *st = Station::From(bst);
+
+        /* Set up station catchment */
+				st->catchment.BeforeAddTile(t, st->GetCatchmentRadius());
 
 				switch (GetStationType(t)) {
 					case STATION_TRUCK:

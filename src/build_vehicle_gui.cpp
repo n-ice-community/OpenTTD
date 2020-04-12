@@ -33,6 +33,7 @@
 
 #include "widgets/build_vehicle_widget.h"
 #include "hotkeys.h"
+
 #include "table/strings.h"
 
 #include "safeguards.h"
@@ -1640,7 +1641,7 @@ struct BuildVehicleWindow : Window {
 		this->vscroll->SetCapacityFromWidget(this, WID_BV_LIST);
 	}
 
-	virtual EventState OnHotkey(int hotkey)
+  virtual EventState OnHotkey(int hotkey)
 	{
 		if (this->owner != _local_company) return ES_NOT_HANDLED;
 		return Window::OnHotkey(hotkey);

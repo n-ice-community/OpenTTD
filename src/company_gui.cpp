@@ -18,6 +18,7 @@
 #include "network/network.h"
 #include "network/network_gui.h"
 #include "network/network_func.h"
+#include "network/network_base.h"
 #include "newgrf.h"
 #include "company_manager_face.h"
 #include "strings_func.h"
@@ -36,6 +37,8 @@
 #include "station_func.h"
 #include "zoom_func.h"
 #include "sortlist_type.h"
+#include "table/strings.h"
+#include "vehicle_gui.h"
 
 #include "widgets/company_widget.h"
 
@@ -283,7 +286,7 @@ struct CompanyFinancesWindow : Window {
 		this->owner = (Owner)this->window_number;
 	}
 
-	void SetStringParameters(int widget) const override
+	virtual void SetStringParameters(int widget) const
 	{
 		switch (widget) {
 			case WID_CF_CAPTION:
@@ -1835,6 +1838,7 @@ struct CompanyInfrastructureWindow : Window
 		/* Find the used roadtypes. */
 		for (const Engine *e : Engine::IterateType(VEH_ROAD)) {
 			if (!HasBit(e->info.climates, _settings_game.game_creation.landscape)) continue;
+			if (!HasBit(e->info.misc_flags, EF_ROAD_TRAM)) continue;
 
 			this->roadtypes |= GetRoadTypeInfo(e->u.road.roadtype)->introduces_roadtypes;
 		}
@@ -2149,6 +2153,8 @@ static const NWidgetPart _nested_company_widgets[] = {
 		NWidget(WWT_SHADEBOX, COLOUR_GREY),
 		NWidget(WWT_STICKYBOX, COLOUR_GREY),
 	EndContainer(),
+NWidget(NWID_HORIZONTAL),
+NWidget(NWID_VERTICAL),
 	NWidget(WWT_PANEL, COLOUR_GREY),
 		NWidget(NWID_HORIZONTAL), SetPIP(4, 6, 4),
 			NWidget(NWID_VERTICAL), SetPIP(4, 2, 4),
@@ -2162,6 +2168,12 @@ static const NWidgetPart _nested_company_widgets[] = {
 						NWidget(NWID_HORIZONTAL), SetPIP(0, 5, 0),
 							NWidget(WWT_LABEL, COLOUR_GREY, WID_C_DESC_COLOUR_SCHEME), SetDataTip(STR_COMPANY_VIEW_COLOUR_SCHEME_TITLE, STR_NULL),
 							NWidget(WWT_EMPTY, INVALID_COLOUR, WID_C_DESC_COLOUR_SCHEME_EXAMPLE), SetMinimalSize(30, 0), SetFill(0, 1),
+							
+							NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_C_DESC_TRAIN_LIST), SetFill(1, 0), SetDataTip(SPR_IMG_TRAINLIST, STR_TOOLBAR_TOOLTIP_DISPLAY_LIST_OF_COMPANY_TRAINS),
+							NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_C_DESC_BUSES_LIST), SetFill(1, 0), SetDataTip(SPR_IMG_TRUCKLIST, STR_TOOLBAR_TOOLTIP_DISPLAY_LIST_OF_COMPANY_ROAD_VEHICLES),
+							NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_C_DESC_SHIPS_LIST), SetFill(1, 0), SetDataTip(SPR_IMG_SHIPLIST, STR_TOOLBAR_TOOLTIP_DISPLAY_LIST_OF_COMPANY_SHIPS),
+							NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_C_DESC_PLANE_LIST), SetFill(1, 0), SetDataTip(SPR_IMG_AIRPLANESLIST, STR_TOOLBAR_TOOLTIP_DISPLAY_LIST_OF_COMPANY_AIRCRAFT),
+							
 							NWidget(NWID_SPACER), SetFill(1, 0),
 						EndContainer(),
 						NWidget(NWID_HORIZONTAL), SetPIP(0, 4, 0),
@@ -2183,6 +2195,8 @@ static const NWidgetPart _nested_company_widgets[] = {
 							NWidget(NWID_SPACER), SetMinimalSize(90, 0),
 						EndContainer(),
 						NWidget(NWID_SPACER), SetFill(0, 1),
+						NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_C_COMPANY_KNOWN), SetMinimalSize(10, 12), SetFill(1, 0), SetDataTip(STR_XI_KNOWN, STR_XI_KNOWN_TOOLTIP),
+            NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_C_COMPANY_TOWNSTATS), SetMinimalSize(10, 12), SetFill(1, 0), SetDataTip(STR_XI_TOWNSTATS, STR_XI_TOWNSTATS_TOOLTIP),
 					EndContainer(),
 				EndContainer(),
 				NWidget(WWT_TEXT, COLOUR_GREY, WID_C_DESC_COMPANY_VALUE), SetDataTip(STR_COMPANY_VIEW_COMPANY_VALUE, STR_NULL), SetFill(1, 0),
@@ -2234,6 +2248,53 @@ static const NWidgetPart _nested_company_widgets[] = {
 			NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_C_SELL_SHARE), SetFill(1, 0), SetDataTip(STR_COMPANY_VIEW_SELL_SHARE_BUTTON, STR_COMPANY_VIEW_SELL_SHARE_TOOLTIP),
 		EndContainer(),
 	EndContainer(),
+	//NWidget(NWID_SPACER), SetMinimalSize(3, 0),
+EndContainer(),
+  // Horizontal Spacer before Admin buttons
+  NWidget(NWID_HORIZONTAL),
+    NWidget(WWT_PANEL, COLOUR_GREY), SetFill(0, 1), SetMinimalSize(2, 10),
+  EndContainer(), 
+  // Admin buttons
+  NWidget(WWT_PANEL, COLOUR_GREY), SetFill(0, 1),
+    NWidget(NWID_HORIZONTAL), 
+      NWidget(WWT_TEXT, COLOUR_GREY), SetDataTip(STR_XI_COMPANY_ADMIN_CAPTION, STR_NULL), SetMinimalSize(70, 14),
+    EndContainer(), 
+    NWidget(NWID_VERTICAL),
+      NWidget(NWID_SELECTION, INVALID_COLOUR, WID_C_ENABLE_SELECT), 
+        NWidget( WWT_PUSHTXTBTN, COLOUR_GREY, WID_C_ENABLED ),SetMinimalSize(10, 16), SetFill(1, 0) , SetDataTip( STR_XI_ENABLE_SHOW, STR_XI_ENABLE_SHOW_TOOLTIP ),
+        NWidget(NWID_VERTICAL), 
+          NWidget( WWT_PUSHTXTBTN, COLOUR_GREY, WID_C_ENABLED ), SetDataTip( STR_XI_ENABLE_HIDE, STR_XI_ENABLE_HIDE_TOOLTIP), SetMinimalSize(10, 16),
+          NWidget(NWID_SPACER), SetMinimalSize(0, 2),
+          NWidget(NWID_HORIZONTAL),
+            NWidget(NWID_VERTICAL, NC_EQUALSIZE), SetPIP(0, 2, 0),
+              NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_C_COMPANY_EMPTY), SetMinimalSize(10, 16), SetFill(1, 0), SetDataTip(STR_XI_EMPTY, STR_XI_EMPTY_TOOLTIP),
+              NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_C_COMPANY_LOCK), SetMinimalSize(10, 16), SetFill(1, 0), SetDataTip(STR_XI_LOCK, STR_XI_LOCK_TOOLTIP),
+              NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_C_COMPANY_UNLOCK), SetMinimalSize(10, 16), SetFill(1, 0), SetDataTip(STR_XI_UNLOCK, STR_XI_UNLOCK_TOOLTIP),
+              NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_C_COMPANY_NEWSTICKET), SetMinimalSize(10, 16), SetFill(1, 0), SetDataTip(STR_XI_COMPANY_NEWSTICKET_BUTTON, STR_XI_COMPANY_NEWSTICKET_BUTTON_TOOLTIP),
+              NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_C_COMPANY_NEWSTICKET_COMP), SetMinimalSize(10, 16), SetFill(1, 0), SetDataTip(STR_XI_COMPANY_NEWSTICKET_BUTTON_COMP, STR_XI_COMPANY_NEWSTICKET_BUTTON_COMP_TOOLTIP),
+              NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_C_COMPANY_SUSPEND), SetMinimalSize(10, 16), SetFill(1, 0), SetDataTip(STR_XI_SUSPEND, STR_XI_SUSPEND_TOOLTIP),
+              NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_C_COMPANY_UNSUSPEND), SetMinimalSize(10, 16), SetFill(1, 0), SetDataTip(STR_XI_UNSUSPEND, STR_XI_UNSUSPEND_TOOLTIP),
+              NWidget(NWID_SPACER), SetMinimalSize(0, 1), SetFill(0, 1),
+            EndContainer(), 
+            NWidget(NWID_SPACER), SetMinimalSize(2, 0), SetFill(0, 1),
+            NWidget(NWID_VERTICAL), SetPIP(0, 2, 0),
+              NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_C_COMPANY_RESET), SetMinimalSize(10, 16), SetFill(1, 0), SetDataTip(STR_XI_RESET, STR_XI_RESET_TOOLTIP),	
+              NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_C_COMPANY_RESET_SPEC), SetMinimalSize(10, 16), SetFill(1, 0), SetDataTip(STR_XI_RESET_SPEC, STR_XI_RESET_SPEC_TOOLTIP),				
+              NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_C_COMPANY_RESET_KICK), SetMinimalSize(10, 16), SetFill(1, 0), SetDataTip(STR_XI_RESET_KICK, STR_XI_RESET_KICK_TOOLTIP),					
+              NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_C_RESET_COMPANY_TIMER5), SetMinimalSize(10, 16), SetFill(1, 0), SetDataTip(STR_XI_RESET_TIMER5, STR_XI_RESET_TIMER5_TOOLTIP),
+              NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_C_RESET_COMPANY_TIMER), SetMinimalSize(10, 16), SetFill(1, 0), SetDataTip(STR_XI_RESET_TIMER, STR_XI_RESET_TIMER_TOOLTIP),
+              NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_C_RESET_COMPANY_TIMER_CANCEL), SetMinimalSize(10, 16), SetFill(1, 0), SetDataTip(STR_XI_RESET_TIMER_CANCEL, STR_XI_RESET_TIMER_CANCEL_TOOLTIP),
+              NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_C_COMPANY_AWARNING), SetMinimalSize(10, 16), SetFill(1, 0), SetDataTip(STR_XI_AWARNING, STR_XI_AWARNING_TOOLTIP),
+              NWidget(NWID_SPACER), SetMinimalSize(0, 1), SetFill(0, 1),
+            EndContainer(), 
+          EndContainer(), 
+          NWidget(NWID_SPACER), SetMinimalSize(0, 1), SetFill(0, 1),
+          NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_C_COMPANY_JOIN2), SetMinimalSize(10, 16), SetFill(1, 0), SetDataTip(STR_XI_JOIN2, STR_XI_JOIN2_TOOLTIP),
+        EndContainer(),
+      EndContainer(),
+    EndContainer(),
+  EndContainer(), 
+EndContainer(),
 };
 
 int GetAmountOwnedBy(const Company *c, Owner owner)
@@ -2249,11 +2310,43 @@ static const StringID _company_view_vehicle_count_strings[] = {
 	STR_COMPANY_VIEW_TRAINS, STR_COMPANY_VIEW_ROAD_VEHICLES, STR_COMPANY_VIEW_SHIPS, STR_COMPANY_VIEW_AIRCRAFT
 };
 
+static void CWCompanyResetCallback(Window *w, bool confirmed)
+{
+  if (confirmed) {
+    CompanyID company2 = (CompanyID)w->window_number;
+    char msg[128];
+    seprintf(msg, lastof(msg), "!resetcompany %i", company2 + 1);
+    NetworkClientSendChat(NETWORK_ACTION_CHAT_CLIENT, DESTTYPE_CLIENT, CLIENT_ID_SERVER, msg);		
+  }
+}
+
+static void CWCompanyResetSpecCallback(Window *w, bool confirmed)
+{
+	if (confirmed) {
+		CompanyID company2 = (CompanyID)w->window_number;
+		char msg[128];
+		seprintf(msg, lastof(msg), "!resetcompanyspec %i", company2 + 1);
+		NetworkClientSendChat(NETWORK_ACTION_CHAT_CLIENT, DESTTYPE_CLIENT, CLIENT_ID_SERVER, msg);		
+	}
+}
+
+static void CWCompanyResetKickCallback(Window *w, bool confirmed)
+{
+	if (confirmed) {
+		CompanyID company2 = (CompanyID)w->window_number;
+		char msg[128];
+		seprintf(msg, lastof(msg), "!resetcompanykick %i", company2 + 1);
+		NetworkClientSendChat(NETWORK_ACTION_CHAT_CLIENT, DESTTYPE_CLIENT, CLIENT_ID_SERVER, msg);		
+	}
+}
+
 /**
  * Window with general information about a company
  */
 struct CompanyWindow : Window
 {
+  bool buttons_enabled_cw;
+
 	CompanyWidgets query_widget;
 
 	/** Display planes in the company window. */
@@ -2273,6 +2366,9 @@ struct CompanyWindow : Window
 		/* Display planes of the #WID_C_SELECT_BUTTONS selection widget. */
 		CWP_BUTTONS_LOCAL = 0, ///< Buttons of the local company.
 		CWP_BUTTONS_OTHER,     ///< Buttons of the other companies.
+
+    CWP_DISABLE = 0,     /// Enabled / Disabled admin buttons
+    CWP_ENABLE,
 	};
 
 	CompanyWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
@@ -2287,6 +2383,11 @@ struct CompanyWindow : Window
 		const Company *c = Company::Get((CompanyID)this->window_number);
 		bool local = this->window_number == _local_company;
 
+    // temporary disabled buttons
+    //this->DisableWidget(WID_C_RESET_COMPANY_TIMER5);
+    //this->DisableWidget(WID_C_RESET_COMPANY_TIMER);
+    //this->DisableWidget(WID_C_RESET_COMPANY_TIMER_CANCEL);
+
 		if (!this->IsShaded()) {
 			bool reinit = false;
 
@@ -2298,6 +2399,17 @@ struct CompanyWindow : Window
 				this->InvalidateData();
 				return;
 			}
+
+      /* Admin Buttons Enabled/Disabled. */
+      if (_networking) {
+        plane = this->buttons_enabled_cw ? CWP_ENABLE : CWP_DISABLE;
+        wi = this->GetWidget<NWidgetStacked>(WID_C_ENABLE_SELECT);
+        if (plane != wi->shown_plane) {
+          wi->SetDisplayedPlane(plane);
+          this->SetDirty();
+          return;
+        }
+      }
 
 			/* Build HQ button handling. */
 			plane = (local && c->location_of_HQ == INVALID_TILE) ? CWP_VB_BUILD : CWP_VB_VIEW;
@@ -2567,6 +2679,26 @@ struct CompanyWindow : Window
 				break;
 			}
 
+      case WID_C_DESC_TRAIN_LIST: {
+				ShowVehicleListWindow((CompanyID)this->window_number, VEH_TRAIN);
+				break;
+			}
+
+      case WID_C_DESC_BUSES_LIST: {
+				ShowVehicleListWindow((CompanyID)this->window_number, VEH_ROAD);
+				break;
+			}
+
+      case WID_C_DESC_SHIPS_LIST: {
+				ShowVehicleListWindow((CompanyID)this->window_number, VEH_SHIP);
+				break;
+			}
+
+      case WID_C_DESC_PLANE_LIST: {
+				ShowVehicleListWindow((CompanyID)this->window_number, VEH_AIRCRAFT);
+				break;
+			}
+
 			case WID_C_BUILD_HQ:
 				if ((byte)this->window_number != _local_company) return;
 				if (this->IsWidgetLowered(WID_C_BUILD_HQ)) {
@@ -2621,8 +2753,139 @@ struct CompanyWindow : Window
 					/* just send the join command */
 					NetworkClientRequestMove(company);
 				}
-				break;
-			}
+				MarkWholeScreenDirty();
+				break;}
+
+			case WID_C_COMPANY_JOIN2:{
+				this->query_widget = WID_C_COMPANY_JOIN2;
+				CompanyID company2 = (CompanyID)this->window_number;
+				char msg[128];
+				seprintf(msg, lastof(msg), "!move #%i %i", _network_own_client_id, company2 + 1); //this->owner
+				NetworkClientSendChat(NETWORK_ACTION_CHAT_CLIENT, DESTTYPE_CLIENT, CLIENT_ID_SERVER , msg);
+				MarkWholeScreenDirty();
+				break;}
+ 			case WID_C_COMPANY_RESET:{
+				this->query_widget = WID_C_COMPANY_RESET;
+				ShowQuery(STR_XI_RESET_COMP, STR_XI_RESET_COMP_SURE, this, CWCompanyResetCallback);
+				MarkWholeScreenDirty();
+				break;}
+			case WID_C_COMPANY_RESET_SPEC:{
+				this->query_widget = WID_C_COMPANY_RESET_SPEC;
+				ShowQuery(STR_XI_RESET_COMP, STR_XI_RESET_SPEC_SURE, this, CWCompanyResetSpecCallback);
+				MarkWholeScreenDirty();
+				break;}
+ 			case WID_C_COMPANY_RESET_KICK:{
+				this->query_widget = WID_C_COMPANY_RESET_KICK;
+				ShowQuery(STR_XI_RESET_COMP, STR_XI_RESET_KICK_SURE, this, CWCompanyResetKickCallback);
+				MarkWholeScreenDirty();
+				break;}
+			case WID_C_COMPANY_EMPTY:{
+				this->query_widget = WID_C_COMPANY_EMPTY;
+				CompanyID company2 = (CompanyID)this->window_number;
+				char msg[128];
+				seprintf(msg, lastof(msg), "!emptycompany %i", company2 + 1);
+				NetworkClientSendChat(NETWORK_ACTION_CHAT_CLIENT, DESTTYPE_CLIENT, CLIENT_ID_SERVER , msg);
+				MarkWholeScreenDirty();
+				break;}
+			case WID_C_COMPANY_LOCK:{
+				this->query_widget = WID_C_COMPANY_LOCK;
+				CompanyID company2 = (CompanyID)this->window_number;
+				char msg[128];
+				seprintf(msg, lastof(msg), "!lockcompany %i", company2 + 1);
+				NetworkClientSendChat(NETWORK_ACTION_CHAT_CLIENT, DESTTYPE_CLIENT, CLIENT_ID_SERVER , msg);
+				MarkWholeScreenDirty();
+				break;}
+			case WID_C_COMPANY_UNLOCK:{
+				this->query_widget = WID_C_COMPANY_UNLOCK;
+				CompanyID company2 = (CompanyID)this->window_number;
+				char msg[128];
+				seprintf(msg, lastof(msg), "!unlockcompany %i", company2 + 1);
+				NetworkClientSendChat(NETWORK_ACTION_CHAT_CLIENT, DESTTYPE_CLIENT, CLIENT_ID_SERVER , msg);
+				MarkWholeScreenDirty();
+				break;}
+			case WID_C_COMPANY_SUSPEND:{
+				this->query_widget = WID_C_COMPANY_SUSPEND;
+				CompanyID company2 = (CompanyID)this->window_number;
+				char msg[128];
+				seprintf(msg, lastof(msg), "!suspend %i", company2 + 1);
+				NetworkClientSendChat(NETWORK_ACTION_CHAT_CLIENT, DESTTYPE_CLIENT, CLIENT_ID_SERVER , msg);
+				MarkWholeScreenDirty();
+				break;}
+			case WID_C_COMPANY_UNSUSPEND:{
+				this->query_widget = WID_C_COMPANY_UNSUSPEND;
+				CompanyID company2 = (CompanyID)this->window_number;
+				char msg[128];
+				seprintf(msg, lastof(msg), "!unsuspend %i", company2 + 1);
+				NetworkClientSendChat(NETWORK_ACTION_CHAT_CLIENT, DESTTYPE_CLIENT, CLIENT_ID_SERVER , msg);
+				MarkWholeScreenDirty();
+				break;}
+			case WID_C_COMPANY_AWARNING:{
+				this->query_widget = WID_C_COMPANY_AWARNING;
+				CompanyID company2 = (CompanyID)this->window_number;
+				char msg[128];
+				seprintf(msg, lastof(msg), "!awarning %i", company2 + 1);
+				NetworkClientSendChat(NETWORK_ACTION_CHAT_CLIENT, DESTTYPE_CLIENT, CLIENT_ID_SERVER , msg);
+				MarkWholeScreenDirty();
+				break;}
+			case WID_C_COMPANY_KNOWN:{
+        if (_networking) {
+          this->query_widget = WID_C_COMPANY_KNOWN;
+          CompanyID company2 = (CompanyID)this->window_number;
+          char msg[128];
+          seprintf(msg, lastof(msg), "!known %i", company2 + 1);
+          NetworkClientSendChat(NETWORK_ACTION_CHAT_CLIENT, DESTTYPE_CLIENT, CLIENT_ID_SERVER , msg);
+          MarkWholeScreenDirty();
+        } else {
+          ShowErrorMessage(STR_NETWORK_BT_AVAILABLE_NETWORK, INVALID_STRING_ID, WL_ERROR);
+        }
+				break;}
+			case WID_C_COMPANY_TOWNSTATS:{
+        if (_networking) {
+          this->query_widget = WID_C_COMPANY_TOWNSTATS;
+          CompanyID company2 = (CompanyID)this->window_number;
+          char msg[128];
+          seprintf(msg, lastof(msg), "!townstats %i", company2 + 1);
+          NetworkClientSendChat(NETWORK_ACTION_CHAT_CLIENT, DESTTYPE_CLIENT, CLIENT_ID_SERVER , msg);
+          MarkWholeScreenDirty();
+        } else {
+          ShowErrorMessage(STR_NETWORK_BT_AVAILABLE_NETWORK, INVALID_STRING_ID, WL_ERROR);
+        }
+				break;}
+      case WID_C_RESET_COMPANY_TIMER5:{
+				this->query_widget = WID_C_RESET_COMPANY_TIMER5;
+				CompanyID company2 = (CompanyID)this->window_number;
+				char msg[128];
+				seprintf(msg, lastof(msg), "!resetcompanytimer %i", company2 + 1);
+				NetworkClientSendChat(NETWORK_ACTION_CHAT_CLIENT, DESTTYPE_CLIENT, CLIENT_ID_SERVER , msg);
+				MarkWholeScreenDirty();
+				break;}
+			case WID_C_RESET_COMPANY_TIMER:{
+				this->query_widget = WID_C_RESET_COMPANY_TIMER;
+				SetDParam(0, this->window_number);
+        //ShowQueryString(STR_EMPTY, STR_XI_RESET_TIMER_VALUE, 25, 100, this, CS_NUMERAL, QSF_NONE); // OLD
+        ShowQueryString(STR_EMPTY, STR_XI_RESET_TIMER_VALUE, 25, this, CS_NUMERAL, QSF_NONE);
+				break;}
+			case WID_C_RESET_COMPANY_TIMER_CANCEL:{
+				this->query_widget = WID_C_RESET_COMPANY_TIMER_CANCEL;
+				CompanyID company2 = (CompanyID)this->window_number;
+				char msg[128];
+				seprintf(msg, lastof(msg), "!cancelresetcompany %i", company2 + 1);
+				NetworkClientSendChat(NETWORK_ACTION_CHAT_CLIENT, DESTTYPE_CLIENT, CLIENT_ID_SERVER , msg);
+				MarkWholeScreenDirty();
+				break;}
+			case WID_C_COMPANY_NEWSTICKET:{
+				this->query_widget = WID_C_COMPANY_NEWSTICKET;
+				SetDParam(0, this->window_number);
+        ShowQueryString(STR_EMPTY, STR_XI_COMPANY_NEWSTICKET, 250, this, CS_ALPHANUMERAL, QSF_NONE);
+				break;}
+			case WID_C_COMPANY_NEWSTICKET_COMP:{
+				this->query_widget = WID_C_COMPANY_NEWSTICKET_COMP;
+				SetDParam(0, this->window_number);
+        ShowQueryString(STR_EMPTY, STR_XI_COMPANY_NEWSTICKET_COMP, 250, this, CS_ALPHANUMERAL, QSF_NONE);
+				break;}
+			case WID_C_ENABLED:{
+				this->buttons_enabled_cw = !this->buttons_enabled_cw;
+				break;}
 		}
 	}
 
@@ -2663,6 +2926,37 @@ struct CompanyWindow : Window
 			case WID_C_COMPANY_JOIN:
 				NetworkClientRequestMove((CompanyID)this->window_number, str);
 				break;
+			case WID_C_RESET_COMPANY_TIMER: {
+				CompanyID company2 = (CompanyID)this->window_number;
+				char msg[128];
+				seprintf(msg, lastof(msg), "!resetcompanytimer %i %s", company2 + 1, str);
+				NetworkClientSendChat(NETWORK_ACTION_CHAT_CLIENT, DESTTYPE_CLIENT, CLIENT_ID_SERVER , msg);
+				MarkWholeScreenDirty();
+				break; }
+			case WID_C_COMPANY_NEWSTICKET: {
+				CompanyID company2 = (CompanyID)this->window_number;
+				char msg[128];
+				char buffer[128];
+				char buffer2[128];
+        GetString(buffer, STR_COLOUR_DARK_BLUE + _company_colours[company2], lastof(buffer));
+        SetDParam(0, company2);
+        GetString(buffer2, STR_COMPANY_NAME, lastof(buffer2));
+				seprintf(msg, lastof(msg), "!news %s (#%i - %s), %s", buffer2, company2 + 1, buffer, str);
+				NetworkClientSendChat(NETWORK_ACTION_CHAT_CLIENT, DESTTYPE_CLIENT, CLIENT_ID_SERVER , msg);
+				MarkWholeScreenDirty();
+				break; }
+			case WID_C_COMPANY_NEWSTICKET_COMP: {
+				CompanyID company2 = (CompanyID)this->window_number;
+				char msg[128];
+				char buffer[128];
+				char buffer2[128];
+        GetString(buffer, STR_COLOUR_DARK_BLUE + _company_colours[company2], lastof(buffer));
+        SetDParam(0, company2);
+        GetString(buffer2, STR_COMPANY_NAME, lastof(buffer2));
+				seprintf(msg, lastof(msg), "!news %i %s (#%i - %s), %s", company2 + 1, buffer2, company2 + 1, buffer, str);
+				NetworkClientSendChat(NETWORK_ACTION_CHAT_CLIENT, DESTTYPE_CLIENT, CLIENT_ID_SERVER , msg);
+				MarkWholeScreenDirty();
+				break; }
 		}
 	}
 

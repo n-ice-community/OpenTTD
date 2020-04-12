@@ -1,3 +1,5 @@
+/* $Id$ */
+
 /*
  * This file is part of OpenTTD.
  * OpenTTD is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, version 2.
@@ -29,12 +31,19 @@
 #include "core/geometry_func.hpp"
 #include "vehiclelist.h"
 #include "town.h"
+#include "core/math_func.hpp"
+#include "overlay_cmd.h"
 #include "linkgraph/linkgraph.h"
 #include "zoom_func.h"
 
 #include "widgets/station_widget.h"
 
 #include "table/strings.h"
+
+#include "network/network.h"
+#include "network/network_func.h"
+#include "network/network_base.h"
+#include "network/network_type.h"
 
 #include <set>
 #include <vector>
@@ -214,6 +223,9 @@ protected:
 
 	GUIStationList stations;
 	Scrollbar *vscroll;
+
+  uint32 company_rating;         // current average cargo ratings for every station of this company
+  uint32 company_waiting_cargo;  // current total waiting cargo att all stations  of this company
 
 	/**
 	 * (Re)Build station list
@@ -523,6 +535,10 @@ public:
 			SetDParam(0, this->window_number);
 			SetDParam(1, this->vscroll->GetCount());
 		}
+		if (widget == WID_STL_BOTTOM_TEXT) {
+			SetDParam(0, this->company_waiting_cargo);
+			SetDParam(1, this->company_rating);
+		}
 	}
 
 	void OnClick(Point pt, int widget, int click_count) override
@@ -661,6 +677,13 @@ public:
 		}
 	}
 
+  	void OnHundredthTick() override
+	{
+		this->company_waiting_cargo = GetCompanyCargo(this->owner);
+		this->company_rating = GetCompanyRatings(this->owner);
+		this->SetWidgetDirty(WID_STL_BOTTOM_TEXT);
+	}
+
 	void OnResize() override
 	{
 		this->vscroll->SetCapacityFromWidget(this, WID_STL_LIST, WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM);
@@ -757,7 +780,12 @@ static const NWidgetPart _nested_company_stations_widgets[] = {
 		NWidget(WWT_PANEL, COLOUR_GREY), SetDataTip(0x0, STR_NULL), SetResize(1, 0), SetFill(1, 1), EndContainer(),
 	EndContainer(),
 	NWidget(NWID_HORIZONTAL),
-		NWidget(WWT_PANEL, COLOUR_GREY, WID_STL_LIST), SetMinimalSize(346, 125), SetResize(1, 10), SetDataTip(0x0, STR_STATION_LIST_TOOLTIP), SetScrollbar(WID_STL_SCROLLBAR), EndContainer(),
+		NWidget(NWID_VERTICAL),	
+			NWidget(WWT_PANEL, COLOUR_GREY, WID_STL_LIST), SetMinimalSize(346, 125), SetResize(1, 10), SetDataTip(0x0, STR_STATION_LIST_TOOLTIP), EndContainer(),
+			NWidget(WWT_PANEL, COLOUR_GREY, WID_STL_BOTTOM_PANEL),
+				NWidget(WWT_TEXT, COLOUR_GREY, WID_STL_BOTTOM_TEXT), SetPadding(2, 0, 0, 2), SetMinimalSize(196, 12), SetFill(1, 0), SetDataTip(STR_COMPANY_STATION_STATS, STR_NULL),
+			EndContainer(),
+		EndContainer(),
 		NWidget(NWID_VERTICAL),
 			NWidget(NWID_VSCROLLBAR, COLOUR_GREY, WID_STL_SCROLLBAR),
 			NWidget(WWT_RESIZEBOX, COLOUR_GREY),
@@ -788,6 +816,7 @@ static const NWidgetPart _nested_station_view_widgets[] = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_GREY),
 		NWidget(WWT_CAPTION, COLOUR_GREY, WID_SV_CAPTION), SetDataTip(STR_STATION_VIEW_CAPTION, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
+		NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_SV_SEND_NAME_CHAT), SetMinimalSize(10, 1), SetDataTip(STR_BUTTON_SEND_STNAME, STR_BUTTON_SEND_STNAME_TOOLTIP),
 		NWidget(WWT_SHADEBOX, COLOUR_GREY),
 		NWidget(WWT_DEFSIZEBOX, COLOUR_GREY),
 		NWidget(WWT_STICKYBOX, COLOUR_GREY),
@@ -807,6 +836,8 @@ static const NWidgetPart _nested_station_view_widgets[] = {
 	NWidget(WWT_PANEL, COLOUR_GREY, WID_SV_ACCEPT_RATING_LIST), SetMinimalSize(249, 23), SetResize(1, 0), EndContainer(),
 	NWidget(NWID_HORIZONTAL),
 		NWidget(NWID_HORIZONTAL, NC_EQUALSIZE),
+      NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_SV_COVERAGE), SetMinimalSize(60, 12), SetResize(1, 0), SetFill(1, 1),
+				SetDataTip(STR_BUTTON_COVERAGE, STR_STATION_VIEW_COVERAGE_TIP),
 			NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_SV_LOCATION), SetMinimalSize(45, 12), SetResize(1, 0), SetFill(1, 1),
 					SetDataTip(STR_BUTTON_LOCATION, STR_STATION_VIEW_CENTER_TOOLTIP),
 			NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_SV_ACCEPTS_RATINGS), SetMinimalSize(46, 12), SetResize(1, 0), SetFill(1, 1),
@@ -821,6 +852,7 @@ static const NWidgetPart _nested_station_view_widgets[] = {
 		NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_SV_ROADVEHS), SetMinimalSize(14, 12), SetFill(0, 1), SetDataTip(STR_LORRY, STR_STATION_VIEW_SCHEDULED_ROAD_VEHICLES_TOOLTIP),
 		NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_SV_SHIPS), SetMinimalSize(14, 12), SetFill(0, 1), SetDataTip(STR_SHIP, STR_STATION_VIEW_SCHEDULED_SHIPS_TOOLTIP),
 		NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_SV_PLANES),  SetMinimalSize(14, 12), SetFill(0, 1), SetDataTip(STR_PLANE, STR_STATION_VIEW_SCHEDULED_AIRCRAFT_TOOLTIP),
+		NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_SV_SEND_MESSAGE), SetMinimalSize(20, 1), SetFill(1, 1), SetDataTip(STR_BUTTON_SEND_MESSAGE, STR_BUTTON_SEND_MESSAGE_TOOLTIP),
 		NWidget(WWT_RESIZEBOX, COLOUR_GREY),
 	EndContainer(),
 };
@@ -1030,6 +1062,7 @@ private:
 	uint num_children;        ///< the number of subentries belonging to this entry.
 	uint count;               ///< sum of counts of all children or amount of cargo for this entry.
 	CargoDataSet *children;   ///< the children of this entry.
+friend struct StationViewWindow;
 };
 
 CargoDataEntry::CargoDataEntry() :
@@ -1333,6 +1366,8 @@ struct StationViewWindow : public Window {
 
 	~StationViewWindow()
 	{
+    Overlays::Instance()->RemoveStation(Station::Get(this->window_number));
+		MarkWholeScreenDirty();
 		DeleteWindowById(WC_TRAINS_LIST,   VehicleListIdentifier(VL_STATION_LIST, VEH_TRAIN,    this->owner, this->window_number).Pack(), false);
 		DeleteWindowById(WC_ROADVEH_LIST,  VehicleListIdentifier(VL_STATION_LIST, VEH_ROAD,     this->owner, this->window_number).Pack(), false);
 		DeleteWindowById(WC_SHIPS_LIST,    VehicleListIdentifier(VL_STATION_LIST, VEH_SHIP,     this->owner, this->window_number).Pack(), false);
@@ -1431,6 +1466,9 @@ struct StationViewWindow : public Window {
 		extern const Station *_viewport_highlight_station;
 		this->SetWidgetDisabledState(WID_SV_CATCHMENT, st->facilities == FACIL_NONE);
 		this->SetWidgetLoweredState(WID_SV_CATCHMENT, _viewport_highlight_station == st);
+		
+		/* check lowered stated for some buttons */
+		this->SetWidgetLoweredState(WID_SV_COVERAGE, Overlays::Instance()->HasStation(st));
 
 		this->DrawWidgets();
 
@@ -1753,14 +1791,18 @@ struct StationViewWindow : public Window {
 			if (grouping == GR_CARGO) cargo = cd->GetCargo();
 			bool auto_distributed = _settings_game.linkgraph.GetDistributionType(cargo) != DT_MANUAL;
 
+      const Station *st = Station::Get(this->window_number);
 			if (pos > -maxrows && pos <= 0) {
 				StringID str = STR_EMPTY;
 				int y = r.top + WD_FRAMERECT_TOP - pos * FONT_HEIGHT_NORMAL;
 				SetDParam(0, cargo);
 				SetDParam(1, cd->GetCount());
+				const GoodsEntry *ge = &st->goods[(uint)cd->cargo];
+				SetDParam(2, ToPercent8(ge->rating));
 
 				if (this->groupings[column] == GR_CARGO) {
-					str = STR_STATION_VIEW_WAITING_CARGO;
+					//str = STR_STATION_VIEW_WAITING_CARGO;
+					str = STR_STATION_VIEW_AMOUNT_AND_RATING;
 					DrawCargoIcons(cd->GetCargo(), cd->GetCount(), r.left + WD_FRAMERECT_LEFT + this->expand_shrink_width, r.right - WD_FRAMERECT_RIGHT - this->expand_shrink_width, y);
 				} else {
 					if (!auto_distributed) grouping = GR_SOURCE;
@@ -1829,7 +1871,9 @@ struct StationViewWindow : public Window {
 
 		CargoTypes cargo_mask = 0;
 		for (CargoID i = 0; i < NUM_CARGO; i++) {
+      //const GoodsEntry *ge = &st->goods[i];
 			if (HasBit(st->goods[i].status, GoodsEntry::GES_ACCEPTANCE)) SetBit(cargo_mask, i);
+			//if (HasBit(st->goods[i].acceptance_pickup, GoodsEntry::GES_ACCEPTANCE) || ((st->goods[i].cargo.TotalCount() == 0 && (!HasBit(ge->acceptance_pickup,GoodsEntry::GES_PICKUP))))) SetBit(cargo_mask, i);
 		}
 		SetDParam(0, cargo_mask);
 		int bottom = DrawStringMultiLine(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, INT32_MAX, STR_STATION_VIEW_ACCEPTS_CARGO);
@@ -1925,6 +1969,31 @@ struct StationViewWindow : public Window {
 				}
 				break;
 
+      case WID_SV_COVERAGE:
+				Overlays::Instance()->ToggleStation(Station::Get(this->window_number));
+				MarkWholeScreenDirty();
+				break;
+
+      case WID_SV_SEND_MESSAGE:
+        if (_networking) {
+          this->query_widget = SCQ_STATION_MESSAGE;
+          SetDParam(0, this->window_number);
+          ShowQueryString(STR_EMPTY, STR_BUTTON_SEND_MESSAGE_QUERY_TITLE, 512, this, CS_ALPHANUMERAL, QSF_NONE);
+        }
+				break;
+
+      case WID_SV_SEND_NAME_CHAT:
+        if (_networking) {
+          char buffer[128];
+          SetDParam(0, this->window_number);
+          GetString(buffer, STR_STATION_NAME, lastof(buffer));
+          
+          //NetworkClientSendChat(NETWORK_ACTION_CHAT, DESTTYPE_BROADCAST, 0 , buffer);
+
+          SetClipboardInfo(buffer);
+        }
+				break;
+
 			case WID_SV_ACCEPTS_RATINGS: {
 				/* Swap between 'accepts' and 'ratings' view. */
 				int height_change;
@@ -1941,6 +2010,7 @@ struct StationViewWindow : public Window {
 			}
 
 			case WID_SV_RENAME:
+        this->query_widget = SCQ_STATION_RENAME;
 				SetDParam(0, this->window_number);
 				ShowQueryString(STR_STATION_NAME, STR_STATION_VIEW_RENAME_STATION_CAPTION, MAX_LENGTH_STATION_NAME_CHARS,
 						this, CS_ALPHANUMERAL, QSF_ENABLE_DEFAULT | QSF_LEN_IN_CHARS);
@@ -2083,8 +2153,30 @@ struct StationViewWindow : public Window {
 	void OnQueryTextFinished(char *str) override
 	{
 		if (str == nullptr) return;
+		const Station *st = Station::Get(this->window_number);
+		char buffer[128];
+		char buffer2[128];
+		char buffer3[128];
+		char msg[1024];
 
+    switch (this->query_widget) {
+      default: NOT_REACHED();
+
+      case SCQ_STATION_MESSAGE:
+        GetString(buffer, STR_COLOUR_DARK_BLUE + _company_colours[st->owner], lastof(buffer));
+        SetDParam(0, st->owner);
+        GetString(buffer2, STR_COMPANY_NAME, lastof(buffer2));
+        SetDParam(0, st->index);
+        GetString(buffer3, STR_STATION_NAME, lastof(buffer3));
+        seprintf(msg, lastof(msg), "(%s - %s), your station '%s' %s", buffer2, buffer, buffer3, str);
+        
+        NetworkClientSendChat(NETWORK_ACTION_CHAT, DESTTYPE_BROADCAST, 0 , msg);
+			break;
+
+      case SCQ_STATION_RENAME:
 		DoCommandP(0, this->window_number, 0, CMD_RENAME_STATION | CMD_MSG(STR_ERROR_CAN_T_RENAME_STATION), nullptr, str);
+      break;
+    }
 	}
 
 	void OnResize() override
@@ -2107,6 +2199,10 @@ struct StationViewWindow : public Window {
 			}
 		}
 	}
+
+  protected:
+    void Get(WindowNumber window_number); //CORAGEM
+    StationCompanyQuery query_widget; //CORAGEM
 };
 
 const StringID StationViewWindow::_sort_names[] = {
@@ -2141,7 +2237,12 @@ static WindowDesc _station_view_desc(
  */
 void ShowStationViewWindow(StationID station)
 {
-	AllocateWindowDescFront<StationViewWindow>(&_station_view_desc, station);
+	if (_ctrl_pressed) {
+		Overlays::Instance()->ToggleStation(Station::Get(station));
+		MarkWholeScreenDirty();
+	} else {
+		AllocateWindowDescFront<StationViewWindow>(&_station_view_desc, station);
+	}
 }
 
 /** Struct containing TileIndex and StationID */

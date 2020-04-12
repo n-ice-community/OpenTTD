@@ -23,6 +23,7 @@
 #include "../gfx_func.h"
 #include "../error.h"
 #include "../rev.h"
+#include "../gui.h"
 #include "network.h"
 #include "network_base.h"
 #include "network_client.h"
@@ -634,6 +635,8 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::Receive_SERVER_CLIENT_INFO(Pac
 		strecpy(ci->client_name, name, lastof(ci->client_name));
 
 		SetWindowDirty(WC_CLIENT_LIST, 0);
+		InvalidateWindowData( WC_WATCH_COMPANY, ci->client_id,1 );
+		SetWindowClassesDirty( WC_WATCH_COMPANY );
 		InvalidateWindowClassesData( WC_WATCH_COMPANY1, 0 );
 		SetWindowClassesDirty( WC_WATCH_COMPANY1 );
 
@@ -655,7 +658,9 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::Receive_SERVER_CLIENT_INFO(Pac
 	strecpy(ci->client_name, name, lastof(ci->client_name));
 
 	SetWindowDirty(WC_CLIENT_LIST, 0);
-	InvalidateWindowClassesData( WC_WATCH_COMPANY1, 0 );
+	InvalidateWindowData( WC_WATCH_COMPANY, ci->client_id,1 );
+  SetWindowClassesDirty( WC_WATCH_COMPANY );
+  InvalidateWindowClassesData( WC_WATCH_COMPANY1, 0 );
 	SetWindowClassesDirty( WC_WATCH_COMPANY1 );
 
 	return NETWORK_RECV_STATUS_OKAY;
@@ -1037,8 +1042,6 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::Receive_SERVER_ERROR_QUIT(Pack
 	}
 
 	SetWindowDirty(WC_CLIENT_LIST, 0);
-	InvalidateWindowClassesData( WC_WATCH_COMPANY1, 0 );
-	SetWindowClassesDirty( WC_WATCH_COMPANY1 );
 
 	return NETWORK_RECV_STATUS_OKAY;
 }
@@ -1058,6 +1061,8 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::Receive_SERVER_QUIT(Packet *p)
 	}
 
 	SetWindowDirty(WC_CLIENT_LIST, 0);
+	InvalidateWindowData( WC_WATCH_COMPANY, ci->client_id,1 );
+  SetWindowClassesDirty( WC_WATCH_COMPANY );
 	InvalidateWindowClassesData( WC_WATCH_COMPANY1, 0 );
 	SetWindowClassesDirty( WC_WATCH_COMPANY1 );
 
@@ -1077,6 +1082,8 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::Receive_SERVER_JOIN(Packet *p)
 	}
 
 	SetWindowDirty(WC_CLIENT_LIST, 0);
+	InvalidateWindowData( WC_WATCH_COMPANY, ci->client_id,1 );
+  SetWindowClassesDirty( WC_WATCH_COMPANY );
 	InvalidateWindowClassesData( WC_WATCH_COMPANY1, 0 );
 	SetWindowClassesDirty( WC_WATCH_COMPANY1 );
 
@@ -1152,6 +1159,10 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::Receive_SERVER_MOVE(Packet *p)
 	if (client_id == _network_own_client_id) {
 		SetLocalCompany(company_id);
 	}
+	InvalidateWindowData( WC_WATCH_COMPANY, ci->client_id,1 );
+  SetWindowClassesDirty( WC_WATCH_COMPANY );
+	InvalidateWindowClassesData( WC_WATCH_COMPANY1, 0 );
+	SetWindowClassesDirty( WC_WATCH_COMPANY1 );
 
 	return NETWORK_RECV_STATUS_OKAY;
 }

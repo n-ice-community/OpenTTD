@@ -76,6 +76,8 @@
 #include "blitter/factory.hpp"
 #include "strings_func.h"
 #include "zoom_func.h"
+#include "overlay.h"
+#include "overlay_cmd.h"
 #include "vehicle_func.h"
 #include "company_func.h"
 #include "waypoint_func.h"
@@ -3560,9 +3562,8 @@ calc_heightdiff_single_direction:;
 			uint dy = Delta(TileY(t0), TileY(t1)) + 1;
 			byte index = 0;
 			uint64 params[5];
-			memset( params, 0, sizeof( params ) );
 
-			/* If dragging an area (eg dynamite tool) and it is actually a single
+			/* If dragging an area (e.g. dynamite tool) and it is actually a single
 			 * row/column, change the type to 'line' to get proper calculation for height */
 			style = (HighLightStyle)_thd.next_drawstyle;
 			if (style & HT_RECT) {
@@ -4126,4 +4127,17 @@ void ResetRailPlacementEndpoints()
 	_tile_snap_points.clear();
 	_rail_snap_points.clear();
 	_current_snap_lock.x = -1;
+}
+
+void DrawOverlay(const TileInfo *ti, TileType tt) 
+{
+	if (Overlays::Instance()->IsTileInCatchmentArea(ti, PRODUCTION)) {
+		if(tt == MP_STATION)
+			//DrawTileSelectionRect(ti, PALETTE_SEL_TILE_RED);
+			DrawTileSelectionRect(ti, PALETTE_TILE_RED_PULSATING);
+		else
+			DrawTileSelectionRect(ti, PALETTE_SEL_TILE_BLUE);
+	} else if (Overlays::Instance()->IsTileInCatchmentArea(ti, ACCEPTANCE)) { 
+		DrawTileSelectionRect(ti, PAL_NONE);
+	}
 }

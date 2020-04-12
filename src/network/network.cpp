@@ -38,6 +38,7 @@
 #include "../error.h"
 #include "../settings_func.h"
 #include <iostream> //std
+//#include <cstdio>
 #include "../strings_func.h"
 #include "../base64.h"
 
@@ -660,7 +661,7 @@ public:
 	CommunityLoginManager() {}
 
 	void initiateLoginSequence() {
-    DeleteWindowByClass(WC_CC_TOKENLOGIN);
+    DeleteWindowByClass(WC_CC_COMMANDS);
     char uri[512];
     const char *np;
     std::string decoded;
@@ -703,6 +704,7 @@ public:
       this->sendLoginString();
       //IConsolePrint( CC_INFO, "*** Community Authentification successful ***");
     } else {
+      //char b[512];
       //IConsolePrint(CC_ERROR, b);
       ShowErrorMessage(STR_CC_OTHER_TOKEN_LOGIN_ERROR, INVALID_STRING_ID, WL_ERROR);
     }
@@ -856,6 +858,7 @@ void CommunityServerManagerSend()
   servermgr.initiateServerSequence();
 }
 
+
 /** Non blocking connection create to actually connect to servers */
 class TCPClientConnecter : TCPConnecter {
 public:
@@ -889,7 +892,7 @@ void NetworkClientConnectGame(NetworkAddress address, CompanyID join_as, const c
 	_network_join_server_password = join_server_password;
 	_network_join_company_password = join_company_password;
 
-  //where did we join? - IP check
+	//where did we join? - IP check
 	IConsolePrintF(CC_WHITE, "ip   %s", _settings_client.network.last_host);	
 	if(     strcmp(_settings_client.network.last_host, "176.9.26.206") == 0
     ||  strcmp(_settings_client.network.last_host, "openttd.n-ice.org") == 0

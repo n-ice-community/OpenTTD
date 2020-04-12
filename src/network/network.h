@@ -31,5 +31,6 @@ extern int _cc_porti; //current port
 extern uint8 _fromlast;
 void GetCommunityServerListText(uint8 from = 0);
 bool GetCommunityServer(int number, bool findonly = false);
+void SetClipboardInfo(char *output);
 
 #endif /* NETWORK_H */
