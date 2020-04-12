@@ -304,6 +304,8 @@ order_backup.h
 order_base.h
 order_func.h
 order_type.h
+overlay.h
+overlay_cmd.h
 pbs.h
 progress.h
 querystring_gui.h
@@ -401,6 +403,7 @@ viewport_func.h
 viewport_kdtree.h
 viewport_sprite_sorter.h
 viewport_type.h
+watch_gui.h
 watch_gui_1.h
 water.h
 waypoint_base.h
@@ -524,6 +527,7 @@ transparency_gui.cpp
 tree_gui.cpp
 vehicle_gui.cpp
 viewport_gui.cpp
+watch_gui.cpp
 watch_gui_1.cpp
 waypoint_gui.cpp
 zoning_gui.cpp
@@ -601,6 +605,7 @@ industry_cmd.cpp
 misc_cmd.cpp
 object_cmd.cpp
 order_cmd.cpp
+overlay_cmd.cpp
 rail_cmd.cpp
 road_cmd.cpp
 roadveh_cmd.cpp

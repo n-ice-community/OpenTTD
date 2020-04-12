@@ -68,6 +68,7 @@ Company::Company(uint16 name_1, bool is_ai)
 
 	for (uint j = 0; j < 4; j++) this->share_owners[j] = COMPANY_SPECTATOR;
 	InvalidateWindowData(WC_PERFORMANCE_DETAIL, 0, INVALID_COMPANY);
+	InvalidateWindowClassesData( WC_WATCH_COMPANY, 0 );
 	InvalidateWindowClassesData( WC_WATCH_COMPANY1, 0 );
 }
 
@@ -89,6 +90,7 @@ void Company::PostDestructor(size_t index)
 	InvalidateWindowData(WC_PERFORMANCE_DETAIL, 0, (int)index);
 	InvalidateWindowData(WC_COMPANY_LEAGUE, 0, 0);
 	InvalidateWindowData(WC_LINKGRAPH_LEGEND, 0);
+	InvalidateWindowClassesData( WC_WATCH_COMPANY, 0 );
 	InvalidateWindowClassesData( WC_WATCH_COMPANY1, 0 );
 	/* If the currently shown error message has this company in it, then close it. */
 	InvalidateWindowData(WC_ERRMSG, 0);
@@ -1093,6 +1095,7 @@ CommandCost CmdRenameCompany(TileIndex tile, DoCommandFlag flags, uint32 p1, uin
 		Company *c = Company::Get(_current_company);
 		free(c->name);
 		c->name = reset ? nullptr : stredup(text);
+		InvalidateWindowClassesData( WC_WATCH_COMPANY, 0 );
 		InvalidateWindowClassesData( WC_WATCH_COMPANY1, 0 );
 		MarkWholeScreenDirty();
 		CompanyAdminUpdate(c);

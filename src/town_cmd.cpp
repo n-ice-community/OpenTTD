@@ -306,7 +306,11 @@ static void DrawTile_Town(TileInfo *ti)
 
 	if (ti->tileh != SLOPE_FLAT) DrawFoundation(ti, FOUNDATION_LEVELED);
 
+  //DrawOverlay(ti, MP_HOUSE); //Original
+
 	DrawGroundSprite(dcts->ground.sprite, dcts->ground.pal);
+
+  DrawOverlay(ti, MP_HOUSE);
 
 	/* If houses are invisible, do not draw the upper part */
 	if (IsInvisibilitySet(TO_HOUSES)) return;
@@ -2060,7 +2064,7 @@ static void DoCreateTown(Town *t, TileIndex tile, uint32 townnameparts, TownSize
 	}
 	t->townnameparts = townnameparts;
 
-	t->town_label = 3;
+  t->town_label = 3;
 	t->UpdateVirtCoord();
 	InvalidateWindowData(WC_TOWN_DIRECTORY, 0, TDIWD_FORCE_REBUILD);
 
@@ -3633,7 +3637,7 @@ static void UpdateTownRating(Town *t)
 		t->ratings[i] = Clamp(t->ratings[i], RATING_MINIMUM, RATING_MAXIMUM);
 	}
 
-	t->UpdateVirtCoord();
+  t->UpdateVirtCoord();
 	SetWindowDirty(WC_TOWN_AUTHORITY, t->index);
 }
 

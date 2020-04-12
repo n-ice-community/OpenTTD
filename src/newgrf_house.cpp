@@ -448,7 +448,11 @@ static void DrawTileLayout(const TileInfo *ti, const TileLayoutSpriteGroup *grou
 		DrawGroundSprite(image, GroundSpritePaletteTransform(image, pal, palette));
 	}
 
+  //DrawOverlay(ti, MP_HOUSE); //Original
+
 	DrawNewGRFTileSeq(ti, dts, TO_HOUSES, stage, palette);
+
+  DrawOverlay(ti, MP_HOUSE);
 }
 
 void DrawNewHouseTile(TileInfo *ti, HouseID house_id)

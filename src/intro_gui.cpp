@@ -63,15 +63,33 @@ struct SelectGameWindow : public Window {
 
     int comm = _settings_client.gui.community; //chosen community
 		switch (query_widget) {
-			case SGQ_CC_USER:
+			case SGQ_CC_USER: {
 				if (Utf8StringLength(str) >= NETWORK_NAME_LENGTH) break;
 				if(comm > 0 && comm <= 2){
 					strecpy(_settings_client.network.community_user[comm-1], str, lastof(_settings_client.network.community_user[comm-1]));
 				}
-				//strecpy(_settings_client.network.client_name, str, lastof(_settings_client.network.client_name));
 				SaveToConfig();
 				this->SetDirty();
 				break;
+			}
+
+      case SGQ_CC_ADMIN_GOODBYE: {
+				if (Utf8StringLength(str) >= NETWORK_NAME_LENGTH) break;
+				if(comm > 0 && comm <= 2){
+					strecpy(_settings_client.network.luck_goodbye, str, lastof(_settings_client.network.luck_goodbye));
+				}
+				SaveToConfig();
+				break;
+			}
+
+      case SGQ_CC_ADMIN_ATTENTION: {
+				if (Utf8StringLength(str) >= NETWORK_NAME_LENGTH) break;
+				if(comm > 0 && comm <= 2){
+					strecpy(_settings_client.network.nice_attention, str, lastof(_settings_client.network.nice_attention));
+				}
+				SaveToConfig();
+				break;
+			}
 
 			case SGQ_CC_PASSWORD:{
 				if (Utf8StringLength(str) >= NETWORK_PASSWORD_LENGTH) break;
@@ -102,9 +120,23 @@ struct SelectGameWindow : public Window {
 				    string s = str;
                     string encoded = base64_encode(reinterpret_cast<const unsigned char*>(s.c_str()), s.length());
                     np = encoded.c_str();
+		    strecpy(_settings_client.network.community_password[comm], np, lastof(_settings_client.network.community_password[comm]));
+		}
+		SaveToConfig();
+		break;
+	}
 
-					strecpy(_settings_client.network.community_password[comm-1], np, lastof(_settings_client.network.community_password[comm-1]));
-                }
+      case SGQ_CC_ADMIN_PASSWORD:{
+				if (Utf8StringLength(str) >= NETWORK_PASSWORD_LENGTH) break;
+				string s = str;
+				const char *np;
+				string encoded = base64_encode(reinterpret_cast<const unsigned char*>(s.c_str()), s.length());
+				np = encoded.c_str();
+
+				if(comm > 0 && comm <= 2){
+					comm--; //array first index
+					strecpy(_settings_client.network.community_admin_password[comm], np, lastof(_settings_client.network.community_admin_password[comm]));
+				}
 				SaveToConfig();
 				break;
 			}
@@ -140,14 +172,17 @@ struct SelectGameWindow : public Window {
 		else if(_settings_client.gui.community == 2) this->GetWidget<NWidgetCore>(WID_SGI_CC_SELECT_BTPRO)->colour = COLOUR_YELLOW;
 		else{
 			this->DisableWidget(WID_SGI_CC_PASSWORD);
+			this->DisableWidget(WID_SGI_CC_ADMIN_PASSWORD);
 			this->DisableWidget(WID_SGI_CC_USER_ENTER);
-			this->DisableWidget(WID_SGI_WEBSITE);
 			this->DisableWidget(WID_SGI_SERVERS_FORUM);
+			this->DisableWidget(WID_SGI_SERVERS_WEBSITE);
 			this->DisableWidget(WID_SGI_IRC_CHAT);
 			this->DisableWidget(WID_SGI_IRC_SERVERS_CHAT);
 			this->DisableWidget(WID_SGI_SERVER_RULES);
 			this->DisableWidget(WID_SGI_SERVER_WIKI);
 			this->DisableWidget(WID_SGI_SERVER_VIP);
+			this->DisableWidget(WID_SGI_CC_ADMIN_GOODBYE);
+			this->DisableWidget(WID_SGI_CC_ADMIN_ATTENTION);
 		}
 	}
 
@@ -159,17 +194,16 @@ struct SelectGameWindow : public Window {
 		switch (widget) {
 			case WID_SGI_BASESET:
 				SetDParam(0, _missing_extra_graphics);
-				DrawStringMultiLine(r.left, r.right, r.top,  r.bottom, STR_INTRO_BASESET, TC_FROMSTRING, SA_CENTER);
+				DrawStringMultiLine(r.left, r.right, r.top, r.bottom, STR_INTRO_BASESET, TC_FROMSTRING, SA_CENTER);
 				break;
 
 			case WID_SGI_TRANSLATION:
 				SetDParam(0, _current_language->missing);
-				DrawStringMultiLine(r.left, r.right, r.top,  r.bottom, STR_INTRO_TRANSLATION, TC_FROMSTRING, SA_CENTER);
+				DrawStringMultiLine(r.left, r.right, r.top, r.bottom, STR_INTRO_TRANSLATION, TC_FROMSTRING, SA_CENTER);
 				break;
 
 			case WID_SGI_SERVERS:				
-				//DrawString(r.left, r.right, r.top + 40, STR_CC_SERVER_FREELANCER, TC_FROMSTRING, SA_CENTER);
-				DrawStringMultiLine(r.left, r.right, r.top,  r.bottom, STR_CC_SERVER_FREELANCER, TC_FROMSTRING, SA_CENTER);
+				DrawStringMultiLine(r.left, r.right, r.top, r.bottom, STR_CC_SERVER_FREELANCER, TC_FROMSTRING, SA_CENTER);
 				break;
 			default:
 				if(widget >= WID_SGI_CC1){
@@ -299,13 +333,13 @@ struct SelectGameWindow : public Window {
 				DeleteWindowByClass(WC_SELECT_GAME);
 				ShowSelectGameWindow();
 				break;
-			case WID_SGI_WEBSITE:
-				if(_settings_client.gui.community == 1) OSOpenBrowser("http://www.n-ice.org");
-				else if(_settings_client.gui.community == 2) OSOpenBrowser("https://openttd.btpro.nl");
-				break;	
 			case WID_SGI_SERVERS_FORUM:
 				if(_settings_client.gui.community == 1) OSOpenBrowser("http://www.n-ice.org/openttd/forum/index.php");
 				else if(_settings_client.gui.community == 2) OSOpenBrowser("https://openttd.btpro.nl/index.php/forum/recent");
+				break;
+			case WID_SGI_SERVERS_WEBSITE:
+				if(_settings_client.gui.community == 1) OSOpenBrowser("http://www.n-ice.org");
+				else if(_settings_client.gui.community == 2) OSOpenBrowser("https://openttd.btpro.nl");
 				break;
 			case WID_SGI_IRC_CHAT:
 				if(_settings_client.gui.community == 1) OSOpenBrowser("https://chat.mibbit.com/?url=irc%3A%2F%2Firc.boxor.net:6668%2FOpenTTD.Chat");
@@ -335,6 +369,20 @@ struct SelectGameWindow : public Window {
 			case WID_SGI_CC_PASSWORD: // Enter user Password
 				this->query_widget = SGQ_CC_PASSWORD;
 				ShowQueryString(STR_EMPTY, STR_CC_PASSWORD_ENTER, 40, this, CS_ALPHANUMERAL, QSF_NONE);
+				break;
+			case WID_SGI_CC_ADMIN_PASSWORD: // Enter ADMIN Password
+				this->query_widget = SGQ_CC_ADMIN_PASSWORD;
+				ShowQueryString(STR_EMPTY, STR_CC_ADMIN_PASSWORD_ENTER, 40, this, CS_ALPHANUMERAL, QSF_NONE);
+				break;
+			case WID_SGI_CC_ADMIN_GOODBYE: // Enter Goodbye Message
+				this->query_widget = SGQ_CC_ADMIN_GOODBYE;
+				SetDParamStr(0, _settings_client.network.luck_goodbye);
+				ShowQueryString(STR_CC_USER_WHITE, STR_CC_ADMIN_GOODBYE_ENTER, 120, this, CS_ALPHANUMERAL, QSF_NONE);
+				break;
+			case WID_SGI_CC_ADMIN_ATTENTION: // Enter Warning Message
+				this->query_widget = SGQ_CC_ADMIN_ATTENTION;
+				SetDParamStr(0, _settings_client.network.nice_attention);
+				ShowQueryString(STR_CC_USER_WHITE, STR_CC_ADMIN_ATTENTION_ENTER, 80, this, CS_ALPHANUMERAL, QSF_NONE);
 				break;
 			// directly to server #number
 			default:
@@ -532,13 +580,22 @@ static const NWidgetPart _nested_select_game_widgets[] = {
 		NWidget(WWT_TEXT, COLOUR_ORANGE), SetMinimalSize(20, 12), SetDataTip(STR_CC_SEPARATOR1, STR_NULL),
 		NWidget(WWT_TEXT, COLOUR_ORANGE), SetMinimalSize(20, 12), SetDataTip(STR_CC_PASSWORD, STR_NULL),
 		NWidget(WWT_PUSHTXTBTN, COLOUR_BROWN, WID_SGI_CC_PASSWORD), SetMinimalSize(15, 12), SetDataTip(STR_CC_PASSWORD_CHANGE, STR_CC_PASSWORD_CHANGE_TOOLTIP),
-		NWidget(NWID_SPACER), SetMinimalSize(175, 0),
+		NWidget(NWID_SPACER), SetMinimalSize(3, 0),
+		NWidget(WWT_TEXT, COLOUR_ORANGE), SetMinimalSize(20, 12), SetDataTip(STR_CC_SEPARATOR1, STR_NULL),
+		NWidget(WWT_PUSHTXTBTN, COLOUR_BROWN, WID_SGI_CC_ADMIN_GOODBYE), SetMinimalSize(20, 12), SetDataTip(STR_CC_ADMIN_GOODBYE, STR_CC_ADMIN_GOODBYE_CHANGE_TOOLTIP),
+		NWidget(NWID_SPACER), SetMinimalSize(3, 0),
+		NWidget(WWT_TEXT, COLOUR_ORANGE), SetMinimalSize(20, 12), SetDataTip(STR_CC_SEPARATOR1, STR_NULL),
+		NWidget(WWT_PUSHTXTBTN, COLOUR_BROWN, WID_SGI_CC_ADMIN_ATTENTION), SetMinimalSize(20, 12), SetDataTip(STR_CC_ADMIN_ATTENTION, STR_CC_ADMIN_ATTENTION_CHANGE_TOOLTIP),
+		NWidget(NWID_SPACER), SetMinimalSize(3, 0),
+		NWidget(WWT_TEXT, COLOUR_ORANGE), SetMinimalSize(20, 12), SetDataTip(STR_CC_SEPARATOR1, STR_NULL),
+		NWidget(WWT_PUSHTXTBTN, COLOUR_BROWN, WID_SGI_CC_ADMIN_PASSWORD), SetMinimalSize(20, 12), SetDataTip(STR_CC_ADMIN_PASSWORD, STR_CC_ADMIN_PASSWORD_CHANGE),
+		NWidget(NWID_SPACER), SetMinimalSize(20, 0),
 		NWidget(WWT_TEXT, COLOUR_ORANGE), SetMinimalSize(20, 12), SetDataTip(STR_CC_BUILD, STR_NULL),
 		NWidget(NWID_SPACER), SetMinimalSize(3, 0),
 	EndContainer(),
 	NWidget(NWID_SPACER), SetMinimalSize(0, 6),
 	NWidget(NWID_HORIZONTAL, NC_EQUALSIZE), SetFill(1, 0), SetPIP(5, 3, 0),
-		NWidget(WWT_PUSHTXTBTN, COLOUR_ORANGE, WID_SGI_WEBSITE), SetMinimalSize(55, 15), SetDataTip(STR_NETWORK_SERVER_LIST_JOIN_GAME_CC_WEBSITE, STR_NETWORK_SERVER_LIST_JOIN_GAME_CC_WEBSITE_TOOLTIP),
+		NWidget(WWT_PUSHTXTBTN, COLOUR_ORANGE, WID_SGI_SERVERS_WEBSITE), SetMinimalSize(55, 15), SetDataTip(STR_NETWORK_SERVER_LIST_JOIN_GAME_CC_WEBSITE, STR_NETWORK_SERVER_LIST_JOIN_GAME_CC_WEBSITE_TOOLTIP),
 		NWidget(WWT_TEXT, COLOUR_ORANGE), SetMinimalSize(10, 0), SetDataTip(STR_CC_SEPARATOR1, STR_NULL),
 			NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_SGI_CC_SELECT_NICE), SetMinimalSize(235, 15), SetDataTip(STR_NETWORK_CC_SELECT_NICE, STR_NETWORK_CC_SELECT_NICE_TOOLTIP),
 			NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_SGI_CC_SELECT_BTPRO), SetMinimalSize(235, 15), SetDataTip(STR_NETWORK_CC_SELECT_BTPRO, STR_NETWORK_CC_SELECT_BTPRO_TOOLTIP),

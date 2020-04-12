@@ -148,11 +148,6 @@ void PlaceProc_DemolishArea(TileIndex tile)
 	VpStartPlaceSizing(tile, VPM_X_AND_Y, DDSP_DEMOLISH_AREA);
 }
 
-static void PlaceProc_Measure(TileIndex tile)
-{
-	VpStartPlaceSizing(tile, VPM_A_B_LINE, DDSP_MEASURE);
-}
-
 /** Terra form toolbar managing class. */
 struct TerraformToolbarWindow : Window {
 	int last_user_action; ///< Last started user action.
@@ -210,11 +205,6 @@ struct TerraformToolbarWindow : Window {
 				ShowBuildTreesToolbar();
 				break;
 
-      case WID_TT_MEASUREMENT_TOOL:
-				HandlePlacePushButton(this, WID_TT_MEASUREMENT_TOOL, SPR_CURSOR_QUERY, HT_RECT);
-				this->last_user_action = widget;
-				break;
-
 			case WID_TT_PLACE_SIGN: // Place sign button
 				HandlePlacePushButton(this, WID_TT_PLACE_SIGN, SPR_CURSOR_SIGN, HT_RECT);
 				this->last_user_action = widget;
@@ -222,6 +212,11 @@ struct TerraformToolbarWindow : Window {
 
 			case WID_TT_PLACE_OBJECT: // Place object button
 				ShowBuildObjectPicker();
+				break;
+			case WID_TT_MEASUREMENT_TOOL: // Ruler tool button
+				//HandlePlacePushButton(this, WID_TT_MEASUREMENT_TOOL, SPR_CURSOR_QUERY, HT_RECT);
+				HandlePlacePushButton(this, WID_TT_MEASUREMENT_TOOL, SPR_SHOW_ORDERS, HT_RECT);
+				this->last_user_action = widget;
 				break;
 
 			default: NOT_REACHED();
@@ -251,12 +246,12 @@ struct TerraformToolbarWindow : Window {
 				DoCommandP(tile, OBJECT_OWNED_LAND, 0, CMD_BUILD_OBJECT | CMD_MSG(STR_ERROR_CAN_T_PURCHASE_THIS_LAND), CcPlaySound_SPLAT_RAIL);
 				break;
 
-      case WID_TT_MEASUREMENT_TOOL:
-				PlaceProc_Measure(tile);
-				break;
-
 			case WID_TT_PLACE_SIGN: // Place sign button
 				PlaceProc_Sign(tile);
+				break;
+
+			case WID_TT_MEASUREMENT_TOOL: // Ruler tool button
+				VpStartPlaceSizing(tile, VPM_A_B_LINE, DDSP_MEASURE);
 				break;
 
 			default: NOT_REACHED();
@@ -287,7 +282,7 @@ struct TerraformToolbarWindow : Window {
 					GUIPlaceProcDragXY(select_proc, start_tile, end_tile);
 					break;
 				case DDSP_MEASURE:
-					//nothing to do, just draw a tooltip
+					/* nothing to do, just draw a tooltip */
 					break;
 			}
 		}
@@ -323,6 +318,7 @@ static Hotkey terraform_hotkeys[] = {
 	Hotkey('I', "trees", WID_TT_PLANT_TREES),
 	Hotkey('O', "placesign", WID_TT_PLACE_SIGN),
 	Hotkey('P', "placeobject", WID_TT_PLACE_OBJECT),
+	Hotkey('R', "ruler", WID_TT_MEASUREMENT_TOOL),
 	HOTKEY_LIST_END
 };
 HotkeyList TerraformToolbarWindow::hotkeys("terraform", terraform_hotkeys, TerraformToolbarGlobalHotkeys);
@@ -351,12 +347,12 @@ static const NWidgetPart _nested_terraform_widgets[] = {
 								SetFill(0, 1), SetDataTip(SPR_IMG_PLANTTREES, STR_SCENEDIT_TOOLBAR_PLANT_TREES),
 		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_TT_PLACE_SIGN), SetMinimalSize(22, 22),
 								SetFill(0, 1), SetDataTip(SPR_IMG_SIGN, STR_SCENEDIT_TOOLBAR_PLACE_SIGN),
-		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_TT_MEASUREMENT_TOOL), SetMinimalSize(22,22),
-								SetFill(0, 1), SetDataTip(SPR_SHOW_ORDERS, STR_LANDSCAPING_TOOLTIP_RULER_TOOL),
 		NWidget(NWID_SELECTION, INVALID_COLOUR, WID_TT_SHOW_PLACE_OBJECT),
 			NWidget(WWT_PUSHIMGBTN, COLOUR_DARK_GREEN, WID_TT_PLACE_OBJECT), SetMinimalSize(22, 22),
 								SetFill(0, 1), SetDataTip(SPR_IMG_TRANSMITTER, STR_SCENEDIT_TOOLBAR_PLACE_OBJECT),
 		EndContainer(),
+		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_TT_MEASUREMENT_TOOL), SetMinimalSize(22,22),
+								SetFill(0, 1), SetDataTip(SPR_SHOW_ORDERS, STR_LANDSCAPING_TOOLTIP_RULER_TOOL),
 	EndContainer(),
 };
 
@@ -484,6 +480,8 @@ static const NWidgetPart _nested_scen_edit_land_gen_widgets[] = {
 			EndContainer(),
 			NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_ETT_PLACE_OBJECT), SetMinimalSize(23, 22),
 										SetFill(0, 1), SetDataTip(SPR_IMG_TRANSMITTER, STR_SCENEDIT_TOOLBAR_PLACE_OBJECT),
+			NWidget(WWT_IMGBTN, COLOUR_GREY, WID_ETT_MEASUREMENT_TOOL), SetMinimalSize(22,22),
+									SetFill(0, 1), SetDataTip(SPR_SHOW_ORDERS, STR_LANDSCAPING_TOOLTIP_RULER_TOOL),
 			NWidget(NWID_SPACER), SetFill(1, 0),
 		EndContainer(),
 		NWidget(NWID_HORIZONTAL),
@@ -627,6 +625,11 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 				ShowBuildObjectPicker();
 				break;
 
+      case WID_ETT_MEASUREMENT_TOOL: // Ruler tool button
+				HandlePlacePushButton(this, WID_ETT_MEASUREMENT_TOOL, SPR_SHOW_ORDERS, HT_RECT);
+				this->last_user_action = widget;
+				break;
+
 			case WID_ETT_INCREASE_SIZE:
 			case WID_ETT_DECREASE_SIZE: { // Increase/Decrease terraform size
 				int size = (widget == WID_ETT_INCREASE_SIZE) ? 1 : -1;
@@ -692,6 +695,10 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 				VpStartPlaceSizing(tile, VPM_X_AND_Y, DDSP_CREATE_DESERT);
 				break;
 
+      case WID_ETT_MEASUREMENT_TOOL: // Ruler tool button
+				VpStartPlaceSizing(tile, VPM_A_B_LINE, DDSP_MEASURE);
+				break;
+
 			default: NOT_REACHED();
 		}
 	}
@@ -713,6 +720,9 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 				case DDSP_LEVEL_AREA:
 				case DDSP_DEMOLISH_AREA:
 					GUIPlaceProcDragXY(select_proc, start_tile, end_tile);
+					break;
+				case DDSP_MEASURE:
+					/* nothing to do, just draw a tooltip */
 					break;
 			}
 		}
@@ -748,6 +758,7 @@ static Hotkey terraform_editor_hotkeys[] = {
 	Hotkey('R', "rocky", WID_ETT_PLACE_ROCKS),
 	Hotkey('T', "desert", WID_ETT_PLACE_DESERT),
 	Hotkey('O', "object", WID_ETT_PLACE_OBJECT),
+	Hotkey('R', "ruler", WID_ETT_MEASUREMENT_TOOL),
 	HOTKEY_LIST_END
 };
 

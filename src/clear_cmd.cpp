@@ -124,6 +124,7 @@ static void DrawTile_Clear(TileInfo *ti)
 			break;
 	}
 
+  DrawOverlay(ti, MP_CLEAR);
 	DrawBridgeMiddle(ti);
 }
 

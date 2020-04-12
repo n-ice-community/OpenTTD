@@ -26,6 +26,11 @@ enum CompanyWidgets {
 	WID_C_DESC_INFRASTRUCTURE,        ///< Infrastructure.
 	WID_C_DESC_INFRASTRUCTURE_COUNTS, ///< Infrastructure count.
 
+  WID_C_DESC_TRAIN_LIST,            ///< Open Train list of this company.
+  WID_C_DESC_BUSES_LIST,            ///< Open RV's list of this company.
+  WID_C_DESC_SHIPS_LIST,            ///< Open Ship list of this company.
+  WID_C_DESC_PLANE_LIST,            ///< Open Planes list of this company.
+
 	WID_C_SELECT_DESC_OWNERS,         ///< Owners.
 	WID_C_DESC_OWNERS,                ///< Owner in Owners.
 
@@ -49,7 +54,26 @@ enum CompanyWidgets {
 	WID_C_HAS_PASSWORD,               ///< Has company password lock.
 	WID_C_SELECT_MULTIPLAYER,         ///< Multiplayer selection panel.
 	WID_C_COMPANY_PASSWORD,           ///< Button to set company password.
+	WID_C_ENABLE_SELECT,
+	WID_C_ENABLED,
 	WID_C_COMPANY_JOIN,               ///< Button to join company.
+	WID_C_COMPANY_JOIN2,
+	WID_C_COMPANY_RESET,
+	WID_C_COMPANY_RESET_KICK,
+	WID_C_COMPANY_EMPTY,
+	WID_C_COMPANY_RESET_SPEC,
+	WID_C_COMPANY_LOCK,
+	WID_C_COMPANY_UNLOCK,
+	WID_C_COMPANY_SUSPEND,
+	WID_C_COMPANY_UNSUSPEND,
+	WID_C_COMPANY_AWARNING,
+	WID_C_COMPANY_KNOWN,
+	WID_C_COMPANY_TOWNSTATS,
+	WID_C_RESET_COMPANY_TIMER5,
+	WID_C_RESET_COMPANY_TIMER,
+	WID_C_RESET_COMPANY_TIMER_CANCEL,
+	WID_C_COMPANY_NEWSTICKET,
+	WID_C_COMPANY_NEWSTICKET_COMP,
 };
 
 /** Widgets of the #CompanyFinancesWindow class. */

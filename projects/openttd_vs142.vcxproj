@@ -617,6 +617,8 @@
     <ClInclude Include="..\src\order_base.h" />
     <ClInclude Include="..\src\order_func.h" />
     <ClInclude Include="..\src\order_type.h" />
+    <ClInclude Include="..\src\overlay.h" />
+    <ClInclude Include="..\src\overlay_cmd.h" />
     <ClInclude Include="..\src\pbs.h" />
     <ClInclude Include="..\src\progress.h" />
     <ClInclude Include="..\src\querystring_gui.h" />
@@ -714,6 +716,7 @@
     <ClInclude Include="..\src\viewport_kdtree.h" />
     <ClInclude Include="..\src\viewport_sprite_sorter.h" />
     <ClInclude Include="..\src\viewport_type.h" />
+    <ClInclude Include="..\src\watch_gui.h" />
     <ClInclude Include="..\src\watch_gui_1.h" />
     <ClInclude Include="..\src\water.h" />
     <ClInclude Include="..\src\waypoint_base.h" />
@@ -817,6 +820,7 @@
     <ClCompile Include="..\src\tree_gui.cpp" />
     <ClCompile Include="..\src\vehicle_gui.cpp" />
     <ClCompile Include="..\src\viewport_gui.cpp" />
+    <ClCompile Include="..\src\watch_gui.cpp" />
     <ClCompile Include="..\src\watch_gui_1.cpp" />
     <ClCompile Include="..\src\waypoint_gui.cpp" />
     <ClCompile Include="..\src\zoning_gui.cpp" />
@@ -890,6 +894,7 @@
     <ClCompile Include="..\src\misc_cmd.cpp" />
     <ClCompile Include="..\src\object_cmd.cpp" />
     <ClCompile Include="..\src\order_cmd.cpp" />
+    <ClCompile Include="..\src\overlay_cmd.cpp" />
     <ClCompile Include="..\src\rail_cmd.cpp" />
     <ClCompile Include="..\src\road_cmd.cpp" />
     <ClCompile Include="..\src\roadveh_cmd.cpp" />

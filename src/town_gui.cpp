@@ -17,6 +17,7 @@
 #include "company_base.h"
 #include "company_gui.h"
 #include "network/network.h"
+#include "network/network_func.h"
 #include "string_func.h"
 #include "strings_func.h"
 #include "sound_func.h"
@@ -588,6 +589,18 @@ public:
 				ShowTownAuthorityWindow(this->window_number);
 				break;
 
+      case WID_TV_SEND_TOWN_NAME: // send town name to chat
+				if (_networking) {
+          char buffer[128];
+          SetDParam(0, this->window_number);
+          GetString(buffer, STR_TOWN_NAME, lastof(buffer));
+          
+          //NetworkClientSendChat(NETWORK_ACTION_CHAT, DESTTYPE_BROADCAST, 0 , buffer);
+
+          SetClipboardInfo(buffer);
+        }
+				break;
+
 			case WID_TV_CHANGE_NAME: // rename
 				SetDParam(0, this->window_number);
 				ShowQueryString(STR_TOWN_NAME, STR_TOWN_VIEW_RENAME_TOWN_BUTTON, MAX_LENGTH_TOWN_NAME_CHARS, this, CS_ALPHANUMERAL, QSF_ENABLE_DEFAULT | QSF_LEN_IN_CHARS);
@@ -702,7 +715,7 @@ public:
 
 	virtual EventState OnHotkey(int hotkey)
 	{
-		//if(hotkey == WID_TV_CB) ShowCBTownWindow(this->window_number);
+		//if(hotkey == WID_TV_CB) ShowCBTownWindow(this->window_number);  //CORAGEM - work later
 		return Window::OnHotkey(hotkey);
 	}
 
@@ -721,6 +734,7 @@ static const NWidgetPart _nested_town_game_view_widgets[] = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_BROWN),
 		NWidget(WWT_CAPTION, COLOUR_BROWN, WID_TV_CAPTION), SetDataTip(STR_TOWN_VIEW_TOWN_CAPTION_EXTRA, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
+		NWidget(WWT_PUSHTXTBTN, COLOUR_BROWN, WID_TV_SEND_TOWN_NAME), SetDataTip(STR_TOWN_VIEW_SEND_TOWN_NAME, STR_TOWN_VIEW_SEND_TOWN_NAME_TOOLTIP),
 		NWidget(WWT_SHADEBOX, COLOUR_BROWN),
 		NWidget(WWT_DEFSIZEBOX, COLOUR_BROWN),
 		NWidget(WWT_STICKYBOX, COLOUR_BROWN),
@@ -938,7 +952,7 @@ public:
 				SetDParam(0, TownDirectoryWindow::sorter_names[this->towns.SortType()]);
 				break;
 
-      case TDW_CAPTION_TEXT:
+			case TDW_CAPTION_TEXT:
 				uint16 town_number = 0;
         uint16 city_number = 0;
 		for (const Town *t : Town::Iterate()) {
@@ -1452,7 +1466,7 @@ static void DrawExtraTownInfo (const Rect &r, uint &y, Town *town, uint line, bo
 	else grow_rate = TownTicksToDays((town->growth_rate & ~TOWN_CUSTOM_GROWTH) + 1);
 
 	SetDParam(0, grow_rate);
-	SetDParam(1, !(town->growth_rate & TOWN_CUSTOM_GROWTH) ? TownTicksToDays(town->grow_counter + 1) : ((town->grow_counter & (~TOWN_CUSTOM_GROWTH)) * TOWN_GROWTH_TICKS + DAY_TICKS) / DAY_TICKS);
+	SetDParam(1, !(town->growth_rate & TOWN_CUSTOM_GROWTH) ? TownTicksToDays(town->grow_counter + 1) :  ((town->grow_counter & (~TOWN_CUSTOM_GROWTH)) * TOWN_GROWTH_TICKS + DAY_TICKS) / DAY_TICKS);
 	SetDParam(2, town->time_until_rebuild);
 	SetDParam(3, HasBit(town->flags, TOWN_IS_GROWING) ? 1 : 0);
 	SetDParam(4, town->fund_buildings_months);

@@ -27,6 +27,7 @@
 #include "order_backup.h"
 #include "zoom_func.h"
 #include "hotkeys.h"
+
 #include "widgets/depot_widget.h"
 
 #include "table/strings.h"
@@ -1049,7 +1050,7 @@ struct DepotWindow : Window {
 		return ES_NOT_HANDLED;
 	}
 
-	virtual EventState OnHotkey(int hotkey)
+  virtual EventState OnHotkey(int hotkey)
 	{
 		if (this->owner != _local_company) return ES_NOT_HANDLED;
 		return Window::OnHotkey(hotkey);
