@@ -61,6 +61,7 @@ uint CBFROM[NUM_CARGO] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
 uint CBDECAY[NUM_CARGO] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};//CB
 uint days_in_month[] = {31, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};//CB
 void CB_UpdateTownStorage(Town *t); //CB
+static bool _pending_advertising = false;
 
 const Money NOVAPOLIS_COMPANY_MONEY_THRESHOLD = INT64_MAX >> 4;
 TownsGrowthTilesIndex _towns_growth_tiles_last_month;
@@ -911,6 +912,7 @@ static bool GrowTown(Town *t);
 
 static void DoRegularFunding(Town *t)
 {
+       static bool pending_funding = false;
        bool fund_regularly = HasBit(t->fund_regularly, _local_company);
        bool do_powerfund = HasBit(t->do_powerfund, _local_company);
 
@@ -922,8 +924,20 @@ static void DoRegularFunding(Town *t)
        if (!fund_regularly && !do_powerfund)
                return;
 
+       if (pending_funding && t->fund_buildings_months == 0) {
+           return;
+       } else {
+           pending_funding = false;
+       }
+
        if (_local_company == COMPANY_SPECTATOR)
                return;
+
+       Money fund_cost = _price[PR_TOWN_ACTION] * _town_action_costs[HK_FUND] >> 8;
+       if (Company::Get(_local_company)->money < fund_cost) {
+           return;
+       }
+
 
        if (CB_Enabled() && !HasBit(t->flags, TOWN_IS_GROWING))
                return;
@@ -941,6 +955,7 @@ static void DoRegularFunding(Town *t)
                ((t->grow_counter > 0 && (t->grow_counter > 1 || gr == 1)) || not_growing)) ||
                (do_powerfund && gr > 1 && (t->grow_counter == gr || not_growing))) {
 
+               pending_funding = true;
                CompanyID old = _current_company;
                _current_company = _local_company;
                DoCommandP(t->xy, t->index, HK_FUND, CMD_DO_TOWN_ACTION | CMD_NO_ESTIMATE);
@@ -951,6 +966,12 @@ static void DoRegularFunding(Town *t)
 static void DoRegularAdvertising(Town *t) {
        if (!HasBit(t->advertise_regularly, _local_company))
                return;
+
+       /* Block while we wait for server answer. Do not queue advertise orders
+        * */
+       if (_pending_advertising) {
+           return;
+       }
 
        if (t->ad_ref_goods_entry == NULL) {
                // Pick as ref station and cargo with min rating
@@ -971,6 +992,7 @@ static void DoRegularAdvertising(Town *t) {
        if (t->ad_ref_goods_entry->rating >= t->ad_rating_goal)
                return;
 
+    _pending_advertising = true;
     CompanyID old = _current_company;
     _current_company = _local_company;
     DoCommandP(t->xy, t->index, HK_LADVERT, CMD_DO_TOWN_ACTION | CMD_NO_ESTIMATE);
@@ -3293,6 +3315,7 @@ static CommandCost TownActionAdvertiseMedium(Town *t, DoCommandFlag flags)
 static CommandCost TownActionAdvertiseLarge(Town *t, DoCommandFlag flags)
 {
 	if (flags & DC_EXEC) {
+        _pending_advertising = false;
 		ModifyStationRatingAround(t->xy, _current_company, 0xA0, 20);
 	}
 	return CommandCost();
