@@ -170,7 +170,6 @@ void CcRoadStop(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2,
 	}
 }
 
-
 static RoadBits FindRoadsToConnect(TileIndex tile) {
 	RoadBits bits = ROAD_NONE;
 	DiagDirection ddir;
@@ -270,7 +269,7 @@ static RoadBits FindRoadsToConnect(TileIndex tile) {
  
  	return AutodetectRoadObjectDirection(area.tile);
  }
- 
+
 /**
  * Place a new road stop.
  * @param start_tile First tile of the area.
@@ -611,7 +610,7 @@ struct BuildRoadToolbarWindow : Window {
 
 	void OnPlaceObject(Point pt, TileIndex tile) override
 	{
-    DiagDirection ddir;
+		DiagDirection ddir;
 		_remove_button_clicked = this->IsWidgetLowered(WID_ROT_REMOVE);
 		_one_way_button_clicked = RoadTypeIsRoad(this->roadtype) ? this->IsWidgetLowered(WID_ROT_ONE_WAY) : false;
 		switch (this->last_started_action) {
@@ -1311,6 +1310,7 @@ static const NWidgetPart _nested_road_station_picker_widgets[] = {
 			NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_BROS_STATION_XY_AUTO), SetMinimalSize(66, 12), SetDataTip(STR_STATION_BUILD_ORIENTATION_AUTO, STR_STATION_BUILD_ORIENTATION_AUTO_TOOLTIP),
 			NWidget(NWID_SPACER), SetFill(1, 0),
 		EndContainer(),
+		NWidget(NWID_SPACER), SetMinimalSize(0, 2),
 		NWidget(NWID_SPACER), SetMinimalSize(0, 1),
 		NWidget(NWID_HORIZONTAL), SetPIP(2, 0, 2),
 			NWidget(WWT_LABEL, COLOUR_DARK_GREEN, WID_BROS_INFO), SetMinimalSize(140, 14), SetDataTip(STR_STATION_BUILD_COVERAGE_AREA_TITLE, STR_NULL),
@@ -1350,12 +1350,13 @@ static const NWidgetPart _nested_tram_station_picker_widgets[] = {
 			NWidget(NWID_SPACER), SetFill(1, 0),
 		EndContainer(),
 		NWidget(NWID_SPACER), SetMinimalSize(0, 2),
-		NWidget(NWID_HORIZONTAL), SetPIP(0, 0, 0),
+		NWidget(NWID_HORIZONTAL), SetPIP(0, 2, 0),
 			NWidget(NWID_SPACER), SetFill(1, 0),
 			NWidget(WWT_TEXT, COLOUR_GREY, WID_BROS_STATION_AUTO), SetMinimalSize(0, 0), SetDataTip(STR_EMPTY, STR_EMPTY),
-			NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_BROS_STATION_XY_AUTO), SetMinimalSize(133, 12), SetDataTip(STR_STATION_BUILD_ORIENTATION_AUTO, STR_STATION_BUILD_ORIENTATION_AUTO_TOOLTIP),
+			NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_BROS_STATION_XY_AUTO), SetMinimalSize(134, 12), SetDataTip(STR_STATION_BUILD_ORIENTATION_AUTO, STR_STATION_BUILD_ORIENTATION_AUTO_TOOLTIP),
 			NWidget(NWID_SPACER), SetFill(1, 0),
 		EndContainer(),
+		NWidget(NWID_SPACER), SetMinimalSize(0, 2),
 		NWidget(NWID_SPACER), SetMinimalSize(0, 1),
 		NWidget(NWID_HORIZONTAL), SetPIP(2, 0, 2),
 			NWidget(WWT_LABEL, COLOUR_DARK_GREEN, WID_BROS_INFO), SetMinimalSize(140, 14), SetDataTip(STR_STATION_BUILD_COVERAGE_AREA_TITLE, STR_NULL),

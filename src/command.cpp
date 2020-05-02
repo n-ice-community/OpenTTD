@@ -566,7 +566,8 @@ bool DoCommandP(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, CommandCallbac
 	bool estimate_only = _shift_pressed && IsLocalCompany() &&
 			!_generating_world &&
 			!(cmd & CMD_NETWORK_COMMAND) &&
-			!(GetCommandFlags(cmd) & CMD_NO_EST);
+			!(GetCommandFlags(cmd) & CMD_NO_EST) &&
+			!(cmd & CMD_NO_ESTIMATE);
 
 	/* We're only sending the command, so don't do
 	 * fancy things for 'success'. */

@@ -5286,7 +5286,7 @@ STR_NETWORK_SERVER_LIST_JOIN_GAME_SERVER_VIP_TOOLTIP            :{BLACK}Open VIP
 STR_CC_SERVER_FREELANCER                                        :{WHITE}No community selected
 STR_NETWORK_DIRECT_JOIN_GAME                                    :{BLACK}{RAW_STRING}
 STR_NETWORK_DIRECT_JOIN_GAME_TOOLTIP                            :{BLACK}Join server directly
-STR_CC_BUILD                                                    :{BLACK}(Build 1101A)
+STR_CC_BUILD                                                    :{BLACK}(Build 1101D)
 STR_CC_ADMIN_LOGIN_WRONG_SERVER                                 :{BLACK}Not a correct community server
 STR_CC_IRC_LINK_CHAT                                            :{BLACK}IRC Chat
 STR_CC_IRC_LINK_CHAT_TOOLTIP                                    :{BLACK}Open mibbit in browser to connect to #btpro-chat IRC channel
@@ -5334,13 +5334,7 @@ STR_CONFIG_SETTING_CLIENT_COMMUNITY                             :Freelancer
 STR_CONFIG_SETTING_CLIENT_COMMUNITY_NICE                        :n-ice / http://n-ice.org
 STR_CONFIG_SETTING_CLIENT_COMMUNITY_BTPRO                       :BTPro / https://openttd.btpro.nl
 
-#industry filter
-STR_FILTER_TRANSPORTED_BOTH                                     :Show all (transported or not)
-STR_FILTER_TRANSPORTED_ONLY_NOT                                 :Show only non-transported
-STR_FILTER_TRANSPORTED_ONLY                                     :Show only transported
-STR_FILTER_INDUSTRY_TYPE_ALL                                    :Show all
-
-STR_BT_NEW_CLIENT_AVAILABLE                                     :{WHITE}«« ATTENTION »» There's a new BTPro client available. Visit openttd.btpro.nl (Website button below :)
+STR_BT_NEW_CLIENT_AVAILABLE                                     :{WHITE}## ATTENTION ## There's a new BTPro client available. Visit openttd.btpro.nl (Website button below :)
 STR_CC_WIKI_USER_PAGE                                           :{BLACK}{RAW_STRING}
 STR_CC_WIKI_USER_PAGE_TOOLTIP                                   :{BLACK}Open browser in Community Website
 
