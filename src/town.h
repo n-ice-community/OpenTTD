@@ -96,8 +96,11 @@ struct Town : TownPool::PoolItem<&_town_pool> {
         CompanyMask fund_regularly;          ///< funds buildings regularly when previous fund ends
         CompanyMask do_powerfund;            ///< funds buildings when grow counter is maximal (results in fastest funding possible)
         CompanyMask advertise_regularly;     ///< advertised regularly to keep stations rating on desired value
+        static const uint16 adv_cooldown = 185;   ///< minimum allowed time in-between advertisements
+        uint16 last_adv_at;                  ///< last time an adv was performed
         uint8 ad_rating_goal;                ///< value to keep rating at (for regular advertisement) (0..255)
-        const GoodsEntry *ad_ref_goods_entry;      ///< poiter to goods entry of some station, used to check rating for regular advertisement
+        const GoodsEntry *cached_goods_ref;  ///< poiter to goods entry of some station, used to check rating for automated advertisement. To be updated monthly
+        bool pending_funding;                ///< signals if a funding should be performed in the next tick
 
   uint16 houses_skipped;              ///< number of failed house buildings with next counter reset
 	uint16 houses_skipped_prev;         ///< house_failures on start of previous month
