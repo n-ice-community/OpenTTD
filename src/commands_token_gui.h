@@ -12,4 +12,4 @@ void ShowCCCommands();
 NWidgetBase *MakeServerButtons1(int *biggest_index);
 bool GetServerInfo(int number, bool findonly);
 
-#endif // COMMANDS_TOKEN_GUI_H 
+#endif // COMMANDS_TOKEN_GUI_H

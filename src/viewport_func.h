@@ -126,5 +126,4 @@ struct Town;
 void SetViewportCatchmentStation(const Station *st, bool sel);
 void SetViewportCatchmentTown(const Town *t, bool sel);
 
-void DrawOverlay(const TileInfo *ti, TileType tt);
 #endif /* VIEWPORT_FUNC_H */

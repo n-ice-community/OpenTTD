@@ -711,6 +711,8 @@ enum WindowClass {
 	WC_WATCH_COMPANY,
 	WC_WATCH_COMPANY1,
 
+	WC_ADMIN_COMPANY_BUTTONS,
+
 	WC_INVALID = 0xFFFF, ///< Invalid window.
 };
 

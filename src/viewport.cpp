@@ -76,8 +76,6 @@
 #include "blitter/factory.hpp"
 #include "strings_func.h"
 #include "zoom_func.h"
-#include "overlay.h"
-#include "overlay_cmd.h"
 #include "vehicle_func.h"
 #include "company_func.h"
 #include "waypoint_func.h"
@@ -3591,7 +3589,7 @@ calc_heightdiff_single_direction:;
 			params[index++] = heightdiff;
 			//Show always the measurement tooltip
 			//GuiShowTooltips(_thd.GetCallbackWnd(),STR_MEASURE_DIST_HEIGHTDIFF, index, params, TCC_LEFT_CLICK);
-			GuiShowTooltips(_thd.GetCallbackWnd(),STR_MEASURE_DIST_HEIGHTDIFF, index, params, TCC_RIGHT_CLICK);
+			GuiShowTooltips(_thd.GetCallbackWnd(),STR_MEASURE_DIST_HEIGHTDIFF, index, params, TCC_NONE);
 			break;
 		}
 
@@ -4127,17 +4125,4 @@ void ResetRailPlacementEndpoints()
 	_tile_snap_points.clear();
 	_rail_snap_points.clear();
 	_current_snap_lock.x = -1;
-}
-
-void DrawOverlay(const TileInfo *ti, TileType tt) 
-{
-	if (Overlays::Instance()->IsTileInCatchmentArea(ti, PRODUCTION)) {
-		if(tt == MP_STATION)
-			//DrawTileSelectionRect(ti, PALETTE_SEL_TILE_RED);
-			DrawTileSelectionRect(ti, PALETTE_TILE_RED_PULSATING);
-		else
-			DrawTileSelectionRect(ti, PALETTE_SEL_TILE_BLUE);
-	} else if (Overlays::Instance()->IsTileInCatchmentArea(ti, ACCEPTANCE)) { 
-		DrawTileSelectionRect(ti, PAL_NONE);
-	}
 }

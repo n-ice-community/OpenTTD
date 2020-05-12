@@ -21,7 +21,6 @@ enum StationViewWidgets {
 	WID_SV_SCROLLBAR,          ///< Scrollbar.
 	WID_SV_ACCEPT_RATING_LIST, ///< List of accepted cargoes / rating of cargoes.
 	WID_SV_LOCATION,           ///< 'Location' button.
-	WID_SV_COVERAGE,           ///< Show area coverage button
 	WID_SV_SEND_MESSAGE,       ///< Send public message including station name
 	WID_SV_SEND_NAME_CHAT,     ///< Send station name to public chat
 	WID_SV_ACCEPTS_RATINGS,    ///< 'Accepts' / 'Ratings' button.

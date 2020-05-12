@@ -427,7 +427,7 @@ void DrawOrderString(const Vehicle *v, const Order *order, int order_index, int 
 	TileIndex prev_tile = order->GetLocation(v, true);
 	TileIndex cur_tile = next2->GetLocation(v, true);
 	if (prev_tile != INVALID_TILE && cur_tile != INVALID_TILE){
-		order_dist_sq = (uint)sqrt((double)(DistanceSquare(prev_tile, cur_tile)));
+		order_dist_sq = IntSqrt(DistanceSquare(prev_tile, cur_tile));
 		order_dist_mh = DistanceManhattan(prev_tile, cur_tile);
 	}
 	SetDParam(0, order_dist_sq);
@@ -495,9 +495,9 @@ static Order GetOrderCmdFromTile(const Vehicle *v, TileIndex tile)
 				default: NOT_REACHED();
 			}
 			if (st->facilities & facil) {
-        uint8 os = 0xff;
-				StationID st_index = GetStationIndex(st->xy);
-				order.MakeGoToStation(st_index);
+				order.MakeGoToStation(st->index);
+
+				uint8 os = 0xff;
 				if (_ctrl_pressed) {
 					if (_shift_pressed)
 						os = _settings_client.gui.goto_shortcuts_ctrlshift_lclick;
@@ -523,6 +523,7 @@ static Order GetOrderCmdFromTile(const Vehicle *v, TileIndex tile)
 					if (ofs.unload != (enum OrderUnloadFlags)-1)
 					order.SetUnloadType(ofs.unload);
 				}
+
 				if (_settings_client.gui.new_nonstop && v->IsGroundVehicle()) order.SetNonStopType(ONSF_NO_STOP_AT_INTERMEDIATE_STATIONS);
 				order.SetStopLocation(v->type == VEH_TRAIN ? (OrderStopLocation)(_settings_client.gui.stop_location) : OSL_PLATFORM_FAR_END);
 				return order;
@@ -757,12 +758,13 @@ private:
 
 		DoCommandP(this->vehicle->tile, this->vehicle->index + (sel_ord << 20), MOF_UNLOAD | (unload_type << 4), CMD_MODIFY_ORDER | CMD_MSG(STR_ERROR_CAN_T_MODIFY_THIS_ORDER));
 
-    bool set_no_load = false;
-		if (unload_type == OUFB_TRANSFER)
+		bool set_no_load = false;
+		if (unload_type == OUFB_TRANSFER){
 			set_no_load = _settings_client.gui.auto_noload_on_transfer;
-		else if (unload_type == OUFB_UNLOAD)
+		}
+		else if (unload_type == OUFB_UNLOAD){
 			set_no_load = _settings_client.gui.auto_noload_on_unloadall;
-
+		}
 		/* Transfer orders with leave empty as default */
 		if (set_no_load) {
 			DoCommandP(this->vehicle->tile, this->vehicle->index + (sel_ord << 20), MOF_LOAD | (OLFB_NO_LOAD << 4), CMD_MODIFY_ORDER);
@@ -1583,19 +1585,19 @@ public:
 
 			if (gofsfeeder_ordermod != GOFS_FEEDER_NULL) {
 				if (gofsfeeder_ordermod == GOFS_FEEDER_LOAD) {
-					if (DoCommandP(this->vehicle->tile, this->vehicle->index + ((1) << 20), cmd.Pack(), CMD_INSERT_ORDER | CMD_MSG(STR_ERROR_CAN_T_INSERT_NEW_ORDER))) {
-						DoCommandP(this->vehicle->tile, this->vehicle->index,  0, CMD_DELETE_ORDER | CMD_MSG(STR_ERROR_CAN_T_DELETE_THIS_ORDER));
+					if (DoCommandP(this->vehicle->tile, this->vehicle->index + ((1) << 20), cmd.Pack(), CMD_INSERT_ORDER | CMD_NO_ESTIMATE | CMD_MSG(STR_ERROR_CAN_T_INSERT_NEW_ORDER))) {
+						DoCommandP(this->vehicle->tile, this->vehicle->index,  0, CMD_DELETE_ORDER |  CMD_NO_ESTIMATE | CMD_MSG(STR_ERROR_CAN_T_DELETE_THIS_ORDER));
 					}
 
 				}
 				else if (gofsfeeder_ordermod == GOFS_FEEDER_UNLOAD) { // still flushes the whole order table
-					if (DoCommandP(this->vehicle->tile, this->vehicle->index + ((this->vehicle->GetNumOrders()) << 20), cmd.Pack(), CMD_INSERT_ORDER | CMD_MSG(STR_ERROR_CAN_T_INSERT_NEW_ORDER))) {
-						DoCommandP(this->vehicle->tile, this->vehicle->index, (this->vehicle->GetNumOrders()-2+(int)_networking) , CMD_DELETE_ORDER | CMD_MSG(STR_ERROR_CAN_T_DELETE_THIS_ORDER));
+					if (DoCommandP(this->vehicle->tile, this->vehicle->index + ((this->vehicle->GetNumOrders()) << 20), cmd.Pack(), CMD_INSERT_ORDER | CMD_NO_ESTIMATE | CMD_MSG(STR_ERROR_CAN_T_INSERT_NEW_ORDER))) {
+						DoCommandP(this->vehicle->tile, this->vehicle->index, (this->vehicle->GetNumOrders()-2+(int)_networking) , CMD_DELETE_ORDER | CMD_NO_ESTIMATE | CMD_MSG(STR_ERROR_CAN_T_DELETE_THIS_ORDER));
 					}
 				}
 				gofsfeeder_ordermod = GOFS_FEEDER_NULL;
 			}
-			else if (DoCommandP(this->vehicle->tile, this->vehicle->index + (this->OrderGetSel() << 20), cmd.Pack(), CMD_INSERT_ORDER | CMD_MSG(STR_ERROR_CAN_T_INSERT_NEW_ORDER))) {
+			else if (DoCommandP(this->vehicle->tile, this->vehicle->index + (this->OrderGetSel() << 20), cmd.Pack(), CMD_INSERT_ORDER |  CMD_NO_ESTIMATE | CMD_MSG(STR_ERROR_CAN_T_INSERT_NEW_ORDER))) {
 				/* With quick goto the Go To button stays active */
 				if (!_settings_client.gui.quick_goto) ResetObjectToPlace();
 			}

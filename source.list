@@ -304,8 +304,6 @@ order_backup.h
 order_base.h
 order_func.h
 order_type.h
-overlay.h
-overlay_cmd.h
 pbs.h
 progress.h
 querystring_gui.h
@@ -605,7 +603,6 @@ industry_cmd.cpp
 misc_cmd.cpp
 object_cmd.cpp
 order_cmd.cpp
-overlay_cmd.cpp
 rail_cmd.cpp
 road_cmd.cpp
 roadveh_cmd.cpp

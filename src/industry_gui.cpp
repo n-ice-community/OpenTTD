@@ -71,13 +71,6 @@ struct CargoSuffix {
 	char text[512];             ///< Cargo suffix text.
 };
 
-/** Alternatives for filtering by industry transported */
-enum { // Should this enum have a name? example: TransportedFilterSelections
-	TRANSPORTED_SHOW_BOTH,     ///< Show both transported and non-transported industries
-	TRANSPORTED_SHOW_ONLY_NOT, ///< Show only non-transported industries
-	TRANSPORTED_SHOW_ONLY,     ///< Show only transported industries
-};
-
 static void ShowIndustryCargoesWindow(IndustryType id);
 
 /**
@@ -222,20 +215,6 @@ void SortIndustryTypes()
 
 	/* Sort industry types by name. */
 	std::sort(_sorted_industry_types.begin(), _sorted_industry_types.end(), IndustryTypeNameSorter);
-}
-
-/**
- * Return a drop down list of sorted industry types.
- */
-void GetIndustryTypeDropDownList(DropDownList& lst, bool include_show_all = false)
-{
-	if (include_show_all) lst.emplace_back(new DropDownListStringItem(STR_FILTER_INDUSTRY_TYPE_ALL, -1, false));
-	for (uint8 i = 0; i < NUM_INDUSTRYTYPES; i++) {
-		IndustryType ind = _sorted_industry_types[i];
-		const IndustrySpec *indsp = GetIndustrySpec(ind);
-		if (!indsp->enabled) continue;
-		lst.emplace_back(new DropDownListStringItem(indsp->name, ind, false));
-	}
 }
 
 /**
@@ -1225,10 +1204,6 @@ static const NWidgetPart _nested_industry_directory_widgets[] = {
 				NWidget(WWT_DROPDOWN, COLOUR_BROWN, WID_ID_DROPDOWN_CRITERIA), SetDataTip(STR_JUST_STRING, STR_TOOLTIP_SORT_CRITERIA),
 				NWidget(WWT_DROPDOWN, COLOUR_BROWN, WID_ID_FILTER_BY_ACC_CARGO), SetMinimalSize(225, 12), SetFill(0, 1), SetDataTip(STR_INDUSTRY_DIRECTORY_ACCEPTED_CARGO_FILTER, STR_TOOLTIP_FILTER_CRITERIA),
 				NWidget(WWT_DROPDOWN, COLOUR_BROWN, WID_ID_FILTER_BY_PROD_CARGO), SetMinimalSize(225, 12), SetFill(0, 1), SetDataTip(STR_INDUSTRY_DIRECTORY_PRODUCED_CARGO_FILTER, STR_TOOLTIP_FILTER_CRITERIA),
-				NWidget(WWT_DROPDOWN, COLOUR_BROWN, WID_ID_DROPDOWN_FILTER_TRANSPORTED),
-						SetDataTip(STR_JUST_STRING, STR_TOOLTIP_FILTER_CRITERIA),
-				NWidget(WWT_DROPDOWN, COLOUR_BROWN, WID_ID_DROPDOWN_FILTER_INDUSTRY_TYPE),
-						SetDataTip(STR_INDUSTRY_CARGOES_SELECT_INDUSTRY, STR_TOOLTIP_FILTER_CRITERIA),
 				NWidget(WWT_PANEL, COLOUR_BROWN), SetResize(1, 0), EndContainer(),
 			EndContainer(),
 			NWidget(WWT_PANEL, COLOUR_BROWN, WID_ID_INDUSTRY_LIST), SetDataTip(0x0, STR_INDUSTRY_DIRECTORY_LIST_CAPTION), SetResize(1, 1), SetScrollbar(WID_ID_SCROLLBAR), EndContainer(),
@@ -1314,10 +1289,6 @@ protected:
 
 	/* Constants for sorting stations */
 	static const StringID sorter_names[];
-	static const StringID transported_filter_names[]; ///< List of filter by transported alternatives
-	byte selected_filter_transported_index;           ///< The currently selected filter by transported industry
-	int selected_filter_industry_type_index;          ///< The currently selected filter by industry type
-	Dimension ind_textsize;                           ///< Size to hold any industry type text, as well as STR_INDUSTRY_CARGOES_SELECT_INDUSTRY.
 	static GUIIndustryList::SortFunction * const sorter_funcs[];
 
 	GUIIndustryList industries;
@@ -1407,28 +1378,6 @@ protected:
 
 			for (const Industry *i : Industry::Iterate()) {
 				this->industries.push_back(i);
-				if (this->selected_filter_industry_type_index == -1 || i->type == this->selected_filter_industry_type_index) {
-					bool transported = 0;
-					for (byte j = 0; j < lengthof(i->produced_cargo); j++) {
-						if (i->produced_cargo[j] == CT_INVALID) continue;
-						if (i->last_month_pct_transported[j]) {
-							transported = true;
-							break;
-						}
-					} // for cargoes
- 
-					switch (this->selected_filter_transported_index) {
-						case TRANSPORTED_SHOW_BOTH:
-							this->industries.push_back(i);
-							break;
-						case TRANSPORTED_SHOW_ONLY_NOT:
-							if (!transported) this->industries.push_back(i);
-							break;
-						case TRANSPORTED_SHOW_ONLY:
-							if (transported) this->industries.push_back(i);
-							break;
-					} // switch
-				} // If correct type
 			}
 
 			this->industries.shrink_to_fit();
@@ -1589,8 +1538,6 @@ public:
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_ID_SCROLLBAR);
 
-		this->SetFilterTransportedIndex(TRANSPORTED_SHOW_BOTH);
-		this->SetFilterIndustryTypeIndex(-1);
 		this->industries.SetListing(this->last_sorting);
 		this->industries.SetSortFuncs(IndustryDirectoryWindow::sorter_funcs);
 		this->industries.ForceRebuild();
@@ -1609,16 +1556,6 @@ public:
 		this->SetCargoFilterArray();
 	}
 
-	virtual void SetFilterTransportedIndex(byte index)
-	{
-		this->selected_filter_transported_index = index;
-	}
-
-	virtual void SetFilterIndustryTypeIndex(int index)
-	{
-		this->selected_filter_industry_type_index = index;
-	}
-
 	void SetStringParameters(int widget) const override
 	{
 		switch (widget) {
@@ -1632,9 +1569,6 @@ public:
 
 			case WID_ID_FILTER_BY_PROD_CARGO:
 				SetDParam(0, this->cargo_filter_texts[this->produced_cargo_filter_criteria]);
-				break;
-			case WID_ID_DROPDOWN_FILTER_TRANSPORTED:
-				SetDParam(0, IndustryDirectoryWindow::transported_filter_names[this->selected_filter_transported_index]);
 				break;
 		}
 	}
@@ -1695,21 +1629,6 @@ public:
 				break;
 			}
 
-			case WID_ID_DROPDOWN_FILTER_TRANSPORTED: {
-				Dimension d = {0, 0};
-				for (uint i = 0; IndustryDirectoryWindow::transported_filter_names[i] != INVALID_STRING_ID; i++) {
-					d = maxdim(d, GetStringBoundingBox(IndustryDirectoryWindow::transported_filter_names[i]));
-				}
-				d.width += padding.width;
-				d.height += padding.height;
-				*size = maxdim(*size, d);
-				break;
-			}
-
-			case WID_ID_DROPDOWN_FILTER_INDUSTRY_TYPE:
-				size->width = max(size->width, this->ind_textsize.width + padding.width);
-				break;
-
 			case WID_ID_INDUSTRY_LIST: {
 				Dimension d = GetStringBoundingBox(STR_INDUSTRY_DIRECTORY_NONE);
 				for (uint i = 0; i < this->industries.size(); i++) {
@@ -1744,20 +1663,6 @@ public:
 			case WID_ID_FILTER_BY_PROD_CARGO: // Cargo filter dropdown
 				ShowDropDownMenu(this, this->cargo_filter_texts, this->produced_cargo_filter_criteria, WID_ID_FILTER_BY_PROD_CARGO, 0, 0);
 				break;
-
-			case WID_ID_DROPDOWN_FILTER_TRANSPORTED:
-				ShowDropDownMenu(this, IndustryDirectoryWindow::transported_filter_names, this->selected_filter_transported_index, WID_ID_DROPDOWN_FILTER_TRANSPORTED, 0, 0);
-				break;
-
-			case WID_ID_DROPDOWN_FILTER_INDUSTRY_TYPE: 
-			{
-				DropDownList lst;
-                GetIndustryTypeDropDownList(lst, 1);
-				if (!lst.empty()) {
-				    ShowDropDownList(this, std::move(lst), this->selected_filter_industry_type_index, WID_ID_DROPDOWN_FILTER_INDUSTRY_TYPE, 0, true);
-				}
-				break;
-			}
 
 			case WID_ID_INDUSTRY_LIST: {
 				uint p = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_ID_INDUSTRY_LIST, WD_FRAMERECT_TOP);
@@ -1795,23 +1700,6 @@ public:
 				this->BuildSortIndustriesList();
 				break;
 			}
-			case WID_ID_DROPDOWN_FILTER_TRANSPORTED:
-				if (this->selected_filter_transported_index != index) {
-					this->SetFilterTransportedIndex(index);
-					this->industries.ForceRebuild();
-					this->BuildSortIndustriesList();
-					this->SetWidgetDirty(WID_ID_INDUSTRY_LIST);
-				}
-				break;
-
-			case WID_ID_DROPDOWN_FILTER_INDUSTRY_TYPE:
-				if (this->selected_filter_industry_type_index != index) {
-					this->SetFilterIndustryTypeIndex(index);
-					this->industries.ForceRebuild();
-					this->BuildSortIndustriesList();
-					this->SetWidgetDirty(WID_ID_INDUSTRY_LIST);
-				}
-				break;
 		}
 	}
 
@@ -1873,14 +1761,6 @@ const StringID IndustryDirectoryWindow::sorter_names[] = {
 	STR_SORT_BY_PRODUCTION,
 	STR_SORT_BY_TRANSPORTED,
 	INVALID_STRING_ID
-};
-
-/* Names of the filter functions */
-const StringID IndustryDirectoryWindow::transported_filter_names[] = {
-	STR_FILTER_TRANSPORTED_BOTH,
-	STR_FILTER_TRANSPORTED_ONLY_NOT,
-	STR_FILTER_TRANSPORTED_ONLY,
-	INVALID_STRING_ID,
 };
 
 /** Window definition of the industry directory gui */

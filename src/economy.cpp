@@ -1970,7 +1970,6 @@ void CompaniesMonthlyLoop()
 	CompaniesPayInterest();
 	HandleEconomyFluctuations();
 
-	Company *c;
 	for (Company *c : Company::Iterate()) {
 		cargo_iam_free(c);
 	}
