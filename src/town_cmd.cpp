@@ -1005,7 +1005,14 @@ static void DoRegularAdvertising(Town *t, bool compute_worst_cargo) {
         t->cached_goods_ref = GetWorstCargoAround(t->xy, _local_company, 20);
     }
 
+    /* Ok. We were not able to find any station. Disable auto advertising and
+     * warn the player */
     if (t->cached_goods_ref == nullptr) {
+        ClrBit(t->advertise_regularly, _local_company);
+        SetWindowDirty(WC_CB_TOWN, t->index);
+
+        SetDParam(0, t->index);
+        ShowErrorMessage(STR_ERROR_CB_NO_STATION_FOR_REGULAR_ADV, INVALID_STRING_ID, WL_WARNING);
         return;
     }
 

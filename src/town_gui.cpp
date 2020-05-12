@@ -1595,6 +1595,14 @@ public:
 				break;
 		}
 	}
+	void OnPaint() override
+	{
+		this->SetWidgetLoweredState(WID_CB_ADVERT_REGULAR, HasBit(this->town->advertise_regularly, _local_company));
+		this->SetWidgetLoweredState(WID_CB_FUND_REGULAR, HasBit(this->town->fund_regularly, _local_company));
+		this->SetWidgetLoweredState(WID_CB_POWERFUND, HasBit(this->town->do_powerfund, _local_company));
+
+		this->DrawWidgets();
+	}
 
 	void DrawWidget(const Rect &r, int widget) const
 	{
