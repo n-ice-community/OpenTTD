@@ -345,6 +345,7 @@ struct SelectGameWindow : public Window {
 						} else {
 							NetworkClientConnectGame(NetworkAddress(_cc_address, _cc_porti), COMPANY_SPECTATOR);
 						}
+                        delete _cc_address;
 					}
 				} else {
 					ShowErrorMessage(STR_CC_SERVER_DISABLED, INVALID_STRING_ID, WL_ERROR);

@@ -1446,10 +1446,8 @@ bool GetCommunityServer(int number, bool findonly) {
 		if(saddress.compare("DISABLED") == 0) return false;
 		else if(findonly) return true;
 
-		char sa[64];
-		strecpy(sa, saddress.c_str(), lastof(sa));
-		_cc_address = sa;
-		_cc_porti = atoi(sport.c_str());
+		_cc_address = stredup(saddress.c_str(), nullptr);
+		_cc_porti = std::stoi(sport);
 		return true;
 	}
 	else if(findonly) return false;

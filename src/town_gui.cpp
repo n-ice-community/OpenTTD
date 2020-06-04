@@ -42,6 +42,7 @@
 
 #include "safeguards.h"
 
+extern uint16 _tick_counter;
 TownKdtree _town_local_authority_kdtree(&Kdtree_TownXYFunc);
 
 struct CargoX {
@@ -1524,6 +1525,7 @@ public:
 				ToggleBit(this->town->fund_regularly, _local_company);
 				this->SetWidgetLoweredState(widget, HasBit(this->town->fund_regularly, _local_company));
 				this->SetWidgetDirty(widget);
+                this->town->pending_funding = true;
 				break;
 			case WID_CB_POWERFUND:
 				ToggleBit(this->town->do_powerfund, _local_company);
@@ -1532,6 +1534,8 @@ public:
 				break;
 			case WID_CB_ADVERT_REGULAR:
 				if (!this->town->advertise_regularly) {
+                    this->town->last_adv_at = (uint16)(_tick_counter - Town::adv_cooldown);
+                    this->town->cached_goods_ref = nullptr;
 					SetDParam(0, ToPercent8(this->town->ad_rating_goal));
 					ShowQueryString(STR_JUST_INT, STR_CB_ADVERT_REGULAR_RATING_TO_KEEP,
 					                4, this, CS_NUMERAL, QSF_ACCEPT_UNCHANGED);
@@ -1550,7 +1554,7 @@ public:
 	{
 		if (str != NULL) SetBit(this->town->advertise_regularly, _local_company);
 		else ClrBit(this->town->advertise_regularly, _local_company);
-		this->town->ad_ref_goods_entry = NULL;
+		this->town->cached_goods_ref = nullptr;
 		this->SetWidgetLoweredState(WID_CB_ADVERT_REGULAR, HasBit(this->town->advertise_regularly, _local_company));
 		this->SetWidgetDirty(WID_CB_ADVERT_REGULAR);
 
@@ -1590,6 +1594,14 @@ public:
 				size->height = desired_height * (FONT_HEIGHT_NORMAL + EXP_LINESPACE) + EXP_TOPPADDING - EXP_LINESPACE;
 				break;
 		}
+	}
+	void OnPaint() override
+	{
+		this->SetWidgetLoweredState(WID_CB_ADVERT_REGULAR, HasBit(this->town->advertise_regularly, _local_company));
+		this->SetWidgetLoweredState(WID_CB_FUND_REGULAR, HasBit(this->town->fund_regularly, _local_company));
+		this->SetWidgetLoweredState(WID_CB_POWERFUND, HasBit(this->town->do_powerfund, _local_company));
+
+		this->DrawWidgets();
 	}
 
 	void DrawWidget(const Rect &r, int widget) const

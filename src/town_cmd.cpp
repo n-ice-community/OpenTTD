@@ -48,6 +48,7 @@
 #include "object_base.h"
 #include "ai/ai.hpp"
 #include "game/game.hpp"
+#include "console_func.h"
 
 #include "table/strings.h"
 #include "table/town_land.h"
@@ -913,6 +914,7 @@ static bool GrowTown(Town *t);
 
 static void DoRegularFunding(Town *t)
 {
+       t->pending_funding = false;
        bool fund_regularly = HasBit(t->fund_regularly, _local_company);
        bool do_powerfund = HasBit(t->do_powerfund, _local_company);
 
@@ -926,6 +928,19 @@ static void DoRegularFunding(Town *t)
 
        if (_local_company == COMPANY_SPECTATOR)
                return;
+
+       const uint16 fund_cooldown = 80;
+       static uint16 funded_at_tick = (uint16)(_tick_counter - fund_cooldown);
+       /* unit16 cast is needed, otherwise C standard promotes it to uint32 */
+       if ((uint16)(_tick_counter - funded_at_tick) < fund_cooldown) {
+           return;
+       }
+
+       Money fund_cost = _price[PR_TOWN_ACTION] * _town_action_costs[HK_FUND] >> 8;
+       if (Company::Get(_local_company)->money < fund_cost) {
+           return;
+       }
+
 
        if (CB_Enabled() && !HasBit(t->flags, TOWN_IS_GROWING))
                return;
@@ -943,6 +958,11 @@ static void DoRegularFunding(Town *t)
                ((t->grow_counter > 0 && (t->grow_counter > 1 || gr == 1)) || not_growing)) ||
                (do_powerfund && gr > 1 && (t->grow_counter == gr || not_growing))) {
 
+
+               YearMonthDay ymd;
+               ConvertDateToYMD(_date, &ymd);
+               IConsolePrintF(TC_GREEN, "Funded buildings at %04d-%02d-%02d (%s)", ymd.year, ymd.month + 1, ymd.day, t->GetCachedName());
+               funded_at_tick = _tick_counter;
                CompanyID old = _current_company;
                _current_company = _local_company;
                DoCommandP(t->xy, t->index, HK_FUND, CMD_DO_TOWN_ACTION | CMD_NO_ESTIMATE);
@@ -950,29 +970,62 @@ static void DoRegularFunding(Town *t)
        }
 }
 
-static void DoRegularAdvertising(Town *t) {
-       if (!HasBit(t->advertise_regularly, _local_company))
-               return;
 
-       if (t->ad_ref_goods_entry == NULL) {
-               // Pick as ref station and cargo with min rating
-			   for (Station *st : Station::Iterate()) {
-                       if (st->owner == _local_company && DistanceManhattan(t->xy, st->xy) <= 20) {
-                               for (CargoID i = 0; i < NUM_CARGO; i++)
-                                       if (st->goods[i].HasRating() && (t->ad_ref_goods_entry == NULL ||
-                                               t->ad_ref_goods_entry->rating < st->goods[i].rating)) {
-                                               t->ad_ref_goods_entry = &st->goods[i];
-                                       }
-                       }
-               }
+/* As found in station_cmd.cpp:3858 */
+static GoodsEntry* GetWorstCargoAround(TileIndex tile, Owner owner, uint radius)
+{
+    GoodsEntry* res = nullptr;
+	ForAllStationsRadius(tile, radius, [&](Station *st) {
+		if (st->owner == owner && DistanceManhattan(tile, st->xy) <= radius) {
+			for (CargoID i = 0; i < NUM_CARGO; i++) {
+				GoodsEntry *ge = &st->goods[i];
+				if (res == nullptr || (ge->status != 0 && ge->rating < res->rating)) {
+                    res = ge;
+				}
+			}
+		}
+	});
+    return res;
+}
 
-               if (t->ad_ref_goods_entry == NULL)
-                       return;
-       }
+static void DoRegularAdvertising(Town *t, bool compute_worst_cargo) {
+    if (!HasBit(t->advertise_regularly, _local_company))
+        return;
 
-       if (t->ad_ref_goods_entry->rating >= t->ad_rating_goal)
-               return;
+    /* unit16 cast is needed, otherwise C standard promotes it to uint32 */
+    if ((uint16)(_tick_counter - t->last_adv_at) < Town::adv_cooldown) {
+        return;
+    }
 
+    Money adv_cost = _price[PR_TOWN_ACTION] * _town_action_costs[HK_LADVERT] >> 8;
+    if (Company::Get(_local_company)->money < adv_cost) {
+        return;
+    }
+
+    if (t->cached_goods_ref == nullptr || compute_worst_cargo) {
+        /* 20 radius is Large advert */
+        t->cached_goods_ref = GetWorstCargoAround(t->xy, _local_company, 20);
+    }
+
+    /* Ok. We were not able to find any station. Disable auto advertising and
+     * warn the player */
+    if (t->cached_goods_ref == nullptr) {
+        ClrBit(t->advertise_regularly, _local_company);
+        SetWindowDirty(WC_CB_TOWN, t->index);
+
+        SetDParam(0, t->index);
+        ShowErrorMessage(STR_ERROR_CB_NO_STATION_FOR_REGULAR_ADV, INVALID_STRING_ID, WL_WARNING);
+        return;
+    }
+
+    if (t->cached_goods_ref->rating >= t->ad_rating_goal)
+        return;
+
+    YearMonthDay ymd;
+    ConvertDateToYMD(_date, &ymd);
+    IConsolePrintF(TC_CREAM, "Advertised at %04d-%02d-%02d (%s)", ymd.year, ymd.month + 1, ymd.day, t->GetCachedName());
+
+    t->last_adv_at = _tick_counter;
     CompanyID old = _current_company;
     _current_company = _local_company;
     DoCommandP(t->xy, t->index, HK_LADVERT, CMD_DO_TOWN_ACTION | CMD_NO_ESTIMATE);
@@ -1000,8 +1053,11 @@ static void TownTickHandler(Town *t)
 		}
 		t->grow_counter = i;
 	}
-        DoRegularFunding(t);
-        DoRegularAdvertising(t);
+
+    if (t->pending_funding) {
+	    DoRegularFunding(t);
+    }
+    DoRegularAdvertising(t, _tick_counter % (DAY_TICKS * 45) == 0 ? true : false);
 }
 
 void OnTick_Town()
@@ -2040,7 +2096,8 @@ static void DoCreateTown(Town *t, TileIndex tile, uint32 townnameparts, TownSize
        t->do_powerfund = 0;
        t->advertise_regularly = 0;
        t->ad_rating_goal = 95;
-       t->ad_ref_goods_entry = NULL;
+       t->cached_goods_ref = nullptr;
+       t->pending_funding = false;
        //CB
 
 	for (uint i = 0; i != MAX_COMPANIES; i++) t->ratings[i] = RATING_INITIAL;
@@ -3999,7 +4056,8 @@ void TownsMonthlyLoop()
 		UpdateTownUnwanted(t);
 		UpdateTownCargoes(t);
 
-		DoRegularFunding(t);
+        t->pending_funding = true;
+
     	t->houses_skipped_last_month = t->houses_skipped - t->houses_skipped_prev;
 		t->houses_skipped_prev = t->houses_skipped;
 		t->cycles_skipped_last_month = t->cycles_skipped - t->cycles_skipped_prev;
