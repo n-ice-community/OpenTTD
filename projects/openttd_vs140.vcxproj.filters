@@ -114,6 +114,9 @@
     <ClCompile Include="..\src\autoreplace.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\base64.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\bmp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -378,6 +381,9 @@
     <ClCompile Include="..\src\townname.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\triphistory_cmd.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\vehicle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -426,6 +432,9 @@
     <ClInclude Include="..\src\autoslope.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\base64.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\base_media_base.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -442,6 +451,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\bridge.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cargo_table_gui.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\cargo_type.h">
@@ -741,6 +753,9 @@
     <ClInclude Include="..\src\mixer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\triphistory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\network\network.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -888,6 +903,9 @@
     <ClInclude Include="..\src\music\null_m.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\commands_token_gui.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\sound\null_s.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -897,6 +915,9 @@
     <ClInclude Include="..\src\object.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClCompile Include="..\src\triphistory_gui.cpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
     <ClInclude Include="..\src\object_base.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1209,6 +1230,9 @@
     <ClInclude Include="..\src\viewport_type.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\watch_gui_1.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\water.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1249,6 +1273,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\zoom_type.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\zoning.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClCompile Include="..\src\core\alloc_func.cpp">
@@ -1353,6 +1380,9 @@
     <ClCompile Include="..\src\build_vehicle_gui.cpp">
       <Filter>GUI Source Code</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\cargo_table_gui.cpp">
+      <Filter>GUI Source Code</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\cheat_gui.cpp">
       <Filter>GUI Source Code</Filter>
     </ClCompile>
@@ -1434,6 +1464,9 @@
     <ClCompile Include="..\src\news_gui.cpp">
       <Filter>GUI Source Code</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\commands_token_gui.cpp">
+      <Filter>GUI Source Code</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\object_gui.cpp">
       <Filter>GUI Source Code</Filter>
     </ClCompile>
@@ -1506,7 +1539,13 @@
     <ClCompile Include="..\src\viewport_gui.cpp">
       <Filter>GUI Source Code</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\watch_gui_1.cpp">
+      <Filter>GUI Source Code</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\waypoint_gui.cpp">
+      <Filter>GUI Source Code</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\zoning_gui.cpp">
       <Filter>GUI Source Code</Filter>
     </ClCompile>
     <ClInclude Include="..\src\widgets\airport_widget.h">
@@ -1525,6 +1564,9 @@
       <Filter>Widgets</Filter>
     </ClInclude>
     <ClInclude Include="..\src\widgets\build_vehicle_widget.h">
+      <Filter>Widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\widgets\cargo_table_widget.h">
       <Filter>Widgets</Filter>
     </ClInclude>
     <ClInclude Include="..\src\widgets\cheat_widget.h">
@@ -1762,6 +1804,9 @@
       <Filter>Command handlers</Filter>
     </ClCompile>
     <ClCompile Include="..\src\waypoint_cmd.cpp">
+      <Filter>Command handlers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\zoning_cmd.cpp">
       <Filter>Command handlers</Filter>
     </ClCompile>
     <ClCompile Include="..\src\saveload\afterload.cpp">

@@ -44,7 +44,6 @@ enum ZoomLevel : byte {
 
 	ZOOM_LVL_MIN      = ZOOM_LVL_NORMAL, ///< Minimum zoom level.
 	ZOOM_LVL_MAX      = ZOOM_LVL_OUT_32X, ///< Maximum zoom level.
-
 };
 DECLARE_POSTFIX_INCREMENT(ZoomLevel)
 
