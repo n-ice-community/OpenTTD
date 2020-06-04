@@ -14,6 +14,7 @@
 #include "track_type.h"
 #include "command_type.h"
 #include "order_base.h"
+#include "triphistory.h"
 #include "cargopacket.h"
 #include "texteff.hpp"
 #include "engine_type.h"
@@ -238,6 +239,8 @@ public:
 	Money profit_last_year;             ///< Profit last year << 8, low 8 bits are fract
 	Money value;                        ///< Value of the vehicle
 
+	TripHistory trip_history;           ///< Trip History Info
+
 	CargoPayment *cargo_payment;        ///< The cargo payment we're currently in
 
 	Rect coord;                         ///< NOSAVE: Graphical bounding box of the vehicle, i.e. what to redraw on moves.
@@ -350,6 +353,12 @@ public:
 	void GetConsistFreeCapacities(SmallMap<CargoID, uint> &capacities) const;
 
 	uint GetConsistTotalCapacity() const;
+
+	/**
+	 * Is this vehicle drawn?
+	 * @return true if it is drawn
+	 */
+	bool IsDrawn() const;
 
 	/**
 	 * Marks the vehicles to be redrawn and updates cached variables

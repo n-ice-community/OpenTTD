@@ -478,6 +478,24 @@ static inline bool HasOnewaySignalBlockingTrackdir(TileIndex tile, Trackdir td)
 			!HasSignalOnTrackdir(tile, td) && IsOnewaySignal(tile, TrackdirToTrack(td));
 }
 
+static inline void IncreaseStuckCounter(TileIndex t)
+{
+	if (!IsTileType(t, MP_RAILWAY)) return;
+	if (_me[t].m7 < MAX_UVALUE(byte)) _me[t].m7++;
+}
+
+static inline void ReduceStuckCounter(TileIndex t)
+{
+	if (!IsTileType(t, MP_RAILWAY)) return;
+	_me[t].m7 -= (uint)(_me[t].m7 + 3) / 4;
+}
+
+static inline byte GetStuckCounter(TileIndex t)
+{
+	if (!IsTileType(t, MP_RAILWAY)) return 0;
+	return _me[t].m7;
+}
+
 
 RailType GetTileRailType(TileIndex tile);
 

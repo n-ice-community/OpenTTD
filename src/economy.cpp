@@ -38,6 +38,7 @@
 #include "subsidy_func.h"
 #include "station_base.h"
 #include "waypoint_base.h"
+#include "triphistory.h"
 #include "economy_base.h"
 #include "core/pool_func.hpp"
 #include "core/backup_type.hpp"
@@ -51,6 +52,7 @@
 
 #include "table/strings.h"
 #include "table/pricebase.h"
+#include "cargo_table_gui.h"
 
 #include "safeguards.h"
 
@@ -1113,6 +1115,16 @@ static Money DeliverGoods(int num_pieces, CargoID cargo_type, StationID dest, Ti
 		}
 	}
 
+	company->cargo_income[cargo_type] += profit;
+	company->cargo_units[cargo_type] += num_pieces;
+
+	company->cargo_income_period[0][cargo_type] += profit;
+	company->cargo_units_period[0][cargo_type] += num_pieces;
+
+	company->cur_economy.cargo_income[cargo_type] += profit;	
+
+	InvalidateCargosWindows(company->index);
+
 	return profit;
 }
 
@@ -1186,6 +1198,8 @@ CargoPayment::~CargoPayment()
 				this->front->z_pos, -this->visual_profit);
 	}
 
+	this->front->trip_history.AddValue(this->route_profit, _date);
+	InvalidateWindowData(WC_VEHICLE_TRIP_HISTORY, this->front->index);
 	cur_company.Restore();
 }
 
@@ -1955,6 +1969,11 @@ void CompaniesMonthlyLoop()
 	}
 	CompaniesPayInterest();
 	HandleEconomyFluctuations();
+
+	Company *c;
+	for (Company *c : Company::Iterate()) {
+		cargo_iam_free(c);
+	}
 }
 
 static void DoAcquireCompany(Company *c)

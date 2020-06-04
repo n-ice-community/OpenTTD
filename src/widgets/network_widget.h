@@ -49,6 +49,11 @@ enum NetworkGameWidgets {
 	WID_NG_ADD,                ///< 'Add server' button.
 	WID_NG_START,              ///< 'Start server' button.
 	WID_NG_CANCEL,             ///< 'Cancel' button.
+
+  WID_NG_CC_NICE,            ///< n-ice filter
+	WID_NG_CC_BTPRO,           ///< btpro filter
+	WID_NG_CC_REDDIT,          ///< reddit filter
+	WID_NG_CC_CITYMANIA,       ///< citymania filter
 };
 
 /** Widgets of the #NetworkStartServerWindow class. */

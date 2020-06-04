@@ -31,6 +31,10 @@ void RebuildTownCaches()
 	for (Town *town : Town::Iterate()) {
 		town->cache.population = 0;
 		town->cache.num_houses = 0;
+		town->cache.potential_pop = 0;
+		town->houses_construction = 0;
+		town->houses_reconstruction = 0;
+		town->houses_demolished = 0;
 	}
 
 	for (TileIndex t = 0; t < MapSize(); t++) {
@@ -39,7 +43,15 @@ void RebuildTownCaches()
 		HouseID house_id = GetHouseType(t);
 		Town *town = Town::GetByTile(t);
 		IncreaseBuildingCount(town, house_id);
-		if (IsHouseCompleted(t)) town->cache.population += HouseSpec::Get(house_id)->population;
+		if (IsHouseCompleted(t)) {
+      town->cache.population += HouseSpec::Get(house_id)->population;
+      //if (town->houses_construction > 0) town->houses_construction--;
+    }
+		else{
+			town->houses_construction++;
+		}
+		town->cache.potential_pop += HouseSpec::Get(house_id)->population;
+		//town->cache.potential_pop += HouseSpec::Get(house_id)->population;
 
 		/* Increase the number of houses for every house, but only once. */
 		if (GetHouseNorthPart(house_id) == 0) town->cache.num_houses++;

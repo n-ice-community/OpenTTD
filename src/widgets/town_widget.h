@@ -18,6 +18,7 @@ enum TownDirectoryWidgets {
 	WID_TD_LIST,             ///< List of towns.
 	WID_TD_SCROLLBAR,        ///< Scrollbar for the town list.
 	WID_TD_WORLD_POPULATION, ///< The world's population.
+	TDW_CAPTION_TEXT,
 };
 
 /** Widgets of the #TownAuthorityWindow class. */
@@ -42,6 +43,7 @@ enum TownViewWidgets {
 	WID_TV_CATCHMENT,      ///< Toggle catchment area highlight.
 	WID_TV_EXPAND,         ///< Expand this town (scenario editor only).
 	WID_TV_DELETE,         ///< Delete this town (scenario editor only).
+	WID_TV_CB,
 };
 
 /** Widgets of the #FoundTownWindow class. */
@@ -61,6 +63,35 @@ enum TownFoundingWidgets {
 	WID_TF_LAYOUT_GRID2,      ///< Selection for the 2x2 grid town layout.
 	WID_TF_LAYOUT_GRID3,      ///< Selection for the 3x3 grid town layout.
 	WID_TF_LAYOUT_RANDOM,     ///< Selection for a randomly chosen town layout.
+};
+
+enum TownHK {
+	HK_SADVERT,
+	HK_MADVERT,
+	HK_LADVERT,
+	HK_ROADS,
+	HK_STATUE,
+	HK_FUND,
+};
+
+enum CBTownWidgets {
+	WID_CB_LOCATION,
+	WID_CB_ADVERT,
+	WID_CB_ADVERT_REGULAR,
+	WID_CB_FUND,
+	WID_CB_FUND_REGULAR,
+	WID_CB_POWERFUND,
+	WID_CB_DETAILS,
+	WID_CB_CARGO_NAME,
+	WID_CB_CARGO_AMOUNT,
+	WID_CB_CARGO_REQ,
+	WID_CB_CARGO_PREVIOUS,
+	WID_CB_CARGO_STORE,
+	WID_CB_CARGO_STORE_PCT,
+	WID_CB_CARGO_FROM,
+	WID_CB_CENTER_VIEW,
+	WID_CB_TOWN_VIEW,
+	WID_CB_SHOW_AUTHORITY,
 };
 
 #endif /* WIDGETS_TOWN_WIDGET_H */

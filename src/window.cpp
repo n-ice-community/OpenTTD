@@ -1232,6 +1232,7 @@ void ChangeWindowOwner(Owner old_owner, Owner new_owner)
 		switch (w->window_class) {
 			case WC_COMPANY_COLOUR:
 			case WC_FINANCES:
+			case WC_CARGOS:
 			case WC_STATION_LIST:
 			case WC_TRAINS_LIST:
 			case WC_ROADVEH_LIST:
@@ -2922,7 +2923,7 @@ static void MouseLoop(MouseClick click, int mousewheel)
 		switch (click) {
 			case MC_DOUBLE_LEFT:
 			case MC_LEFT:
-				if (HandleViewportClicked(vp, x, y)) return;
+				if (HandleViewportClicked(vp, x, y, click == MC_DOUBLE_LEFT)) return;
 				if (!(w->flags & WF_DISABLE_VP_SCROLL) &&
 						_settings_client.gui.scroll_mode == VSM_MAP_LMB) {
 					_scrolling_viewport = true;

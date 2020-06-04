@@ -39,6 +39,7 @@
 #include "widgets/industry_widget.h"
 
 #include "table/strings.h"
+#include "hotkeys.h"
 
 #include <bitset>
 
@@ -258,14 +259,6 @@ static const NWidgetPart _nested_build_industry_widgets[] = {
 	EndContainer(),
 };
 
-/** Window definition of the dynamic place industries gui */
-static WindowDesc _build_industry_desc(
-	WDP_AUTO, "build_industry", 170, 212,
-	WC_BUILD_INDUSTRY, WC_NONE,
-	WDF_CONSTRUCTION,
-	_nested_build_industry_widgets, lengthof(_nested_build_industry_widgets)
-);
-
 /** Build (fund or prospect) a new industry, */
 class BuildIndustryWindow : public Window {
 	int selected_index;                         ///< index of the element in the matrix
@@ -385,7 +378,7 @@ class BuildIndustryWindow : public Window {
 	}
 
 public:
-	BuildIndustryWindow() : Window(&_build_industry_desc)
+	BuildIndustryWindow(WindowDesc *desc) : Window(desc)
 	{
 		this->timer_enabled = _loaded_newgrf_features.has_newindustries;
 
@@ -720,13 +713,38 @@ public:
 		if (indsp == nullptr) this->enabled[this->selected_index] = _settings_game.difficulty.industry_density != ID_FUND_ONLY;
 		this->SetButtons();
 	}
+
+	EventState OnHotkey(int hotkey) override
+	{
+		return Window::OnHotkey(hotkey);
+	}
+
+	static HotkeyList hotkeys;
 };
+
+static Hotkey build_industry_hotkeys[] = {
+	Hotkey((uint16)0, "display_chain", WID_DPI_DISPLAY_WIDGET),
+	Hotkey((uint16)0, "build_button", WID_DPI_FUND_WIDGET),
+	HOTKEY_LIST_END
+};
+
+HotkeyList BuildIndustryWindow::hotkeys("industry_fund_gui", build_industry_hotkeys);
+
+/** Window definition of the dynamic place industries gui */
+static WindowDesc _build_industry_desc(
+	WDP_AUTO, "build_industry", 170, 212,
+	WC_BUILD_INDUSTRY, WC_NONE,
+	WDF_CONSTRUCTION,
+	_nested_build_industry_widgets, lengthof(_nested_build_industry_widgets),
+	&BuildIndustryWindow::hotkeys
+);
+
 
 void ShowBuildIndustryWindow()
 {
 	if (_game_mode != GM_EDITOR && !Company::IsValidID(_local_company)) return;
 	if (BringWindowToFrontById(WC_BUILD_INDUSTRY, 0)) return;
-	new BuildIndustryWindow();
+	new BuildIndustryWindow(&_build_industry_desc);
 }
 
 static void UpdateIndustryProduction(Industry *i);
@@ -1621,7 +1639,6 @@ public:
 			case WID_ID_DROPDOWN_CRITERIA:
 				ShowDropDownMenu(this, IndustryDirectoryWindow::sorter_names, this->industries.SortType(), WID_ID_DROPDOWN_CRITERIA, 0, 0);
 				break;
-
 			case WID_ID_FILTER_BY_ACC_CARGO: // Cargo filter dropdown
 				ShowDropDownMenu(this, this->cargo_filter_texts, this->accepted_cargo_filter_criteria, WID_ID_FILTER_BY_ACC_CARGO, 0, 0);
 				break;
@@ -1728,7 +1745,6 @@ const StringID IndustryDirectoryWindow::sorter_names[] = {
 	STR_SORT_BY_TRANSPORTED,
 	INVALID_STRING_ID
 };
-
 
 /** Window definition of the industry directory gui */
 static WindowDesc _industry_directory_desc(

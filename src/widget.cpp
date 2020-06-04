@@ -1839,6 +1839,7 @@ void NWidgetBackground::Draw(const Window *w)
 
 	switch (this->type) {
 		case WWT_PANEL:
+      //Disabled for Betas and RC's??
 			assert(this->widget_data == 0);
 			DrawFrameRect(r.left, r.top, r.right, r.bottom, this->colour, this->IsLowered() ? FR_LOWERED : FR_NONE);
 			break;
