@@ -107,8 +107,6 @@ static NWidgetBase *MakeCargoButtons(int *biggest_index)
 	NWidgetVertical *ver = new NWidgetVertical;
 
 	for (int i = 0; i < _sorted_standard_cargo_specs_size; i++) {
-		//NWidgetBackground *leaf = new NWidgetBackground(WWT_PANEL, COLOUR_ORANGE, WID_CPR_CARGO_FIRST + i, NULL);
-		//try to use matrix instead of cargo_first
 		NWidgetBackground *leaf = new NWidgetBackground(WWT_PANEL, COLOUR_ORANGE, WID_CPR_MATRIX + i, NULL);
 		leaf->tool_tip = STR_GRAPH_CARGO_PAYMENT_TOGGLE_CARGO;
 		leaf->SetFill(1, 0);
@@ -570,8 +568,43 @@ public:
 
 	void OnClick(Point pt, int widget, int click_count) override
 	{
-		/* Clicked on legend? */
-		if (widget == WID_CV_KEY_BUTTON) ShowGraphLegend();
+		switch (widget) {
+			/* Clicked on legend? */
+			case WID_CV_KEY_BUTTON: 
+				ShowGraphLegend();
+				break;
+			case WID_CPR_ENABLE_CARGOES:
+				/* Remove all cargoes from the excluded lists. */
+				_legend_excluded_cargo = 0;
+				this->excluded_data = 0;
+				this->UpdateLoweredWidgets();
+				this->SetDirty();
+				break;
+
+			case WID_CPR_DISABLE_CARGOES: {
+				/* Add all cargoes to the excluded lists. */
+				int i = 0;
+				const CargoSpec *cs;
+				FOR_ALL_SORTED_STANDARD_CARGOSPECS(cs) {
+					SetBit(_legend_excluded_cargo, cs->Index());
+					SetBit(this->excluded_data, i);
+					i++;
+				}
+				this->UpdateLoweredWidgets();
+				this->SetDirty();
+				break;
+			}
+
+			default:
+				if (widget >= WID_CPR_MATRIX) {
+					int i = widget - WID_CPR_MATRIX;
+					ToggleBit(_legend_excluded_cargo, _sorted_cargo_specs[i]->Index());
+					this->ToggleWidgetLoweredState(widget);
+					this->UpdateExcludedData();
+					this->SetDirty();
+				}
+				break;
+		}
 	}
 
 	void OnGameTick() override
@@ -885,6 +918,15 @@ static const NWidgetPart _nested_delivered_cargo_graph_widgets[] = {
 	NWidget(WWT_PANEL, COLOUR_GREY, WID_CV_BACKGROUND),
 		NWidget(NWID_HORIZONTAL),
 			NWidget(WWT_EMPTY, COLOUR_GREY, WID_CV_GRAPH), SetMinimalSize(576, 128), SetFill(1, 1), SetResize(1, 1),
+			NWidget(NWID_VERTICAL),//add
+				NWidget(NWID_SPACER), SetMinimalSize(0, 24), SetFill(0, 0), SetResize(0, 1),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_ORANGE, WID_CPR_ENABLE_CARGOES), SetDataTip(STR_GRAPH_CARGO_ENABLE_ALL, STR_GRAPH_CARGO_TOOLTIP_ENABLE_ALL), SetFill(1, 0),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_ORANGE, WID_CPR_DISABLE_CARGOES), SetDataTip(STR_GRAPH_CARGO_DISABLE_ALL, STR_GRAPH_CARGO_TOOLTIP_DISABLE_ALL), SetFill(1, 0),
+				NWidget(NWID_SPACER), SetMinimalSize(0, 4),
+				NWidgetFunction(MakeCargoButtons),
+				NWidget(NWID_SPACER), SetMinimalSize(0, 24), SetFill(0, 1), SetResize(0, 1),
+			EndContainer(),//add
+			NWidget(NWID_SPACER), SetMinimalSize(5, 0), SetFill(0, 1), SetResize(0, 1),
 			NWidget(NWID_VERTICAL),
 				NWidget(NWID_SPACER), SetFill(0, 1), SetResize(0, 1),
 				NWidget(WWT_RESIZEBOX, COLOUR_GREY, WID_CV_RESIZE),
@@ -1046,7 +1088,6 @@ struct PaymentRatesGraphWindow : BaseGraphWindow {
 		this->FinishInitNested(window_number);
 	}
 
-/*	TODO: Why?
 	void UpdateExcludedData()
 	{
 		this->excluded_data = 0;
@@ -1058,7 +1099,7 @@ struct PaymentRatesGraphWindow : BaseGraphWindow {
 			i++;
 		}
 	}
-*/
+
 	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
 	{
 		if (widget != WID_CPR_MATRIX) {
@@ -1119,19 +1160,18 @@ struct PaymentRatesGraphWindow : BaseGraphWindow {
 		}
 	}
 
-/* TODO: Again why?
 	void OnClick(Point pt, int widget, int click_count) override
 	{
 		switch (widget) {
 			case WID_CPR_ENABLE_CARGOES:
-				// Remove all cargoes from the excluded lists.
+				/* Remove all cargoes from the excluded lists. */
 				_legend_excluded_cargo = 0;
 				this->excluded_data = 0;
 				this->SetDirty();
 				break;
 
 			case WID_CPR_DISABLE_CARGOES: {
-				// Add all cargoes to the excluded lists.
+				/* Add all cargoes to the excluded lists. */
 				int i = 0;
 				const CargoSpec *cs;
 				FOR_ALL_SORTED_STANDARD_CARGOSPECS(cs) {
@@ -1160,7 +1200,6 @@ struct PaymentRatesGraphWindow : BaseGraphWindow {
 			}
 		}
 	}
-*/
 
 	void OnResize() override
 	{
