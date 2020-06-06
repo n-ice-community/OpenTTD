@@ -3590,7 +3590,7 @@ calc_heightdiff_single_direction:;
 			params[index++] = heightdiff;
 			//Show always the measurement tooltip
 			//GuiShowTooltips(_thd.GetCallbackWnd(),STR_MEASURE_DIST_HEIGHTDIFF, index, params, TCC_LEFT_CLICK);
-			GuiShowTooltips(_thd.GetCallbackWnd(),STR_MEASURE_DIST_HEIGHTDIFF, index, params, TCC_RIGHT_CLICK);
+			GuiShowTooltips(_thd.GetCallbackWnd(),STR_MEASURE_DIST_HEIGHTDIFF, index, params, TCC_NONE);
 			break;
 		}
 
