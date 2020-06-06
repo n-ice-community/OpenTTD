@@ -670,7 +670,13 @@ static void TileLoop_Town(TileIndex tile)
 		t->houses_demolished++;
 
 		/* Rebuild with another house? */
-		if (GB(r, 24, 8) >= 12) BuildTownHouse(t, tile);
+        if (GB(r, 24, 8) >= 12 && BuildTownHouse(t, tile)) {
+           t->houses_reconstruction++;
+           UpdateTownGrowthTile(tile, TGTS_RH_REBUILT);
+		} else {
+           t->houses_demolished++;
+            UpdateTownGrowthTile(tile, TGTS_RH_REMOVED);
+		}
 	}
 
 	cur_company.Restore();
