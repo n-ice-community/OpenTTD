@@ -14,6 +14,7 @@
 #include "command_func.h"
 #include "network/network_type.h"
 #include "network/network.h"
+#include "network/network_base.h"
 #include "genworld.h"
 #include "strings_func.h"
 #include "texteff.hpp"
@@ -26,6 +27,8 @@
 #include "core/backup_type.hpp"
 #include "object_base.h"
 
+#include "window_func.h"
+#include "watch_gui.h"
 #include "watch_gui_1.h"
 
 #include "table/strings.h"
@@ -780,6 +783,16 @@ CommandCost DoCommandPInternal(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd,
 		wc->OnDoCommand( _current_company, tile );
 		watching_window++;
 		wc = dynamic_cast<WatchCompany1*>(FindWindowById(WC_WATCH_COMPANY1, watching_window));
+	}
+
+	/* Send Tile Number to Watching Company Windows - Admin */
+	for (NetworkClientInfo *ci : NetworkClientInfo::Iterate()){
+		if(ci->client_playas==_current_company){
+		WatchCompany *wc;
+		wc = dynamic_cast<WatchCompany*>(FindWindowById(WC_WATCH_COMPANY,ci->client_id));
+		if(wc)wc->OnDoCommand( _current_company, tile );
+		break;
+		}
 	}
 
 	return_dcpi(res2);

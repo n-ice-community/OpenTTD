@@ -1056,7 +1056,7 @@ struct DepotWindow : Window {
 		return (this->type == VEH_AIRCRAFT) ? ::GetStationIndex(this->window_number) : ::GetDepotIndex(this->window_number);
 	}
 
-	virtual EventState OnHotkey(int hotkey)
+  virtual EventState OnHotkey(int hotkey)
 	{
 		if (this->owner != _local_company) return ES_NOT_HANDLED;
 		return Window::OnHotkey(hotkey);

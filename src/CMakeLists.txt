@@ -474,6 +474,8 @@ add_files(
     viewport_type.h
     void_cmd.cpp
     void_map.h
+    watch_gui.cpp
+    watch_gui.h
     watch_gui_1.cpp
     watch_gui_1.h
     water.h

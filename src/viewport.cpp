@@ -1299,10 +1299,10 @@ static void ViewportAddLandscape()
 				_vd.last_foundation_child[1] = nullptr;
 
 				_tile_type_procs[tile_type]->draw_tile_proc(&tile_info);
-								if (tile_info.tile != INVALID_TILE) {
-										DrawTileSelection(&tile_info);
-										DrawTileZoning(&tile_info);
-								}
+				if (tile_info.tile != INVALID_TILE) {
+					DrawTileSelection(&tile_info);
+					DrawTileZoning(&tile_info);
+				}
 			}
 		}
 	}

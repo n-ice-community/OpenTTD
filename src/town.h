@@ -84,22 +84,22 @@ struct Town : TownPool::PoolItem<&_town_pool> {
 	uint32 goal[NUM_TE];                              ///< Amount of cargo required for the town to grow.
 
 	bool growing;
-        int storage[NUM_CARGO];             //CB stored cargo
-        uint act_cargo[NUM_CARGO];          //CB delivered last month
-        uint new_act_cargo[NUM_CARGO];      //CB  delivered current month
-        bool delivered_enough[NUM_CARGO];   //CB
+	int storage[NUM_CARGO];             //CB stored cargo
+	uint act_cargo[NUM_CARGO];          //CB delivered last month
+	uint new_act_cargo[NUM_CARGO];      //CB  delivered current month
+	bool delivered_enough[NUM_CARGO];   //CB
 	bool growing_by_chance;
 
-        CompanyMask fund_regularly;          ///< funds buildings regularly when previous fund ends
-        CompanyMask do_powerfund;            ///< funds buildings when grow counter is maximal (results in fastest funding possible)
-        CompanyMask advertise_regularly;     ///< advertised regularly to keep stations rating on desired value
-        static const uint16 adv_cooldown = 185;   ///< minimum allowed time in-between advertisements
-        uint16 last_adv_at;                  ///< last time an adv was performed
-        uint8 ad_rating_goal;                ///< value to keep rating at (for regular advertisement) (0..255)
-        const GoodsEntry *cached_goods_ref;  ///< poiter to goods entry of some station, used to check rating for automated advertisement. To be updated monthly
-        bool pending_funding;                ///< signals if a funding should be performed in the next tick
+	CompanyMask fund_regularly;          ///< funds buildings regularly when previous fund ends
+	CompanyMask do_powerfund;            ///< funds buildings when grow counter is maximal (results in fastest funding possible)
+	CompanyMask advertise_regularly;     ///< advertised regularly to keep stations rating on desired value
+	static const uint16 adv_cooldown = 185;   ///< minimum allowed time in-between advertisements
+	uint16 last_adv_at;                  ///< last time an adv was performed
+	uint8 ad_rating_goal;                ///< value to keep rating at (for regular advertisement) (0..255)
+	const GoodsEntry *cached_goods_ref;  ///< poiter to goods entry of some station, used to check rating for automated advertisement. To be updated monthly
+	bool pending_funding;                ///< signals if a funding should be performed in the next tick
 
-  uint16 houses_skipped;              ///< number of failed house buildings with next counter reset
+  	uint16 houses_skipped;              ///< number of failed house buildings with next counter reset
 	uint16 houses_skipped_prev;         ///< house_failures on start of previous month
 	uint16 houses_skipped_last_month;   ///< house_failures during last month
 	uint16 cycles_skipped;              ///< number of house building cycles skipped due to placement failure
@@ -151,7 +151,7 @@ struct Town : TownPool::PoolItem<&_town_pool> {
 	StringID Label() const{
 		if (!(_game_mode == GM_EDITOR) && (_local_company < MAX_COMPANIES)) {
 			return STR_VIEWPORT_TOWN_POP_VERY_POOR_RATING + this->town_label;
-		} 
+		}
 		else {
 			return _settings_client.gui.population_in_label ? STR_VIEWPORT_TOWN_POP : STR_VIEWPORT_TOWN;
 		}
@@ -162,7 +162,7 @@ struct Town : TownPool::PoolItem<&_town_pool> {
 	StringID SmallLabel() const{
 		if (!(_game_mode == GM_EDITOR) && (_local_company < MAX_COMPANIES)) {
 			return STR_VIEWPORT_TOWN_TINY_VERY_POOR_RATING + this->town_label;
-		} 
+		}
 		else {
 			return STR_VIEWPORT_TOWN_TINY_WHITE;
 		}
@@ -277,7 +277,7 @@ uint CB_GetDecay(CargoID cargo);
 int CB_GetTownReq(uint population, uint req, uint from, bool from_non_important, bool prev_month = false);
 uint CB_GetMaxTownStorage(Town *town, uint cargo);
 bool TownExecuteAction(const Town *town, uint action);
- 
+
 enum TownGrowthTileState {
        TGTS_NONE = 0,
        TGTS_RH_REMOVED,

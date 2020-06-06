@@ -69,6 +69,49 @@
 /* static */ const FlowStat::SharesMap FlowStat::empty_sharesmap;
 
 /**
+ *Get total waiting cargo from all stations
+ * @param owner the owner of the stations in the station list window
+ * @return the total amount of waiting cargo at all the stations in the list window
+ */
+uint32 GetCompanyCargo(const Owner owner)
+{
+	uint32 wcargo = 0;
+	for (Station *st : Station::Iterate()) {
+		if (st->owner == owner) {
+			for (CargoID j = 0; j < NUM_CARGO; j++) {
+				//if (!st->goods[j].cargo.Empty()) {
+					wcargo += st->goods[j].cargo.TotalCount();
+				//}
+			}
+		}
+	}
+	return wcargo;
+}
+
+/**
+ * Get the current average cargo rating from all stations
+ * @param owner the owner of the stations in the station list window
+ * @return the average cargo ratings at all the stations in the list window
+ */
+uint32 GetCompanyRatings(const Owner owner)
+{
+	uint32 cargo_rating = 0;
+	uint32 num_ratings  = 0;
+	for (Station *st : Station::Iterate()) {
+		if (st->owner == owner) {
+			for (CargoID j = 0; j < NUM_CARGO; j++) {
+				if (HasBit(st->goods[j].status,GoodsEntry::GES_RATING)) {
+					cargo_rating += st->goods[j].rating;
+					num_ratings++;
+				}
+			}
+		}
+	}
+	if (num_ratings > 0) cargo_rating /= num_ratings;
+	return (cargo_rating * 100) / 255;
+}
+
+/**
  * Check whether the given tile is a hangar.
  * @param t the tile to of whether it is a hangar.
  * @pre IsTileType(t, MP_STATION)

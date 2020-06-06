@@ -418,6 +418,16 @@ static bool RenameSign(SignID index, const char *text)
 struct SignWindow : Window, SignList {
 	QueryString name_editbox;
 	SignID cur_sign;
+	Scrollbar *vscroll;
+	int line_height;                    ///< Height of a row in the matrix widget.
+	char sign_template_string[MAX_LENGTH_SIGN_NAME_CHARS] = {0};
+	std::vector<std::string> sign_templates = {
+		"Fixed [rule 3] ~ %s",
+		"Bridge here please ~ %s",
+		"Don't block ~ %s",
+		"Fix here please ~ %s",
+		"Remove here please ~ %s",
+	};
 
 	SignWindow(WindowDesc *desc, const Sign *si) : Window(desc), name_editbox(MAX_LENGTH_SIGN_NAME_CHARS * MAX_CHAR_LENGTH, MAX_LENGTH_SIGN_NAME_CHARS)
 	{
@@ -427,6 +437,21 @@ struct SignWindow : Window, SignList {
 		this->name_editbox.ok_button = WID_QES_OK;
 
 		this->InitNested(WN_QUERY_STRING_SIGN);
+
+		this->vscroll = this->GetScrollbar(WID_QES_SCROLLBAR);
+		this->line_height = FONT_HEIGHT_NORMAL + WD_MATRIX_TOP + WD_MATRIX_BOTTOM;
+		NWidgetCore *nwi = this->GetWidget<NWidgetCore>(WID_QES_SCROLLBAR);
+		this->vscroll->SetCapacity(4);
+		this->vscroll->SetCount(sign_templates.size());
+
+
+		int comm = _settings_client.gui.community - 1;
+		if (comm < 0 || comm > 1) comm = 0;
+		const char *username = _settings_client.network.community_user[comm];
+		for (auto &str : sign_templates) {
+			seprintf(sign_template_string, lastof(sign_template_string), str.c_str(), username);
+			str = sign_template_string;
+		}
 
 		UpdateSignEditWindow(si);
 		this->SetFocusedWidget(WID_QES_TEXT);
@@ -514,6 +539,21 @@ struct SignWindow : Window, SignList {
 				break;
 			}
 
+			case WID_QES_TEMPLATES: {
+				int sel = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_QES_TEMPLATES, 0, this->line_height);
+				if (sel < (int)this->sign_templates.size()) {
+					if (_ctrl_pressed) {
+						RenameSign(this->cur_sign, this->sign_templates[sel].c_str());
+						delete this;
+					} else {
+						name_editbox.text.DeleteAll();
+						name_editbox.text.InsertString(this->sign_templates[sel].c_str(), false);
+						this->SetDirty();
+					}
+				}
+				break;
+			}
+
 			case WID_QES_DELETE:
 				/* Only need to set the buffer to null, the rest is handled as the OK button */
 				RenameSign(this->cur_sign, "");
@@ -527,6 +567,24 @@ struct SignWindow : Window, SignList {
 			case WID_QES_CANCEL:
 				delete this;
 				break;
+		}
+	}
+
+	void DrawWidget(const Rect &r, int widget) const override
+	{
+		switch (widget) {
+			case WID_QES_TEMPLATES:
+				int y = this->GetWidget<NWidgetBase>(WID_QES_TEMPLATES)->pos_y;
+
+				std::vector<std::string>::const_iterator it = this->sign_templates.begin();
+				for (int i = 0; it != this->sign_templates.end(); i++, it++) {
+					if (this->vscroll->IsVisible(i)) {
+						DrawString(r.left + WD_MATRIX_LEFT, r.right - WD_MATRIX_RIGHT, y + WD_MATRIX_TOP, (*it).c_str(), TC_WHITE);
+						y += this->line_height;
+					}
+				}
+				break;
+			break;
 		}
 	}
 };
@@ -547,6 +605,10 @@ static const NWidgetPart _nested_query_sign_edit_widgets[] = {
 		NWidget(WWT_PANEL, COLOUR_GREY), SetFill(1, 1), EndContainer(),
 		NWidget(WWT_PUSHARROWBTN, COLOUR_GREY, WID_QES_PREVIOUS), SetMinimalSize(11, 12), SetDataTip(AWV_DECREASE, STR_EDIT_SIGN_PREVIOUS_SIGN_TOOLTIP),
 		NWidget(WWT_PUSHARROWBTN, COLOUR_GREY, WID_QES_NEXT), SetMinimalSize(11, 12), SetDataTip(AWV_INCREASE, STR_EDIT_SIGN_NEXT_SIGN_TOOLTIP),
+	EndContainer(),
+	NWidget(NWID_HORIZONTAL),
+		NWidget(WWT_MATRIX, COLOUR_BLUE, WID_QES_TEMPLATES), SetMinimalSize(256, 56), SetFill(1, 1), SetMatrixDataTip(1, 5, STR_NULL), SetScrollbar(WID_QES_SCROLLBAR),
+		NWidget(NWID_VSCROLLBAR, COLOUR_GREY, WID_QES_SCROLLBAR),
 	EndContainer(),
 };
 

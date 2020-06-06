@@ -234,6 +234,8 @@ STR_TOOLTIP_SORT_ORDER                                          :{BLACK}Select s
 STR_TOOLTIP_SORT_CRITERIA                                       :{BLACK}Select sorting criteria
 STR_TOOLTIP_FILTER_CRITERIA                                     :{BLACK}Select filtering criteria
 STR_BUTTON_SORT_BY                                              :{BLACK}Sort by
+STR_BUTTON_SEND_MESSAGE                                         :{RED}ATT
+STR_BUTTON_SEND_STNAME                                          :{GREEN}S
 STR_BUTTON_CATCHMENT                                            :{BLACK}Coverage
 STR_TOOLTIP_CATCHMENT                                           :{BLACK}Toggle coverage area display
 
@@ -415,6 +417,7 @@ STR_FILE_MENU_EXIT                                              :Exit
 STR_MAP_MENU_MAP_OF_WORLD                                       :Map of world
 STR_MAP_MENU_EXTRA_VIEWPORT                                     :Extra viewport
 STR_MAP_MENU_LINGRAPH_LEGEND                                    :Cargo Flow Legend
+STR_MAP_MENU_COMMUNITY_COMMANDS                                 :Community Commands
 STR_MAP_MENU_SIGN_LIST                                          :Sign list
 STR_MAP_MENU_WATCH_COMPANY                                      :Watch Company
 
@@ -490,6 +493,9 @@ STR_ABOUT_MENU_SEPARATOR                                        :
 STR_ABOUT_MENU_TOGGLE_CONSOLE                                   :Toggle console
 STR_ABOUT_MENU_AI_DEBUG                                         :AI/Game script debug
 STR_ABOUT_MENU_SCREENSHOT                                       :Screenshot
+STR_ABOUT_MENU_ZOOMIN_SCREENSHOT                                :Fully zoomed in screenshot
+STR_ABOUT_MENU_DEFAULTZOOM_SCREENSHOT                           :Default zoom screenshot
+STR_ABOUT_MENU_GIANT_SCREENSHOT                                 :Whole map screenshot
 STR_ABOUT_MENU_SHOW_FRAMERATE                                   :Show frame rate
 STR_ABOUT_MENU_ABOUT_OPENTTD                                    :About 'OpenTTD'
 STR_ABOUT_MENU_SPRITE_ALIGNER                                   :Sprite aligner
@@ -660,6 +666,9 @@ STR_MUSIC_PLAYLIST_CUSTOM_1                                     :{TINY_FONT}{BLA
 STR_MUSIC_PLAYLIST_CUSTOM_2                                     :{TINY_FONT}{BLACK}Custom 2
 STR_MUSIC_MUSIC_VOLUME                                          :{TINY_FONT}{BLACK}Music Volume
 STR_MUSIC_EFFECTS_VOLUME                                        :{TINY_FONT}{BLACK}Effects Volume
+STR_MUSIC_RULER_MIN                                             :{TINY_FONT}{BLACK}MIN
+STR_MUSIC_RULER_MAX                                             :{TINY_FONT}{BLACK}MAX
+STR_MUSIC_RULER_MARKER                                          :{TINY_FONT}{BLACK}'
 STR_MUSIC_TRACK_NONE                                            :{TINY_FONT}{DKGREEN}--
 STR_MUSIC_TRACK_DIGIT                                           :{TINY_FONT}{DKGREEN}{ZEROFILL_NUM}
 STR_MUSIC_TITLE_NONE                                            :{TINY_FONT}{DKGREEN}------
@@ -2188,10 +2197,12 @@ STR_NETWORK_CLIENTLIST_BAN                                      :Ban
 STR_NETWORK_CLIENTLIST_SPEAK_TO_ALL                             :Speak to all
 STR_NETWORK_CLIENTLIST_SPEAK_TO_COMPANY                         :Speak to company
 STR_NETWORK_CLIENTLIST_SPEAK_TO_CLIENT                          :Private message
-STR_NETWORK_CLIENTLIST_GET_TOKEN                                :{LTBLUE}Token Login
-STR_NETWORK_CLIENTLIST_INVITE                                   :{GREEN}Invite
-STR_NETWORK_CLIENTLIST_INVITE_CAPTION                           :{BLACK}Invite Player
-STR_NETWORK_CLIENTLIST_INVITE_QUESTION                          :{YELLOW}Are you sure want to invite {WHITE}{RAW_STRING} {YELLOW}to your company?
+STR_NETWORK_CLIENTLIST_LOGIN			                         :Admin Login
+STR_NETWORK_CLIENTLIST_LOGOUT			                         :Admin Logout
+STR_NETWORK_CLIENTLIST_WHOISP			                         :Whois
+STR_NETWORK_CLIENTLIST_PLAYER_INFO                              :Player Info
+STR_NETWORK_CLIENTLIST_WHOISME			                         :Me
+STR_NETWORK_CLIENTLIST_GET_TOKEN		                         :{BLUE}Token Login
 
 STR_NETWORK_SERVER                                              :Server
 STR_NETWORK_CLIENT                                              :Client
@@ -2741,6 +2752,15 @@ STR_LANG_AREA_INFORMATION_TRAM_TYPE                             :{BLACK}Tram typ
 STR_LANG_AREA_INFORMATION_RAIL_SPEED_LIMIT                      :{BLACK}Rail speed limit: {LTBLUE}{VELOCITY}
 STR_LANG_AREA_INFORMATION_ROAD_SPEED_LIMIT                      :{BLACK}Road speed limit: {LTBLUE}{VELOCITY}
 STR_LANG_AREA_INFORMATION_TRAM_SPEED_LIMIT                      :{BLACK}Tram speed limit: {LTBLUE}{VELOCITY}
+STR_LANG_AREA_INFORMATION_SCROLL_TO                             :{BLUE} -->>
+STR_LANG_AREA_INFORMATION_SCROLL_TO_TOOLTIP                     :{BLACK}Scroll to land information coordinates
+STR_LANG_AREA_INFORMATION_LOG                                   :{RED}  log
+STR_LANG_AREA_INFORMATION_LOG_TOOLTIP                           :{BLACK}Shows the Log for this coordinate. Admin must specify the player or #ID.
+STR_LANG_AREA_INFORMATION_LOGS                                  :{RED}  logs
+STR_LANG_AREA_INFORMATION_LOGS_TOOLTIP                          :{BLACK}Shows entire Logs for this coordinate.
+STR_LANG_AREA_INFORMATION_CHAT                                  :{GREEN}  chat-->
+STR_LANG_AREA_INFORMATION_CHAT_TOOLTIP                          :{BLACK}Send current coordinates to public chat.
+STR_LANG_AREA_INFORMATION_LOG_TITLE                             :{BLACK}Type Player name (case sensitive):
 
 # Description of land area of different tiles
 STR_LAI_CLEAR_DESCRIPTION_ROCKS                                 :Rocks
@@ -3350,6 +3370,9 @@ STR_STATION_VIEW_ACCEPTS_CARGO                                  :{BLACK}Accepts:
 STR_STATION_VIEW_EXCLUSIVE_RIGHTS_SELF                          :{BLACK}This station has exclusive transport rights in this town.
 STR_STATION_VIEW_EXCLUSIVE_RIGHTS_COMPANY                       :{YELLOW}{COMPANY}{BLACK} bought exclusive transport rights in this town.
 
+STR_STATION_VIEW_AMOUNT_AND_RATING                              :{WHITE}{CARGO_LONG} {YELLOW}({COMMA}%)
+STR_STATION_VIEW_NO_RATING_YET                                  :{WHITE}{STRING} {YELLOW} (No service started)
+
 STR_STATION_VIEW_RATINGS_BUTTON                                 :{BLACK}Ratings
 STR_STATION_VIEW_RATINGS_TOOLTIP                                :{BLACK}Show station ratings
 STR_STATION_VIEW_SUPPLY_RATINGS_TITLE                           :{BLACK}Monthly supply and local rating:
@@ -3392,10 +3415,13 @@ STR_CARGO_RATING_OUTSTANDING                                    :Outstanding
 STR_STATION_VIEW_CENTER_TOOLTIP                                 :{BLACK}Centre main view on station location. Ctrl+Click opens a new viewport on station location
 STR_STATION_VIEW_RENAME_TOOLTIP                                 :{BLACK}Change name of station
 
+STR_BUTTON_SEND_MESSAGE_TOOLTIP                                 :{BLACK}Sends a public message including station name
+STR_BUTTON_SEND_STNAME_TOOLTIP                                  :{BLACK}Copies the Station name to clipboard. Use paste (CTRL+V) in chat after.
 STR_STATION_VIEW_SCHEDULED_TRAINS_TOOLTIP                       :{BLACK}Show all trains which have this station on their schedule
 STR_STATION_VIEW_SCHEDULED_ROAD_VEHICLES_TOOLTIP                :{BLACK}Show all road vehicles which have this station on their schedule
 STR_STATION_VIEW_SCHEDULED_AIRCRAFT_TOOLTIP                     :{BLACK}Show all aircraft which have this station on their schedule
 STR_STATION_VIEW_SCHEDULED_SHIPS_TOOLTIP                        :{BLACK}Show all ships which have this station on their schedule
+STR_BUTTON_SEND_MESSAGE_QUERY_TITLE                             :{BLACK}Message: (company/Station name included)
 
 STR_STATION_VIEW_RENAME_STATION_CAPTION                         :Rename station/loading area
 
@@ -3529,6 +3555,8 @@ STR_INDUSTRY_VIEW_TRANSPORTED                                   :{YELLOW}{CARGO_
 STR_INDUSTRY_VIEW_LOCATION_TOOLTIP                              :{BLACK}Centre the main view on industry location. Ctrl+Click opens a new viewport on industry location
 STR_INDUSTRY_VIEW_PRODUCTION_LEVEL                              :{BLACK}Production level: {YELLOW}{COMMA}%
 STR_INDUSTRY_VIEW_INDUSTRY_ANNOUNCED_CLOSURE                    :{YELLOW}The industry has announced imminent closure!
+STR_INDUSTRY_VIEW_SEND_NAME_CHAT                                :{GREEN} I.
+STR_INDUSTRY_VIEW_SEND_NAME_CHAT_TOOLTIP                        :{BLACK}Copies the Industry name to clipboard. Use paste (CTRL+V) in chat after.
 
 STR_INDUSTRY_VIEW_REQUIRES_N_CARGO                              :{BLACK}Requires: {YELLOW}{STRING}{RAW_STRING}
 STR_INDUSTRY_VIEW_PRODUCES_N_CARGO                              :{BLACK}Produces: {YELLOW}{STRING}{RAW_STRING}
@@ -5306,6 +5334,7 @@ STR_PLANE                                                       :{BLACK}{PLANE}
 STR_SHIP                                                        :{BLACK}{SHIP}
 
 STR_TOOLBAR_RAILTYPE_VELOCITY                                   :{STRING} ({VELOCITY})
+STR_COMPANY_STATION_STATS                                       :{BLACK}Total Waiting Cargo: {COMMA}, Average Cargo Rating: {COMMA}
 STR_TOWN_VIEW_GROWTH                                            :{BLACK}GR: {ORANGE}{COMMA}{BLACK}  next: {ORANGE}{COMMA} {BLACK} RH: {ORANGE}{COMMA} {BLACK}flag {ORANGE}{COMMA}  {BLACK}Fund: {ORANGE}{COMMA}{SILVER}m
 STR_TOWN_VIEW_GROWTH_TILES                                      :{BLACK}HS: {ORANGE}{COMMA}(+{COMMA})  {BLACK}CS: {ORANGE}{COMMA}(+{COMMA})  {BLACK}HR: {ORANGE}{COMMA}(+{COMMA})
 STR_TOWN_VIEW_HOUSE_STATE                                       :{BLACK}Houses: Building: {ORANGE}{COMMA}{BLACK} :: {BLACK}RTM: {ORANGE}{COMMA}  {BLACK}DTM: {ORANGE}{COMMA}
@@ -5329,21 +5358,29 @@ STR_CC_SEPARATOR_NICE                                           :## Visit n-ice.
 STR_CC_SEPARATOR_BTPRO                                          :## Visit openttd.btpro.nl ##
 
 STR_CC_USER_TEXT                                                :{BLACK}User:{NBSP}
+STR_CC_NICE_USER_TEXT                                           :{BLACK}n-ice User:
+STR_CC_BTPRO_USER_TEXT                                          :{BLACK}BTPro User:
 STR_CC_USER_WHITE                                               :{WHITE}{RAW_STRING}
+STR_CC_NICE_USER_WHITE                                          :{WHITE}{RAW_STRING}
+STR_CC_BTPRO_USER_WHITE                                         :{WHITE}{RAW_STRING}
 STR_CC_USER_CHANGE                                              :{BLACK}...
 STR_CC_USER_ENTER                                               :{BLACK}Enter your account User name
 STR_CC_USER_CHANGE_TOOLTIP                                      :{BLACK}Enter acccount User name
 STR_CC_PASSWORD                                                 :{BLACK}PW:{NBSP}
 STR_CC_PASSWORD_ENTER                                           :{BLACK}Enter your account Password
+STR_CC_ADMIN_PASSWORD_ENTER                                     :{BLACK}Enter your ADMIN Password
+STR_CC_ADMIN_GOODBYE_ENTER                                      :{BLACK}ENTER the Goodbye Message
+STR_CC_ADMIN_ATTENTION_ENTER                                    :{BLACK}ENTER ATTENTION Message
 STR_CC_PASSWORD_CHANGE                                          :{BLACK}...
 STR_CC_PASSWORD_CHANGE_TOOLTIP                                  :{BLACK}Enter account Password
+STR_CC_ADMIN_GOODBYE                                            :{SILVER}G
+STR_CC_ADMIN_GOODBYE_CHANGE_TOOLTIP                             :{BLACK}Change the Goodbye Message
+STR_CC_ADMIN_ATTENTION                                          :{SILVER}W
+STR_CC_ADMIN_ATTENTION_CHANGE_TOOLTIP                           :{BLACK}Change the Message to get Players ATTENTION/WARNING
+STR_CC_ADMIN_PASSWORD                                           :{RED}A
+STR_CC_ADMIN_PASSWORD_CHANGE                                    :{BLACK}Enter ADMIN Password
 
 
-STR_CC_GLOBAL_COMMANDS_TITLE                                    :{WHITE}Token Login tool
-STR_CC_TOKEN_WELCOME                                            :{BLACK}Welcome back {WHITE}{RAW_STRING}{BLACK} :)
-STR_CC_TOKEN_CLICKME                                            :{BLACK}Click the big button to Login automatically
-STR_CC_TOKEN_ENJOY                                              :{BLACK}  Respect the rules and enjoy the game. :)
-STR_CC_TOKEN_LOGIN                                              :{LTBLUE}Get Token --> Login
 STR_CC_TOKEN_LOGIN_TOOLTIP                                      :{BLACK}Get Token from website and executes !login XXXX
 STR_CC_TOKEN_LOGIN_ERROR                                        :{WHITE}Wrong Username or Password!
 
@@ -5374,22 +5411,24 @@ STR_NETWORK_SERVER_LIST_JOIN_GAME_SERVER_VIP_TOOLTIP            :{BLACK}Open VIP
 STR_CC_SERVER_FREELANCER                                        :{WHITE}No community selected
 STR_NETWORK_DIRECT_JOIN_GAME                                    :{BLACK}{RAW_STRING}
 STR_NETWORK_DIRECT_JOIN_GAME_TOOLTIP                            :{BLACK}Join server directly
-STR_CC_BUILD                                                    :{BLACK}(Build 1110A)
+STR_CC_BUILD                                                    :{BLACK}(Build admin 1110A)
 STR_CC_ADMIN_LOGIN_WRONG_SERVER                                 :{BLACK}Not a correct community server
 STR_CC_IRC_LINK_CHAT                                            :{BLACK}IRC Chat
 STR_CC_IRC_LINK_CHAT_TOOLTIP                                    :{BLACK}Open mibbit in browser to connect to #btpro-chat IRC channel
 STR_CC_IRC_LINK_SERVERS                                         :{BLACK}IRC Servers
-STR_CC_IRC_LINK_SERVERS_SPACER                                  :{BLACK}{NBSP}{NBSP}
+STR_CC_IRC_LINK_SERVERS_SPACER                                  :{BLACK}{NBSP}
 STR_CC_IRC_LINK_SERVERS_TOOLTIP                                 :{BLACK}Open mibbit in browser to connect to #btpro-openttd IRC channel
 STR_CC_WIKI_RULES_PAGE                                          :{YELLOW}Detailed Rules
 STR_CC_WIKI_RULES_PAGE_STATUS                                   :{BLACK}Rules Wiki
 STR_CC_WIKI_RULES_PAGE_STATUS_TOOLTIP                           :{BLACK}Open Rules Wiki page in browser
 STR_CC_WIKI_RULES_PAGE_TOOLTIP                                  :{BLACK}Open browser in Rules Wiki page
-STR_CC_VIP                                                      :{GREEN}VIP's
 
 STR_CC_SERVER_LIST_UNREACHABLE                                  :{WHITE}Couldn't get server details
 STR_CC_SERVER_DISABLED                                          :{WHITE}Server is Disabled / Offline
 STR_CC_SERVER_LIST_ERROR_FILE                                   :{WHITE}Error on getting servers file
+
+STR_CONFIG_SETTING_POWERFUND_MONEY                              :Powerfund minimum needed money for fund: {STRING2}
+STR_CONFIG_SETTING_POWERFUND_HOUSES                             :Maximum amount of houses to powerfund up to
 
 STR_TOWN_VIEW_REALPOP_RATE                                      :{BLACK}Real Population: {YELLOW}{COMMA}  {BLACK}Rating: {YELLOW}{COMMA}
 STR_CB_DISTANCE_CHECK                                           :CB town acceptance: {STRING2}
@@ -5402,6 +5441,8 @@ STR_TOWN_DIRECTORY_CAPTION_EXTRA                                :{WHITE}Towns ({
 STR_SMALLMAP_TOWN_LARGE                                         :{TINY_FONT}{YELLOW}{TOWN}
 STR_TOWN_VIEW_TOWN_CAPTION_EXTRA                                :{WHITE}{TOWN} {COMMA} [{COMMA}]
 STR_TOWN_VIEW_CITY_CAPTION_EXTRA                                :{WHITE}{TOWN} (City) {COMMA} [{COMMA}]
+STR_TOWN_VIEW_SEND_TOWN_NAME                                    :{GREEN}T
+STR_TOWN_VIEW_SEND_TOWN_NAME_TOOLTIP                            :{BLACK}Copies the Town name to clipboard. Use paste (CTRL+V) in chat after.
 STR_SORT_BY_HOUSES                                              :Houses
 
 #cargo table
@@ -5419,7 +5460,7 @@ STR_TOOLBAR_CARGOS_NAME                                         :{BLACK}{STRING}
 #community choice - settings
 STR_CONFIG_SETTING_COMMUNITY                                    :Choose your community: {STRING2}
 STR_CONFIG_SETTING_CLIENT_COMMUNITY                             :Freelancer
-STR_CONFIG_SETTING_CLIENT_COMMUNITY_NICE                        :n-ice / http://n-ice.org
+STR_CONFIG_SETTING_CLIENT_COMMUNITY_NICE                        :n-ice / http://n-ice.org/openttd
 STR_CONFIG_SETTING_CLIENT_COMMUNITY_BTPRO                       :BTPro / https://openttd.btpro.nl
 
 STR_BT_NEW_CLIENT_AVAILABLE                                     :{WHITE}## ATTENTION ## There's a new BTPro client available. Visit openttd.btpro.nl (Website button below :)
@@ -5448,13 +5489,158 @@ STR_STATION_VIEW_TRANSPORTED_TOOLTIP_7                          :{BLACK}{STATION
 # Town tooltip
 STR_TOWN_NAME_TOOLTIP                                           :{BLACK}{TOWN}
 
-######## Watch Window
+######## Admin Commands/Buttons
 STR_WATCH_WINDOW_TITLE                                          :{WHITE}{RAW_STRING} in {RAW_STRING}({NUM}).
-STR_WATCH_WINDOW_TITLE2								                    			:{WHITE}Watching {RAW_STRING} {BLACK}({NUM}).
+STR_WATCH_WINDOW_TITLE2                                         :{WHITE}Watching {RAW_STRING} {BLACK}({NUM}).
 STR_WATCH_CLICK_TO_WATCH_COMPANY_NUMBER                         :{BLACK}{NUM}
 STR_WATCH_CLICK_TO_WATCH_COMPANY                                :{BLACK}Click here to watch this company building
 STR_WATCH_CLICK_TO_OPEN_COMPANY                                 :{BLACK}Click here to open this company window
 STR_WATCH_CLICK_NEW_WINDOW                                      :{BLACK}Click here to open new watching window
+STR_XI_COMPANY_ADMIN_CAPTION                                    :{WHITE}Admin Buttons
+STR_XI_KICK                                                     :{BLACK}Kick
+STR_XI_KICK_TOOLTIP                                             :{BLACK}Kick player out of the game.
+STR_XI_KICKC                                                    :{BLACK}Kick f Comp
+STR_XI_KICKC_TOOLTIP                                            :{BLACK}Kick player from company, send him to Spectators.
+STR_XI_RESET_KICK                                               :{BLACK}Reset Kick
+STR_XI_RESET_KICK_TOOLTIP                                       :{BLACK}Reset company and Kick out of the game player(s) on it.
+STR_XI_RESET_SPEC                                               :{BLACK}Reset Spec
+STR_XI_RESET_SPEC_TOOLTIP                                       :{BLACK}Reset company and send player(s) to spectators.
+STR_XI_RESET_TIMER5                                             :{BLACK}Reset T. 5m
+STR_XI_RESET_TIMER5_TOOLTIP                                     :{BLACK}Starts a timer to reset company when after 5 minutes countdown.
+STR_XI_RESET_TIMER                                              :{BLACK}Reset T....
+STR_XI_RESET_TIMER_TOOLTIP                                      :{BLACK}Starts a timer to reset company when time expire (time is Admin input).
+STR_XI_RESET_TIMER_VALUE                                        :{BLACK}Time to Reset (seconds):
+STR_XI_RESET_TIMER_CANCEL                                       :{BLACK}Cancel Reset
+STR_XI_RESET_TIMER_CANCEL_TOOLTIP                               :{BLACK}Cancel the Reset timer.
+STR_XI_EMPTY                                                    :{BLACK}Empty Comp
+STR_XI_EMPTY_TOOLTIP                                            :{BLACK}Send players in company to Spectators.
+STR_XI_JOIN                                                     :{BLACK}Join
+STR_XI_JOIN_TOOLTIP                                             :{BLACK}Join this company as Admin
+STR_XI_JOIN2                                                    :{BLACK}A. Join
+STR_XI_JOIN2_TOOLTIP                                            :{BLACK}Join this company as Admin
+STR_XI_RESET                                                    :{BLACK}Reset Comp
+STR_XI_RESET_TOOLTIP                                            :{BLACK}Reset the company. The company must be empty.
+STR_XI_RESET_COMP							                    :{BLACK}RESET Company
+STR_XI_RESET_KNOWN                                              :{BLACK}Reset Known
+STR_XI_RESET_KNOWN_TOOLTIP                                      :{BLACK}Reset Known
+STR_XI_RESET_COMP_SURE                                          :{WHITE}Sure to RESET this company?
+STR_XI_RESET_SPEC_SURE                                          :{WHITE}Sure to RESET this company, send players to SPECTATORS?
+STR_XI_RESET_KICK_SURE                                          :{WHITE}Sure to RESET this company, and KICK players on it?
+
+STR_XI_CLIENTS                                                  :{YELLOW}  Clients
+STR_XI_WATCH                                                    :Watch
+STR_XI_PLAYERS                                                  :{BLACK}List Players
+STR_XI_COMPANIES                                                :{BLACK}List Companies
+STR_XI_ENABLE                                                   :{BLACK}En/Dis
+STR_XI_ENABLE_TOOLTIP                                           :{BLACK}Enable or Disable the Admin commands
+STR_XI_ENABLE_SHOW                                              :{RED}Enable >>
+STR_XI_ENABLE_SHOW_TOOLTIP                                      :{BLACK}Enable the Admin commands
+STR_XI_ENABLE_HIDE                                              :{GREEN}<< Hide
+STR_XI_ENABLE_HIDE_TOOLTIP                                      :{BLACK}Disable (Hide) the Admin commands
+STR_XI_KNOWN                                                    :{BLACK}.:Known:.
+STR_XI_KNOWN_TOOLTIP                                            :{BLACK}Shows the Known Players in the company.
+STR_XI_TOWNSTATS                                                :{BLACK}Town Stats
+STR_XI_TOWNSTATS_TOOLTIP                                        :{BLACK}Shows the Town Statistics of this company (only on CB).
+STR_XI_LOCK                                                     :{BLACK}Lock Comp
+STR_XI_LOCK_TOOLTIP                                             :{BLACK}Lock Company. All players on it will be sent to spectators. Need to be Unlocked later to players be able to join again.
+STR_XI_UNLOCK                                                   :{BLACK}Unlock Comp
+STR_XI_UNLOCK_TOOLTIP                                           :{BLACK}Unlock Company making possible player(s) joining it again.
+STR_XI_SUSPEND                                                  :{BLACK}Suspend
+STR_XI_SUSPEND_TOOLTIP                                          :{BLACK}Suspend Company actions keeping player in the company.
+STR_XI_UNSUSPEND                                                :{BLACK}Unsuspend
+STR_XI_UNSUSPEND_TOOLTIP                                        :{BLACK}Unsuspend Company actions.
+STR_XI_AWARNING                                                 :{BLACK}A-Warning
+STR_XI_AWARNING_TOOLTIP                                         :{BLACK}Sends a Warning to company that an admin is trying to contact.
+STR_XI_COMPANYW                                                 :{BLACK}Company Window
+STR_XI_COMPANYW_TOOLTIP                                         :{BLACK}Open this player's Company Window
+STR_XI_NOTE_PLAYER                                              :{BLACK}.:Add Note:.
+STR_XI_NOTE_PLAYER_TOOLTIP                                      :{BLACK}Add a short Note about player behaviour / violation of the rules.
+STR_XI_NOTE_PLAYER_TITLE                                        :{BLACK}Short Note about rules violation:
+STR_XI_SHOW_NOTES                                               :{BLACK}Show Notes
+STR_XI_SHOW_NOTES_TOOLTIP                                       :{BLACK}Show existing Notes of a Player/ID/IP/Account
+STR_XI_SHOW_NOTES_TITLE                                         :{BLACK}Parameter to filter Notes (Player/ID/IP/Account)
+STR_XI_PLAYER_ATTENTION                                         :{BLACK}.:Attention:.
+STR_XI_PLAYER_ATTENTION_TOOLTIP                                 :{BLACK}Asks for player attention, with "Player, are you here?"
+STR_XI_MOVE_PLAYER_TO_TITLE                                     :{BLACK}Move player to company number:
+STR_XI_MOVE_PLAYER_TO                                           :{BLACK}Move to ...
+STR_XI_MOVE_PLAYER_TO_TOOLTIP                                   :{BLACK}Move a player (number #.. or name) to company
+STR_XI_SCROLL_TO_COORDS_TITLE                                   :{BLACK}Scroll to Coordinates ( {RED}X {BLACK}<space> {RED}Y {BLACK} or HEX)
+STR_XI_SCROLL_TO_COORDS                                         :{BLACK}Go to Coord ...
+STR_XI_SCROLL_TO_COORDS_TOOLTIP                                 :{BLACK}Scroll to Map coordinates specified by Admin
+STR_XI_PUBLIC_PLAYER_MESSAGE                                    :{BLACK}.{RED}P{BLACK}.
+STR_XI_PUBLIC_PLAYER_MESSAGE_TOOLTIP                            :{BLACK}Send a Custom public message to this player (includes player name, company name & colour)
+STR_XI_PUBLIC_PLAYER_MESSAGE_TITLE                              :{BLACK}Type Custom message to this Player (Public)
+STR_XI_PUBLIC_COMPANY_MESSAGE                                   :{BLACK}.{RED}C{BLACK}.
+STR_XI_PUBLIC_COMPANY_MESSAGE_TOOLTIP                           :{BLACK}Send a Custom public message to this player (includes company name & colour)
+STR_XI_PUBLIC_COMPANY_MESSAGE_TITLE                             :{BLACK}Type Custom message to this Company (Public)
+STR_XI_PRIVATE_PLAYER_MESSAGE                                   :{BLACK}.{GREEN}p{BLACK}.
+STR_XI_PRIVATE_PLAYER_MESSAGE_TOOLTIP                           :{BLACK}Send a Custom private message to this player
+STR_XI_PRIVATE_PLAYER_MESSAGE_TITLE                             :{BLACK}Type Custom message to this Player (private)
+STR_XI_PRIVATE_COMPANY_MESSAGE                                  :{BLACK}.{GREEN}c{BLACK}.
+STR_XI_PRIVATE_COMPANY_MESSAGE_TOOLTIP                          :{BLACK}Send a Custom private message to this company
+STR_XI_PRIVATE_COMPANY_MESSAGE_TITLE                            :{BLACK}Type Custom message to this Company (private)
+
+STR_XI_PLAYER_NEWSTICKET_BUTTON                                 :{BLACK}News (Player)
+STR_XI_PLAYER_NEWSTICKET_BUTTON_TOOLTIP                         :{BLACK}Open a Newspapper message directed to Player
+STR_XI_COMPANY_NEWSTICKET_BUTTON                                :{BLACK}News (Comp.)
+STR_XI_COMPANY_NEWSTICKET_BUTTON_TOOLTIP                        :{BLACK}Open a Newspapper message directed to Company
+STR_XI_COMPANY_NEWSTICKET_BUTTON_COMP                           :{BLACK}News (P. C.)
+STR_XI_COMPANY_NEWSTICKET_BUTTON_COMP_TOOLTIP                   :{BLACK}Open a Newspapper message only showed to Company
+STR_XI_GLOBAL_NEWSTICKET_BUTTON                                 :{BLACK}News (Global)
+STR_XI_GLOBAL_NEWSTICKET_BUTTON_TOOLTIP                         :{BLACK}Open a Newspapper message directed to All (Global)
+STR_XI_PLAYER_NEWSTICKET                                        :{BLACK}Type message as newspapper ticket to this Player
+STR_XI_COMPANY_NEWSTICKET                                       :{BLACK}Type message as newspapper ticket to this Company
+STR_XI_COMPANY_NEWSTICKET_COMP                                  :{BLACK}Type message as newspapper ticket ONLY to this Company
+STR_XI_GLOBAL_NEWSTICKET                                        :{BLACK}Type message as newspapper ticket to All (Global)
+
+###### Community commands/buttons
+STR_NETWORK_BT_AVAILABLE_NETWORK                                :{WHITE}Not to be used in Single Player mode
+STR_CC_OTHER_SELECTED_TILE                                      :{WHITE}Selected Tile
+STR_CC_GLOBAL_COMMANDS_TITLE                                    :{BLACK}Server commands / triggers
+STR_CC_GLOBAL_RULES                                             :{WHITE}Display rule(s):
+STR_CC_GLOBAL_RULES_STRING                                      :{BLACK}{RAW_STRING}
+STR_CC_GLOBAL_RULES_STRING_TOOLTIP                              :{BLACK}Show this rule to players
+STR_CC_GLOBAL_RULES_ALL                                         :{BLACK}SHOW ALL
+STR_CC_GLOBAL_RULES_RESERVED                                    :{BLACK}...
+STR_CC_GLOBAL_RULES_WEBSITE                                     :{CREAM}Abv. Rules
+STR_CC_GLOBAL_RULES_WEBSITE_TOOLTIP                             :{BLACK}Open Abbreviated rules webpage in browser
+STR_CC_GLOBAL_RULES_WEBSITE_DETAILED                            :{CREAM}Det. Rules
+STR_CC_GLOBAL_RULES_WEBSITE_DETAILED_TOOLTIP                    :{BLACK}Open Detailed rules webpage in browser
+STR_CC_GLOBAL_LINKS                                             :{WHITE}Display usefull links:
+STR_CC_GLOBAL_LINKS_CC                                          :{BLACK}Website
+STR_CC_GLOBAL_LINKS_CC_TTD                                      :{BLACK}Forum
+STR_CC_GLOBAL_LINKS_TTDWIKI                                     :{BLACK}TTD Wiki
+STR_CC_GLOBAL_LINKS_CCWIKI                                      :{BLACK}Server Wiki
+STR_CC_GLOBAL_LINKS_TUTORIAL                                    :{BLACK}Tutorial
+STR_CC_GLOBAL_LINKS_MECHANICS                                   :{BLACK}Mechanics
+STR_CC_GLOBAL_LINKS_SIGNALS                                     :{BLACK}Signals
+STR_CC_GLOBAL_LINKS_GAME_LOGIN                                  :{BLACK}Login FAQ
+STR_CC_GLOBAL_VARIOUS                                           :{WHITE}Various commands/triggers:
+STR_CC_GLOBAL_VARIOUS_SERVER                                    :{BLACK}Server
+STR_CC_GLOBAL_VARIOUS_INFO                                      :{BLACK}Info
+STR_CC_GLOBAL_VARIOUS_VOTE_RESTART                              :{BLACK}Vote Restart
+STR_CC_GLOBAL_VARIOUS_VOTE_RESTART_MAP                          :{BLACK}Vote Restart Map
+STR_CC_GLOBAL_VARIOUS_VOTE                                      :{BLACK}Vote
+STR_CC_GLOBAL_VARIOUS_VOTE_STATUS                               :{BLACK}Vote Status
+STR_CC_GLOBAL_VARIOUS_GOODBYE                                   :{RED}Good luck and Goodbye
+STR_CC_OTHER_ADMIN                                              :{WHITE}Other Admin commands:
+STR_CC_OTHER_ADMIN_ACKNOWLEDGE                                  :{BLACK}Acknowledge
+STR_CC_OTHER_ADMIN_SOLVE                                        :{BLACK}Solve
+STR_CC_OTHER_TOKEN_LOGIN                                        :{BLUE}Token Login
+STR_CC_OTHER_TOKEN_LOGIN_TOOLTIP                                :{BLACK}Get Token from website and executes !login XXXX
+STR_CC_OTHER_TOKEN_LOGOUT                                       :{SILVER}!Logout
+STR_CC_OTHER_TOKEN_LOGOUT_TOOLTIP                               :{BLACK}Logout as player
+STR_CC_OTHER_ADMIN_LOGIN                                        :{BLACK}Admin Login
+STR_CC_OTHER_ADMIN_LOGOUT                                       :{BLACK}Admin Logout
+STR_CC_SERVER_TEXT                                              :{BLACK}Server:
+STR_CC_SERVER_TEXT_SERVER                                       :{WHITE}{RAW_STRING}
+STR_CC_SERVER_NICE_USER                                         :{WHITE}{RAW_STRING}
+STR_CC_SERVER_BTPRO_USER                                        :{WHITE}{RAW_STRING}
+STR_NETWORK_SERVER_LIST_JOIN_GAME_CC                            :{BLACK}# Community # servers:
+STR_NETWORK_SERVER_LIST_JOIN_GAME_CC_WHITE                      :{WHITE}# Community # servers:
+STR_NETWORK_SERVER_LIST_ERROR_FILE                              :{BLACK}File error
+STR_NETWORK_SERVER_LIST_ERROR_MEMORY                            :{BLACK}Memory error
+STR_NETWORK_SERVER_LIST_ERROR_READING                           :{BLACK}Reading error
 
 STR_CC_OTHER_TOKEN_WSA_ERROR                                    :{WHITE}WSAStartup() failed
 STR_CC_OTHER_TOKEN_SOCKET_ERROR                                 :{WHITE}socket() failed
@@ -5470,9 +5656,6 @@ STR_TTE_INDUSTRY                                                :{WHITE}{STRING}
 STR_TTE_STATION_NAME                                            :{LTBLUE}{STATION}
 STR_TTE_STATION                                                 :{WHITE}{STRING}  {BLACK}{CARGO_SHORT} {YELLOW}{NUM} %
 STR_LAND_AREA_INFORMATION_POP                                   :{BLACK}Population: {LTBLUE}{NUM}
-
-STR_CONFIG_SETTING_POWERFUND_MONEY                              :Powerfund minimum needed money for fund: {STRING2}
-STR_CONFIG_SETTING_POWERFUND_HOUSES                             :Maximum amount of houses to powerfund up to
 
 ######## Zoning toolbar
 

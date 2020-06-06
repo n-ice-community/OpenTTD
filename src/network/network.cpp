@@ -663,7 +663,7 @@ public:
 	CommunityLoginManager() {}
 
 	void initiateLoginSequence() {
-    DeleteWindowByClass(WC_CC_TOKENLOGIN);
+    DeleteWindowByClass(WC_CC_COMMANDS);
     char uri[512];
     const char *np;
     std::string decoded;
@@ -809,7 +809,7 @@ public:
     //IConsolePrint(CC_INFO, "INSPECTING DATA");
     if (this->cursor - this->buf >= 4) {
       this->SaveServerString();
-      
+
     } else {
       ShowErrorMessage(STR_CC_OTHER_TOKEN_CONNECT_ERROR, INVALID_STRING_ID, WL_ERROR);
     }
@@ -892,8 +892,8 @@ void NetworkClientConnectGame(NetworkAddress address, CompanyID join_as, const c
 	_network_join_server_password = join_server_password;
 	_network_join_company_password = join_company_password;
 
-  //where did we join? - IP check
-	IConsolePrintF(CC_WHITE, "ip   %s", _settings_client.network.last_host);	
+	//where did we join? - IP check
+	IConsolePrintF(CC_WHITE, "ip   %s", _settings_client.network.last_host);
 	if(     strcmp(_settings_client.network.last_host, "176.9.26.206") == 0
     ||  strcmp(_settings_client.network.last_host, "openttd.n-ice.org") == 0
     ||  strcmp(_settings_client.network.last_host, "openttd.boxor.net") == 0
@@ -901,14 +901,14 @@ void NetworkClientConnectGame(NetworkAddress address, CompanyID join_as, const c
     ||  strcmp(_settings_client.network.last_host, "23.92.218.75") == 0
     ||  strcmp(_settings_client.network.last_host, "supervds.boxor.net") == 0
 		||  strstr(_settings_client.network.last_host, "n-ice") != NULL)
-	{ //if we BTPro chosen and n-ice IP, change to n-ice		 
+	{ //if we BTPro chosen and n-ice IP, change to n-ice
 		if(_settings_client.gui.community != 1){
 			_settings_client.gui.community = 1;
 			GetCommunityServerListText();
-		}		
+		}
 		IConsolePrintF(CC_WHITE, "joined n-ice (%i)", _settings_client.gui.community);
 	}
-	else if(strcmp(_settings_client.network.last_host, "83.137.149.29") == 0 
+	else if(strcmp(_settings_client.network.last_host, "83.137.149.29") == 0
 		||  strcmp(_settings_client.network.last_host, "95.97.242.6") == 0
 		||  strcmp(_settings_client.network.last_host, "198.27.66.222") == 0
 		||  strcmp(_settings_client.network.last_host, "5.135.161.60") == 0
@@ -924,8 +924,8 @@ void NetworkClientConnectGame(NetworkAddress address, CompanyID join_as, const c
 		if(_settings_client.gui.community != 2){
 			_settings_client.gui.community = 2;
 			GetCommunityServerListText();
-		}		
-		IConsolePrintF(CC_WHITE, "joined BTPro (%i)", _settings_client.gui.community);		
+		}
+		IConsolePrintF(CC_WHITE, "joined BTPro (%i)", _settings_client.gui.community);
 	}
 	else { //not supported community
 		_settings_client.gui.community = 0;

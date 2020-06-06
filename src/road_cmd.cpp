@@ -1670,7 +1670,7 @@ static void DrawTile_Road(TileInfo *ti)
 
 		case ROAD_TILE_CROSSING: {
 			if (ti->tileh != SLOPE_FLAT) DrawFoundation(ti, FOUNDATION_LEVELED);
-
+			
 			Axis axis = GetCrossingRailAxis(ti->tile);
 
 			const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(ti->tile));
@@ -1687,6 +1687,7 @@ static void DrawTile_Road(TileInfo *ti)
 				SpriteID image = SPR_ROAD_Y + axis;
 
 				Roadside roadside = GetRoadside(ti->tile);
+
 				if (DrawRoadAsSnowDesert(ti->tile, roadside)) {
 					image += 19;
 				} else {
@@ -1703,6 +1704,7 @@ static void DrawTile_Road(TileInfo *ti)
 				if (IsCrossingBarred(ti->tile)) image += 2;
 
 				Roadside roadside = GetRoadside(ti->tile);
+
 				if (DrawRoadAsSnowDesert(ti->tile, roadside)) {
 					image += 8;
 				} else {

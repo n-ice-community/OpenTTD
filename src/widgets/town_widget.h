@@ -35,6 +35,7 @@ enum TownAuthorityWidgets {
 /** Widgets of the #TownViewWindow class. */
 enum TownViewWidgets {
 	WID_TV_CAPTION,        ///< Caption of window.
+	WID_TV_SEND_TOWN_NAME, ///< Sends town name to public chat.
 	WID_TV_VIEWPORT,       ///< View of the center of the town.
 	WID_TV_INFO,           ///< General information about the town.
 	WID_TV_CENTER_VIEW,    ///< Center the main view on this town.

@@ -43,6 +43,7 @@ enum EditorTerraformToolbarWidgets {
 	WID_ETT_DECREASE_SIZE,                       ///< Downwards arrow button to decrease terraforming size.
 	WID_ETT_NEW_SCENARIO,                        ///< Button for generating a new scenario.
 	WID_ETT_RESET_LANDSCAPE,                     ///< Button for removing all company-owned property.
+	WID_ETT_MEASUREMENT_TOOL,                 ///< Ruler tool button
 };
 
 #endif /* WIDGETS_TERRAFORM_WIDGET_H */

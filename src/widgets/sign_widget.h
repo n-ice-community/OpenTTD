@@ -31,6 +31,8 @@ enum QueryEditSignWidgets {
 	WID_QES_DELETE,   ///< Delete button.
 	WID_QES_PREVIOUS, ///< Previous button.
 	WID_QES_NEXT,     ///< Next button.
+	WID_QES_TEMPLATES,///< List with most used texts
+	WID_QES_SCROLLBAR,
 };
 
 #endif /* SIGN_WIDGET_H */

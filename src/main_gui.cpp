@@ -36,6 +36,9 @@
 #include "watch_gui_1.h"
 #include "industry.h"
 #include "town_map.h"
+#include "commands_token_gui.h"
+#include "watch_gui_1.h"
+#include "debug.h"
  
 #include "station_gui.h"
 #include "station_base.h"
@@ -175,6 +178,7 @@ static const struct NWidgetPart _nested_main_window_widgets[] = {
 
 enum {
 	GHK_QUIT,
+	GHK_TOKEN_LOGIN,
 	GHK_WATCH_WINDOW,
 	GHK_ABANDON,
 	GHK_CONSOLE,
@@ -364,7 +368,9 @@ struct MainWindow : Window
 				ResetRestoreAllTransparency();
 				break;
 
-            case GHK_WATCH_WINDOW:	ShowWatchWindow1( INVALID_COMPANY );	break;
+			case GHK_TOKEN_LOGIN:	ShowCCCommands();	break;
+
+      case GHK_WATCH_WINDOW:	ShowWatchWindow1( INVALID_COMPANY );	break;
 
 			case GHK_CHAT: // smart chat; send to team if any, otherwise to all
 				if (_networking) {
@@ -589,6 +595,7 @@ static Hotkey global_hotkeys[] = {
 	Hotkey(WKC_SPACE, "close_news", GHK_CLOSE_NEWS),
 	Hotkey(WKC_SPACE, "close_error", GHK_CLOSE_ERROR),
   	Hotkey('O', "show_watch_window", GHK_WATCH_WINDOW),
+ 	Hotkey('N', "show_token_login", GHK_TOKEN_LOGIN),
 	HOTKEY_LIST_END
 };
 HotkeyList MainWindow::hotkeys("global", global_hotkeys);

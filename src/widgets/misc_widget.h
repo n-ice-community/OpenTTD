@@ -14,6 +14,10 @@
 enum LandInfoWidgets {
 	WID_LI_LOCATION, ///< Scroll to location.
 	WID_LI_BACKGROUND, ///< Background of the window.
+	WID_LI_SCROLL_TO,
+	WID_LI_LOG,
+	WID_LI_LOGS,
+	WID_LI_CHAT,
 };
 
 /** Widgets of the #TooltipsWindow class. */
@@ -44,6 +48,7 @@ enum QueryWidgets {
 	WID_Q_TEXT,    ///< Text of the query.
 	WID_Q_NO,      ///< Yes button.
 	WID_Q_YES,     ///< No button.
+	WID_Q_LOG,
 };
 
 /** Widgets of the #TextfileWindow class. */

@@ -29,6 +29,8 @@
 #include "string_func.h"
 #include "sortlist_type.h"
 #include "widgets/dropdown_func.h"
+#include "network/network.h"
+#include "network/network_func.h"
 #include "company_base.h"
 #include "core/geometry_func.hpp"
 #include "core/random_func.hpp"
@@ -1099,6 +1101,20 @@ public:
 				ShowIndustryCargoesWindow(i->type);
 				break;
 			}
+
+      case WID_IV_SEND_INDUSTRY_NAME: {
+				if (_networking) {
+          char buffer[128];
+          SetDParam(0, this->window_number);
+          GetString(buffer, STR_INDUSTRY_NAME, lastof(buffer));
+          
+          //NetworkClientSendChat(NETWORK_ACTION_CHAT, DESTTYPE_BROADCAST, 0 , buffer);
+
+          SetClipboardInfo(buffer);
+        }
+				break;
+			}
+
 		}
 	}
 
@@ -1186,6 +1202,7 @@ static const NWidgetPart _nested_industry_view_widgets[] = {
 		NWidget(WWT_CLOSEBOX, COLOUR_CREAM),
 		NWidget(WWT_CAPTION, COLOUR_CREAM, WID_IV_CAPTION), SetDataTip(STR_INDUSTRY_VIEW_CAPTION, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
 		NWidget(WWT_PUSHIMGBTN, COLOUR_CREAM, WID_IV_GOTO), SetMinimalSize(12, 14), SetDataTip(SPR_GOTO_LOCATION, STR_INDUSTRY_VIEW_LOCATION_TOOLTIP),
+		NWidget(WWT_PUSHTXTBTN, COLOUR_CREAM, WID_IV_SEND_INDUSTRY_NAME), SetDataTip(STR_INDUSTRY_VIEW_SEND_NAME_CHAT, STR_INDUSTRY_VIEW_SEND_NAME_CHAT_TOOLTIP),
 		NWidget(WWT_DEBUGBOX, COLOUR_CREAM),
 		NWidget(WWT_SHADEBOX, COLOUR_CREAM),
 		NWidget(WWT_DEFSIZEBOX, COLOUR_CREAM),
