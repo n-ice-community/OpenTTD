@@ -101,6 +101,22 @@ struct GraphLegendWindow : Window {
 	}
 };
 
+/** Construct the row containing the digit keys. */
+static NWidgetBase *MakeCargoButtons(int *biggest_index)
+{
+	NWidgetVertical *ver = new NWidgetVertical;
+
+	for (int i = 0; i < _sorted_standard_cargo_specs_size; i++) {
+		NWidgetBackground *leaf = new NWidgetBackground(WWT_PANEL, COLOUR_ORANGE, WID_CPR_MATRIX + i, NULL);
+		leaf->tool_tip = STR_GRAPH_CARGO_PAYMENT_TOGGLE_CARGO;
+		leaf->SetFill(1, 0);
+		leaf->SetLowered(true);
+		ver->Add(leaf);
+	}
+	*biggest_index = WID_CPR_MATRIX + _sorted_standard_cargo_specs_size - 1;
+	return ver;
+}
+
 /**
  * Construct a vertical list of buttons, one for each company.
  * @param biggest_index Storage for collecting the biggest index used in the returned tree.
@@ -531,10 +547,64 @@ public:
 		return INVALID_DATAPOINT;
 	}
 
+	void UpdateExcludedData()
+	{
+		this->excluded_data = 0;
+
+		int i = 0;
+		const CargoSpec *cs;
+		FOR_ALL_SORTED_STANDARD_CARGOSPECS(cs) {
+			if (HasBit(_legend_excluded_cargo, cs->Index())) SetBit(this->excluded_data, i);
+			i++;
+		}
+	}
+
+	void UpdateLoweredWidgets()
+	{
+		for (int i = 0; i < _sorted_standard_cargo_specs_size; i++) {
+			this->SetWidgetLoweredState(WID_CPR_MATRIX + i, !HasBit(this->excluded_data, i));
+		}
+	}
+
 	void OnClick(Point pt, int widget, int click_count) override
 	{
-		/* Clicked on legend? */
-		if (widget == WID_CV_KEY_BUTTON) ShowGraphLegend();
+		switch (widget) {
+			/* Clicked on legend? */
+			case WID_CV_KEY_BUTTON: 
+				ShowGraphLegend();
+				break;
+			case WID_CPR_ENABLE_CARGOES:
+				/* Remove all cargoes from the excluded lists. */
+				_legend_excluded_cargo = 0;
+				this->excluded_data = 0;
+				this->UpdateLoweredWidgets();
+				this->SetDirty();
+				break;
+
+			case WID_CPR_DISABLE_CARGOES: {
+				/* Add all cargoes to the excluded lists. */
+				int i = 0;
+				const CargoSpec *cs;
+				FOR_ALL_SORTED_STANDARD_CARGOSPECS(cs) {
+					SetBit(_legend_excluded_cargo, cs->Index());
+					SetBit(this->excluded_data, i);
+					i++;
+				}
+				this->UpdateLoweredWidgets();
+				this->SetDirty();
+				break;
+			}
+
+			default:
+				if (widget >= WID_CPR_MATRIX) {
+					int i = widget - WID_CPR_MATRIX;
+					ToggleBit(_legend_excluded_cargo, _sorted_cargo_specs[i]->Index());
+					this->ToggleWidgetLoweredState(widget);
+					this->UpdateExcludedData();
+					this->SetDirty();
+				}
+				break;
+		}
 	}
 
 	void OnGameTick() override
@@ -671,8 +741,60 @@ struct IncomeGraphWindow : BaseGraphWindow {
 
 	OverflowSafeInt64 GetGraphData(const Company *c, int j) override
 	{
+		if(_legend_excluded_cargo == 0){ 
 		return c->old_economy[j].income;
 	}
+		uint total_income = 0;
+		const CargoSpec *cs;
+		FOR_ALL_SORTED_STANDARD_CARGOSPECS(cs) {
+			if (!HasBit(_legend_excluded_cargo, cs->Index())){
+				total_income += c->old_economy[j].cargo_income[cs->Index()];
+			}
+		}
+		return total_income;
+	}
+
+	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	{
+		if (widget < WID_CPR_MATRIX) {
+			BaseGraphWindow::UpdateWidgetSize(widget, size, padding, fill, resize);
+			return;
+		}
+
+		const CargoSpec *cs = _sorted_cargo_specs[widget - WID_CPR_MATRIX];
+		SetDParam(0, cs->name);
+		Dimension d = GetStringBoundingBox(STR_GRAPH_CARGO_PAYMENT_CARGO);
+		d.width += 14; // colour field
+		d.width += WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT;
+		d.height += WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
+		*size = maxdim(d, *size);
+	}
+
+	void DrawWidget(const Rect &r, int widget) const override
+	{
+		if (widget < WID_CPR_MATRIX) {
+			BaseGraphWindow::DrawWidget(r, widget);
+			return;
+		}
+
+		const CargoSpec *cs = _sorted_cargo_specs[widget - WID_CPR_MATRIX];
+		bool rtl = _current_text_dir == TD_RTL;
+
+		/* Since the buttons have no text, no images,
+		 * both the text and the coloured box have to be manually painted.
+		 * clk_dif will move one pixel down and one pixel to the right
+		 * when the button is clicked */
+		byte clk_dif = this->IsWidgetLowered(widget) ? 1 : 0;
+		int x = r.left + WD_FRAMERECT_LEFT;
+		int y = r.top;
+
+		int rect_x = clk_dif + (rtl ? r.right - 12 : r.left + WD_FRAMERECT_LEFT);
+
+		GfxFillRect(rect_x, y + clk_dif, rect_x + 8, y + 5 + clk_dif, PC_BLACK);
+		GfxFillRect(rect_x + 1, y + 1 + clk_dif, rect_x + 7, y + 4 + clk_dif, cs->legend_colour);
+		SetDParam(0, cs->name);
+		DrawString(rtl ? r.left : x + 14 + clk_dif, (rtl ? r.right - 14 + clk_dif : r.right), y + clk_dif, STR_GRAPH_CARGO_PAYMENT_CARGO);
+	}	
 };
 
 static const NWidgetPart _nested_income_graph_widgets[] = {
@@ -687,6 +809,14 @@ static const NWidgetPart _nested_income_graph_widgets[] = {
 	NWidget(WWT_PANEL, COLOUR_GREY, WID_CV_BACKGROUND),
 		NWidget(NWID_HORIZONTAL),
 			NWidget(WWT_EMPTY, COLOUR_GREY, WID_CV_GRAPH), SetMinimalSize(576, 128), SetFill(1, 1), SetResize(1, 1),
+			NWidget(NWID_VERTICAL),//add
+				NWidget(NWID_SPACER), SetMinimalSize(0, 24), SetFill(0, 0), SetResize(0, 1),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_ORANGE, WID_CPR_ENABLE_CARGOES), SetDataTip(STR_GRAPH_CARGO_ENABLE_ALL, STR_GRAPH_CARGO_TOOLTIP_ENABLE_ALL), SetFill(1, 0),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_ORANGE, WID_CPR_DISABLE_CARGOES), SetDataTip(STR_GRAPH_CARGO_DISABLE_ALL, STR_GRAPH_CARGO_TOOLTIP_DISABLE_ALL), SetFill(1, 0),
+				NWidget(NWID_SPACER), SetMinimalSize(0, 4),
+				NWidgetFunction(MakeCargoButtons),
+				NWidget(NWID_SPACER), SetMinimalSize(0, 24), SetFill(0, 1), SetResize(0, 1),
+			EndContainer(),//add
 			NWidget(NWID_VERTICAL),
 				NWidget(NWID_SPACER), SetFill(0, 1), SetResize(0, 1),
 				NWidget(WWT_RESIZEBOX, COLOUR_GREY, WID_CV_RESIZE),
@@ -720,7 +850,59 @@ struct DeliveredCargoGraphWindow : BaseGraphWindow {
 
 	OverflowSafeInt64 GetGraphData(const Company *c, int j) override
 	{
+		if(_legend_excluded_cargo == 0){ 
 		return c->old_economy[j].delivered_cargo.GetSum<OverflowSafeInt64>();
+	}
+		uint total_delivered = 0;
+		const CargoSpec *cs;
+		FOR_ALL_SORTED_STANDARD_CARGOSPECS(cs) {
+			if (!HasBit(_legend_excluded_cargo, cs->Index())){
+				total_delivered += c->old_economy[j].delivered_cargo[cs->Index()];
+			}
+		}
+		return total_delivered;
+	}
+
+	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
+	{
+		if (widget < WID_CPR_MATRIX) {
+			BaseGraphWindow::UpdateWidgetSize(widget, size, padding, fill, resize);
+			return;
+		}
+
+		const CargoSpec *cs = _sorted_cargo_specs[widget - WID_CPR_MATRIX];
+		SetDParam(0, cs->name);
+		Dimension d = GetStringBoundingBox(STR_GRAPH_CARGO_PAYMENT_CARGO);
+		d.width += 14; // colour field
+		d.width += WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT;
+		d.height += WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
+		*size = maxdim(d, *size);
+	}
+
+	void DrawWidget(const Rect &r, int widget) const override
+	{
+		if (widget < WID_CPR_MATRIX) {
+			BaseGraphWindow::DrawWidget(r, widget);
+			return;
+		}
+
+		const CargoSpec *cs = _sorted_cargo_specs[widget - WID_CPR_MATRIX];
+		bool rtl = _current_text_dir == TD_RTL;
+
+		/* Since the buttons have no text, no images,
+		 * both the text and the coloured box have to be manually painted.
+		 * clk_dif will move one pixel down and one pixel to the right
+		 * when the button is clicked */
+		byte clk_dif = this->IsWidgetLowered(widget) ? 1 : 0;
+		int x = r.left + WD_FRAMERECT_LEFT;
+		int y = r.top;
+
+		int rect_x = clk_dif + (rtl ? r.right - 12 : r.left + WD_FRAMERECT_LEFT);
+
+		GfxFillRect(rect_x, y + clk_dif, rect_x + 8, y + 5 + clk_dif, PC_BLACK);
+		GfxFillRect(rect_x + 1, y + 1 + clk_dif, rect_x + 7, y + 4 + clk_dif, cs->legend_colour);
+		SetDParam(0, cs->name);
+		DrawString(rtl ? r.left : x + 14 + clk_dif, (rtl ? r.right - 14 + clk_dif : r.right), y + clk_dif, STR_GRAPH_CARGO_PAYMENT_CARGO);
 	}
 };
 
@@ -736,6 +918,15 @@ static const NWidgetPart _nested_delivered_cargo_graph_widgets[] = {
 	NWidget(WWT_PANEL, COLOUR_GREY, WID_CV_BACKGROUND),
 		NWidget(NWID_HORIZONTAL),
 			NWidget(WWT_EMPTY, COLOUR_GREY, WID_CV_GRAPH), SetMinimalSize(576, 128), SetFill(1, 1), SetResize(1, 1),
+			NWidget(NWID_VERTICAL),//add
+				NWidget(NWID_SPACER), SetMinimalSize(0, 24), SetFill(0, 0), SetResize(0, 1),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_ORANGE, WID_CPR_ENABLE_CARGOES), SetDataTip(STR_GRAPH_CARGO_ENABLE_ALL, STR_GRAPH_CARGO_TOOLTIP_ENABLE_ALL), SetFill(1, 0),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_ORANGE, WID_CPR_DISABLE_CARGOES), SetDataTip(STR_GRAPH_CARGO_DISABLE_ALL, STR_GRAPH_CARGO_TOOLTIP_DISABLE_ALL), SetFill(1, 0),
+				NWidget(NWID_SPACER), SetMinimalSize(0, 4),
+				NWidgetFunction(MakeCargoButtons),
+				NWidget(NWID_SPACER), SetMinimalSize(0, 24), SetFill(0, 1), SetResize(0, 1),
+			EndContainer(),//add
+			NWidget(NWID_SPACER), SetMinimalSize(5, 0), SetFill(0, 1), SetResize(0, 1),
 			NWidget(NWID_VERTICAL),
 				NWidget(NWID_SPACER), SetFill(0, 1), SetResize(0, 1),
 				NWidget(WWT_RESIZEBOX, COLOUR_GREY, WID_CV_RESIZE),
@@ -792,6 +983,15 @@ static const NWidgetPart _nested_performance_history_widgets[] = {
 	NWidget(WWT_PANEL, COLOUR_GREY, WID_PHG_BACKGROUND),
 		NWidget(NWID_HORIZONTAL),
 			NWidget(WWT_EMPTY, COLOUR_GREY, WID_PHG_GRAPH), SetMinimalSize(576, 224), SetFill(1, 1), SetResize(1, 1),
+			NWidget(NWID_VERTICAL),//add
+				NWidget(NWID_SPACER), SetMinimalSize(0, 24), SetFill(0, 0), SetResize(0, 1),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_ORANGE, WID_CPR_ENABLE_CARGOES), SetDataTip(STR_GRAPH_CARGO_ENABLE_ALL, STR_GRAPH_CARGO_TOOLTIP_ENABLE_ALL), SetFill(1, 0),
+				NWidget(WWT_PUSHTXTBTN, COLOUR_ORANGE, WID_CPR_DISABLE_CARGOES), SetDataTip(STR_GRAPH_CARGO_DISABLE_ALL, STR_GRAPH_CARGO_TOOLTIP_DISABLE_ALL), SetFill(1, 0),
+				NWidget(NWID_SPACER), SetMinimalSize(0, 4),
+				NWidgetFunction(MakeCargoButtons),
+				NWidget(NWID_SPACER), SetMinimalSize(0, 24), SetFill(0, 1), SetResize(0, 1),
+			EndContainer(),//add
+			NWidget(NWID_SPACER), SetMinimalSize(5, 0), SetFill(0, 1), SetResize(0, 1),
 			NWidget(NWID_VERTICAL),
 				NWidget(NWID_SPACER), SetFill(0, 1), SetResize(0, 1),
 				NWidget(WWT_RESIZEBOX, COLOUR_GREY, WID_PHG_RESIZE),

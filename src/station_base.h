@@ -501,6 +501,7 @@ public:
 	static void RecomputeCatchmentForAll();
 
 	uint GetCatchmentRadius() const;
+
 	Rect GetCatchmentRect() const;
 	bool CatchmentCoversTown(TownID t) const;
 	void AddIndustryToDeliver(Industry *ind);

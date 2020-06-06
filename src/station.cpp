@@ -162,7 +162,6 @@ Station::~Station()
 	if (this->sign.kdtree_valid) _viewport_sign_kdtree.Remove(ViewportSignKdtreeItem::MakeStation(this->index));
 }
 
-
 /**
  * Invalidating of the JoinStation window has to be done
  * after removing item from the pool.

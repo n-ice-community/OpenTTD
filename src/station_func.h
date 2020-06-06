@@ -68,4 +68,7 @@ static inline Money StationMaintenanceCost(uint32 num)
 
 Money AirportMaintenanceCost(Owner owner);
 
+uint32 GetCompanyCargo(const Owner owner);
+uint32 GetCompanyRatings(const Owner owner);
+
 #endif /* STATION_FUNC_H */

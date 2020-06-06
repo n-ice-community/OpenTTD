@@ -21,6 +21,8 @@ enum StationViewWidgets {
 	WID_SV_SCROLLBAR,          ///< Scrollbar.
 	WID_SV_ACCEPT_RATING_LIST, ///< List of accepted cargoes / rating of cargoes.
 	WID_SV_LOCATION,           ///< 'Location' button.
+	WID_SV_SEND_MESSAGE,       ///< Send public message including station name
+	WID_SV_SEND_NAME_CHAT,     ///< Send station name to public chat
 	WID_SV_ACCEPTS_RATINGS,    ///< 'Accepts' / 'Ratings' button.
 	WID_SV_RENAME,             ///< 'Rename' button.
 	WID_SV_CLOSE_AIRPORT,      ///< 'Close airport' button.
@@ -37,6 +39,8 @@ enum StationListWidgets {
 	WID_STL_CAPTION,        ///< Caption of the window.
 	WID_STL_LIST,           ///< The main panel, list of stations.
 	WID_STL_SCROLLBAR,      ///< Scrollbar next to the main panel.
+	WID_STL_BOTTOM_PANEL,   ///< Bottom panel containing average station stats
+	WID_STL_BOTTOM_TEXT,    ///< Text in bottom panel containing average station stats
 
 	/* Vehicletypes need to be in order of StationFacility due to bit magic */
 	WID_STL_TRAIN,          ///< 'TRAIN' button - list only facilities where is a railroad station.
@@ -60,6 +64,11 @@ enum JoinStationWidgets {
 	WID_JS_CAPTION,   // Caption of the window.
 	WID_JS_PANEL,     // Main panel.
 	WID_JS_SCROLLBAR, // Scrollbar of the panel.
+};
+
+enum StationCompanyQuery {
+	SCQ_STATION_MESSAGE,
+	SCQ_STATION_RENAME,
 };
 
 #endif /* WIDGETS_STATION_WIDGET_H */

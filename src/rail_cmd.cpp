@@ -44,6 +44,7 @@ typedef std::vector<Train *> TrainList;
 RailtypeInfo _railtypes[RAILTYPE_END];
 std::vector<RailType> _sorted_railtypes;
 RailTypes _railtypes_hidden_mask;
+TileIndex _rail_track_endtile; ///< The end of a rail track; as hidden return from the rail build/remove command for GUI purposes.
 
 /** Enum holding the signal offset in the sprite sheet according to the side it is representing. */
 enum SignalOffsets {
@@ -602,6 +603,7 @@ CommandCost CmdBuildSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 	}
 
 	cost.AddCost(RailBuildCost(railtype));
+	_rail_track_endtile = tile;
 	return cost;
 }
 
@@ -749,6 +751,7 @@ CommandCost CmdRemoveSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, 
 		if (v != nullptr) TryPathReserve(v, true);
 	}
 
+	_rail_track_endtile = tile;
 	return cost;
 }
 
@@ -2605,6 +2608,8 @@ static void TileLoop_Track(TileIndex tile)
 {
 	RailGroundType old_ground = GetRailGroundType(tile);
 	RailGroundType new_ground;
+
+  ReduceStuckCounter(tile);
 
 	if (old_ground == RAIL_GROUND_WATER) {
 		TileLoop_Water(tile);

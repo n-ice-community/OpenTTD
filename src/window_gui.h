@@ -881,6 +881,7 @@ Wcls *AllocateWindowDescFront(WindowDesc *desc, int window_number, bool return_e
 void RelocateAllWindows(int neww, int newh);
 
 void GuiShowTooltips(Window *parent, StringID str, uint paramcount = 0, const uint64 params[] = nullptr, TooltipCloseCondition close_tooltip = TCC_HOVER);
+void GuiPrepareTooltipsExtra(Window *parent);
 
 /* widget.cpp */
 int GetWidgetFromPos(const Window *w, int x, int y);

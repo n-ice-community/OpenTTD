@@ -22,6 +22,7 @@ enum DynamicPlaceIndustriesWidgets {
 /** Widgets of the #IndustryViewWindow class. */
 enum IndustryViewWidgets {
 	WID_IV_CAPTION,  ///< Caption of the window.
+	WID_IV_SEND_INDUSTRY_NAME,  ///< Sends industry name to public chat
 	WID_IV_VIEWPORT, ///< Viewport of the industry.
 	WID_IV_INFO,     ///< Info of the industry.
 	WID_IV_GOTO,     ///< Goto button.
