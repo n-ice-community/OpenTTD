@@ -704,7 +704,6 @@ static CommandCost ClearTile_Town(TileIndex tile, DoCommandFlag flags)
                        UpdateTownGrowthTile(tile, t->growing ? TGTS_CB_HOUSE_REMOVED: TGTS_CB_HOUSE_REMOVED_NOGROW);
 		}
 		ClearTownHouse(t, tile);
-		RemoveNearbyStations(t);
 	}
 
 	return cost;
