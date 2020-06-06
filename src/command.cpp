@@ -14,6 +14,7 @@
 #include "command_func.h"
 #include "network/network_type.h"
 #include "network/network.h"
+#include "network/network_base.h"
 #include "genworld.h"
 #include "strings_func.h"
 #include "texteff.hpp"
@@ -22,8 +23,13 @@
 #include "company_func.h"
 #include "company_base.h"
 #include "signal_func.h"
+#include "window_func.h"
 #include "core/backup_type.hpp"
 #include "object_base.h"
+
+#include "window_func.h"
+#include "watch_gui.h"
+#include "watch_gui_1.h"
 
 #include "table/strings.h"
 
@@ -366,7 +372,7 @@ static const Command _command_proc_table[] = {
 };
 
 /*!
- * This function range-checks a cmd, and checks if the cmd is not nullptr
+ * This function range-checks a cmd, and checks if the cmd is not NULL
  *
  * @param cmd The integer value of a command
  * @return true if the command is valid (and got a CommandProc function)
@@ -375,7 +381,7 @@ bool IsValidCommand(uint32 cmd)
 {
 	cmd &= CMD_ID_MASK;
 
-	return cmd < lengthof(_command_proc_table) && _command_proc_table[cmd].proc != nullptr;
+	return cmd < lengthof(_command_proc_table) && _command_proc_table[cmd].proc != NULL;
 }
 
 /*!
@@ -563,7 +569,8 @@ bool DoCommandP(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd, CommandCallbac
 	bool estimate_only = _shift_pressed && IsLocalCompany() &&
 			!_generating_world &&
 			!(cmd & CMD_NETWORK_COMMAND) &&
-			!(GetCommandFlags(cmd) & CMD_NO_EST);
+			!(GetCommandFlags(cmd) & CMD_NO_EST) &&
+			!(cmd & CMD_NO_ESTIMATE);
 
 	/* We're only sending the command, so don't do
 	 * fancy things for 'success'. */
@@ -762,6 +769,26 @@ CommandCost DoCommandPInternal(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd,
 
 	/* update signals if needed */
 	UpdateSignalsInBuffer();
+
+  /* Send Tile Number to Watching Company Windows - Original */
+	int watching_window = 0;
+	WatchCompany1 *wc;
+	wc = dynamic_cast<WatchCompany1*>(FindWindowById(WC_WATCH_COMPANY1, watching_window));
+	while (wc!=NULL) {
+		wc->OnDoCommand( _current_company, tile );
+		watching_window++;
+		wc = dynamic_cast<WatchCompany1*>(FindWindowById(WC_WATCH_COMPANY1, watching_window));
+	}
+
+	/* Send Tile Number to Watching Company Windows - Admin */
+	for (NetworkClientInfo *ci : NetworkClientInfo::Iterate()){
+		if(ci->client_playas==_current_company){
+		WatchCompany *wc;
+		wc = dynamic_cast<WatchCompany*>(FindWindowById(WC_WATCH_COMPANY,ci->client_id));
+		if(wc)wc->OnDoCommand( _current_company, tile );
+		break;
+		}
+	}
 
 	return_dcpi(res2);
 }

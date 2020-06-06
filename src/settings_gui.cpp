@@ -1483,6 +1483,7 @@ static SettingsContainer &GetSettingsTree()
 	{
 		/* Build up the dynamic settings-array only once per OpenTTD session */
 		main = new SettingsContainer();
+		main->Add(new SettingEntry("gui.community"));
 
 		SettingsPage *localisation = main->Add(new SettingsPage(STR_CONFIG_SETTING_LOCALISATION));
 		{
@@ -1547,6 +1548,7 @@ static SettingsContainer &GetSettingsTree()
 				viewports->Add(new SettingEntry("gui.measure_tooltip"));
 				viewports->Add(new SettingEntry("gui.loading_indicators"));
 				viewports->Add(new SettingEntry("gui.show_track_reservation"));
+				viewports->Add(new SettingEntry("gui.enable_extra_tooltips"));
 			}
 
 			SettingsPage *construction = interface->Add(new SettingsPage(STR_CONFIG_SETTING_INTERFACE_CONSTRUCTION));
@@ -1647,6 +1649,24 @@ static SettingsContainer &GetSettingsTree()
 				routing->Add(new SettingEntry("pf.forbid_90_deg"));
 				routing->Add(new SettingEntry("pf.pathfinder_for_roadvehs"));
 				routing->Add(new SettingEntry("pf.pathfinder_for_ships"));
+			}
+
+      SettingsPage *ordercontrols = vehicles->Add(new SettingsPage(STR_CONFIG_SETTING_VEHICLES_CTRL));
+			{
+        SettingsPage *ordershortcuts = ordercontrols->Add(new SettingsPage(STR_CONFIG_SETTING_ORDER_SHORTCUTS));
+        {
+          ordershortcuts->Add(new SettingEntry("gui.goto_shortcuts_ctrl_lclick"));
+          ordershortcuts->Add(new SettingEntry("gui.goto_shortcuts_shift_lclick"));
+          ordershortcuts->Add(new SettingEntry("gui.goto_shortcuts_ctrlshift_lclick"));
+          ordershortcuts->Add(new SettingEntry("gui.goto_shortcuts_alt_lclick"));
+          ordershortcuts->Add(new SettingEntry("gui.goto_shortcuts_altshift_lclick"));
+          ordershortcuts->Add(new SettingEntry("gui.goto_shortcuts_altctrl_lclick"));
+        }
+				ordercontrols->Add(new SettingEntry("gui.enable_ctrl_click_start_stop"));
+				//ordercontrols->Add(new SettingEntry("gui.new_nonstop"));  // If enabled here must be disabled on the original place
+				//ordercontrols->Add(new SettingEntry("gui.stop_location")); // If enabled here must be disabled on the original place
+				ordercontrols->Add(new SettingEntry("gui.auto_noload_on_transfer"));
+				ordercontrols->Add(new SettingEntry("gui.auto_noload_on_unloadall"));
 			}
 
 			vehicles->Add(new SettingEntry("order.no_servicing_if_no_breakdowns"));

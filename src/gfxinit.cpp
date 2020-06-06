@@ -191,6 +191,8 @@ static void LoadSpriteTables()
 		);
 	}
 
+	LoadGrfFile("newgrf/innerhighlight.grf", SPR_INNER_HIGHLIGHT_BASE, i++);
+
 	/* Initialize the unicode to sprite mapping table */
 	InitializeUnicodeGlyphMap();
 

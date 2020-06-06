@@ -11,7 +11,10 @@
 #define TILEHIGHLIGHT_FUNC_H
 
 #include "gfx_type.h"
+#include "tilearea_type.h"
 #include "tilehighlight_type.h"
+#include "track_type.h"
+#include "industry_type.h"
 
 void PlaceProc_DemolishArea(TileIndex tile);
 bool GUIPlaceProcDragXY(ViewportDragDropSelectionProcess proc, TileIndex start_tile, TileIndex end_tile);
@@ -27,6 +30,13 @@ void VpSetPresizeRange(TileIndex from, TileIndex to);
 void VpSetPlaceSizingLimit(int limit);
 
 void UpdateTileSelection();
+
+RailSnapMode GetRailSnapMode();
+void SetRailSnapMode(RailSnapMode mode);
+
+void StoreRailPlacementEndpoints(TileIndex start_tile, TileIndex end_tile, Track start_track, bool bidirectional = true);
+void StoreRailStationPlacementEndpoints(const TileArea &ta, Axis station_axis);
+void ResetRailPlacementEndpoints();
 
 extern TileHighlightData _thd;
 
