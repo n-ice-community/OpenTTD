@@ -1088,7 +1088,6 @@ struct PaymentRatesGraphWindow : BaseGraphWindow {
 		this->FinishInitNested(window_number);
 	}
 
-/*	TODO: Why?
 	void UpdateExcludedData()
 	{
 		this->excluded_data = 0;
@@ -1100,7 +1099,7 @@ struct PaymentRatesGraphWindow : BaseGraphWindow {
 			i++;
 		}
 	}
-*/
+
 	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
 	{
 		if (widget != WID_CPR_MATRIX) {
@@ -1161,19 +1160,18 @@ struct PaymentRatesGraphWindow : BaseGraphWindow {
 		}
 	}
 
-/* TODO: Again why?
 	void OnClick(Point pt, int widget, int click_count) override
 	{
 		switch (widget) {
 			case WID_CPR_ENABLE_CARGOES:
-				/* Remove all cargoes from the excluded lists. * /
+				/* Remove all cargoes from the excluded lists. */
 				_legend_excluded_cargo = 0;
 				this->excluded_data = 0;
 				this->SetDirty();
 				break;
 
 			case WID_CPR_DISABLE_CARGOES: {
-				/* Add all cargoes to the excluded lists. * /
+				/* Add all cargoes to the excluded lists. */
 				int i = 0;
 				const CargoSpec *cs;
 				FOR_ALL_SORTED_STANDARD_CARGOSPECS(cs) {
@@ -1202,7 +1200,6 @@ struct PaymentRatesGraphWindow : BaseGraphWindow {
 			}
 		}
 	}
-*/
 
 	void OnResize() override
 	{
