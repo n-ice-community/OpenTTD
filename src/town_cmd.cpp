@@ -236,7 +236,7 @@ void Town::UpdateLabel()
 		else if(r < RATING_GOOD)     this->town_label = 2; // Good, YELLOW
 		else if(r < RATING_VERYGOOD) this->town_label = 3; // Very Good, WHITE
 		else                         this->town_label = 4; // Excellent and Outstanding, GREEN
-	}	
+	}
 }
 
 /**
@@ -985,7 +985,7 @@ static GoodsEntry* GetWorstCargoAround(TileIndex tile, Owner owner, uint radius)
 		if (st->owner == owner && DistanceManhattan(tile, st->xy) <= radius) {
 			for (CargoID i = 0; i < NUM_CARGO; i++) {
 				GoodsEntry *ge = &st->goods[i];
-				if (res == nullptr || (ge->status != 0 && ge->rating < res->rating)) {
+				if (res == nullptr || (ge->HasRating() && ge->rating < res->rating)) {
                     res = ge;
 				}
 			}

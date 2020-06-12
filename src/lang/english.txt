@@ -5261,14 +5261,14 @@ STR_NETWORK_CC_SELECT_REDDIT_TOOLTIP                            :{BLACK}Select R
 STR_NETWORK_CC_SELECT_CITYMANIA                                 :{BLACK}CITYMANIA
 STR_NETWORK_CC_SELECT_CITYMANIA_TOOLTIP                         :{BLACK}Select CityMania servers
 
-STR_CC_SPACES                                                   :{BLACK}  
-STR_CC_SEPARATOR1                                               :{CREAM} || 
+STR_CC_SPACES                                                   :{BLACK}{NBSP}{NBSP}
+STR_CC_SEPARATOR1                                               :{CREAM} ||{NBSP}
 STR_CC_SEPARATOR                                                :{SILVER}{STRING}
 STR_CC_SEPARATOR_DEFAULT                                        :
 STR_CC_SEPARATOR_NICE                                           :## Visit n-ice.org ##
 STR_CC_SEPARATOR_BTPRO                                          :## Visit openttd.btpro.nl ##
 
-STR_CC_USER_TEXT                                                :{BLACK}User: 
+STR_CC_USER_TEXT                                                :{BLACK}User:{NBSP}
 STR_CC_NICE_USER_TEXT                                           :{BLACK}n-ice User: 
 STR_CC_BTPRO_USER_TEXT                                          :{BLACK}BTPro User: 
 STR_CC_USER_WHITE                                               :{WHITE}{RAW_STRING}
@@ -5277,7 +5277,7 @@ STR_CC_BTPRO_USER_WHITE                                         :{WHITE}{RAW_STR
 STR_CC_USER_CHANGE                                              :{BLACK}...
 STR_CC_USER_ENTER                                               :{BLACK}Enter your account User name
 STR_CC_USER_CHANGE_TOOLTIP                                      :{BLACK}Enter acccount User name
-STR_CC_PASSWORD                                                 :{BLACK}PW: 
+STR_CC_PASSWORD                                                 :{BLACK}PW:{NBSP}
 STR_CC_PASSWORD_ENTER                                           :{BLACK}Enter your account Password
 STR_CC_ADMIN_PASSWORD_ENTER                                     :{BLACK}Enter your ADMIN Password
 STR_CC_ADMIN_GOODBYE_ENTER                                      :{BLACK}ENTER the Goodbye Message
@@ -5322,12 +5322,12 @@ STR_NETWORK_SERVER_LIST_JOIN_GAME_SERVER_VIP_TOOLTIP            :{BLACK}Open VIP
 STR_CC_SERVER_FREELANCER                                        :{WHITE}No community selected
 STR_NETWORK_DIRECT_JOIN_GAME                                    :{BLACK}{RAW_STRING}
 STR_NETWORK_DIRECT_JOIN_GAME_TOOLTIP                            :{BLACK}Join server directly
-STR_CC_BUILD                                                    :{BLACK}(Build admin 1102B)
+STR_CC_BUILD                                                    :{BLACK}(Build admin 1102C)
 STR_CC_ADMIN_LOGIN_WRONG_SERVER                                 :{BLACK}Not a correct community server
 STR_CC_IRC_LINK_CHAT                                            :{BLACK}IRC Chat
 STR_CC_IRC_LINK_CHAT_TOOLTIP                                    :{BLACK}Open mibbit in browser to connect to #btpro-chat IRC channel
 STR_CC_IRC_LINK_SERVERS                                         :{BLACK}IRC Servers
-STR_CC_IRC_LINK_SERVERS_SPACER                                  :{BLACK}  
+STR_CC_IRC_LINK_SERVERS_SPACER                                  :{BLACK}{NBSP}
 STR_CC_IRC_LINK_SERVERS_TOOLTIP                                 :{BLACK}Open mibbit in browser to connect to #btpro-openttd IRC channel
 STR_CC_WIKI_RULES_PAGE                                          :{YELLOW}Detailed Rules
 STR_CC_WIKI_RULES_PAGE_STATUS                                   :{BLACK}Rules Wiki
