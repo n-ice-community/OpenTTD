@@ -25,6 +25,10 @@
 #include "core/backup_type.hpp"
 #include "object_base.h"
 
+/* WCP */
+#include "window_func.h"
+#include "watch_gui.h"
+
 #include "table/strings.h"
 
 #include "safeguards.h"
@@ -765,8 +769,44 @@ CommandCost DoCommandPInternal(TileIndex tile, uint32 p1, uint32 p2, uint32 cmd,
 
 	SubtractMoneyFromCompany(res2);
 
+	/* WCP */
 	/* update signals if needed */
 	UpdateSignalsInBuffer();
+
+	
+	/* Send Tile Number to Watching Company Windows - Original */
+	/*
+	int watching_window = 0;
+	WatchCompany1* wc;
+	wc = dynamic_cast<WatchCompany1*>(FindWindowById(WC_WATCH_COMPANY1, watching_window));
+	while (wc != NULL) {
+		wc->OnDoCommand(_current_company, tile);
+		watching_window++;
+		wc = dynamic_cast<WatchCompany1*>(FindWindowById(WC_WATCH_COMPANY1, watching_window));
+	}
+	*/
+
+	/* Send Tile Number to Watching Company Windows */
+	int watching_window = 0;
+	WatchCompany * wc;
+	wc = dynamic_cast<WatchCompany*>(FindWindowById(WC_WATCH_COMPANY, watching_window));
+	while (wc != NULL) {
+		wc->OnDoCommand(_current_company, tile);
+		watching_window++;
+		wc = dynamic_cast<WatchCompany*>(FindWindowById(WC_WATCH_COMPANY, watching_window));
+		
+	}
+
+	/* Send Tile Number to Watching Company Windows - Admin 
+	for (NetworkClientInfo* ci : NetworkClientInfo::Iterate()) {
+		if (ci->client_playas == _current_company) {
+			WatchCompany* wc;
+			wc = dynamic_cast<WatchCompany*>(FindWindowById(WC_WATCH_COMPANY, ci->client_id));
+			if (wc)wc->OnDoCommand(_current_company, tile);
+			break;
+		}
+	}
+	/* END WCP */
 
 	return_dcpi(res2);
 }

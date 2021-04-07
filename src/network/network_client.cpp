@@ -643,6 +643,13 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::Receive_SERVER_CLIENT_INFO(Pac
 
 		SetWindowDirty(WC_CLIENT_LIST, 0);
 
+		/* WCP */
+		//InvalidateWindowData(WC_WATCH_COMPANY, ci->client_id, 1);
+		//SetWindowClassesDirty(WC_WATCH_COMPANY);
+		InvalidateWindowClassesData(WC_WATCH_COMPANY, 0);
+		SetWindowClassesDirty(WC_WATCH_COMPANY);
+		/* END WCP */
+
 		return NETWORK_RECV_STATUS_OKAY;
 	}
 
@@ -661,6 +668,13 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::Receive_SERVER_CLIENT_INFO(Pac
 	strecpy(ci->client_name, name, lastof(ci->client_name));
 
 	SetWindowDirty(WC_CLIENT_LIST, 0);
+
+	/* WCP */
+	//InvalidateWindowData(WC_WATCH_COMPANY, ci->client_id, 1);
+	//SetWindowClassesDirty(WC_WATCH_COMPANY);
+	InvalidateWindowClassesData(WC_WATCH_COMPANY, 0);
+	SetWindowClassesDirty(WC_WATCH_COMPANY);
+	/* END WCP */
 
 	return NETWORK_RECV_STATUS_OKAY;
 }
@@ -1057,6 +1071,13 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::Receive_SERVER_QUIT(Packet *p)
 
 	SetWindowDirty(WC_CLIENT_LIST, 0);
 
+	/* WCP */
+	//InvalidateWindowData(WC_WATCH_COMPANY, ci->client_id, 1);
+	//SetWindowClassesDirty(WC_WATCH_COMPANY);
+	InvalidateWindowClassesData(WC_WATCH_COMPANY, 0);
+	SetWindowClassesDirty(WC_WATCH_COMPANY);
+	/* END WCP */
+
 	/* If we come here it means we could not locate the client.. strange :s */
 	return NETWORK_RECV_STATUS_OKAY;
 }
@@ -1073,6 +1094,13 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::Receive_SERVER_JOIN(Packet *p)
 	}
 
 	SetWindowDirty(WC_CLIENT_LIST, 0);
+
+	/* WCP */
+	//InvalidateWindowData(WC_WATCH_COMPANY, ci->client_id, 1);
+	//SetWindowClassesDirty(WC_WATCH_COMPANY);
+	InvalidateWindowClassesData(WC_WATCH_COMPANY, 0);
+	SetWindowClassesDirty(WC_WATCH_COMPANY);
+	/* END WCP */
 
 	return NETWORK_RECV_STATUS_OKAY;
 }
@@ -1146,6 +1174,13 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::Receive_SERVER_MOVE(Packet *p)
 	if (client_id == _network_own_client_id) {
 		SetLocalCompany(company_id);
 	}
+
+	/* WCP */
+	//InvalidateWindowData(WC_WATCH_COMPANY, ci->client_id, 1);
+	//SetWindowClassesDirty(WC_WATCH_COMPANY);
+	InvalidateWindowClassesData(WC_WATCH_COMPANY, 0);
+	SetWindowClassesDirty(WC_WATCH_COMPANY);
+	/* END WCP */
 
 	return NETWORK_RECV_STATUS_OKAY;
 }

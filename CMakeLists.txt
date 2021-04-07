@@ -217,7 +217,8 @@ set_target_properties(openttd PROPERTIES OUTPUT_NAME "${BINARY_NAME}")
 
 if(MSVC)
     # Add DPI manifest to project; other WIN32 targets get this via ottdres.rc
-    target_sources(openttd PRIVATE "${CMAKE_SOURCE_DIR}/os/windows/openttd.manifest")
+    target_sources(openttd PRIVATE "${CMAKE_SOURCE_DIR}/os/windows/openttd.manifest" "src/watch_gui.cpp" "src/watch_gui.h"  )
+
 endif()
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/src)

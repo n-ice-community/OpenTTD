@@ -413,6 +413,7 @@ STR_MAP_MENU_MAP_OF_WORLD                                       :Map of world
 STR_MAP_MENU_EXTRA_VIEWPORT                                     :Extra viewport
 STR_MAP_MENU_LINGRAPH_LEGEND                                    :Cargo Flow Legend
 STR_MAP_MENU_SIGN_LIST                                          :Sign list
+STR_MAP_MENU_WATCH_COMPANY                                      :Watch Company
 
 ############ range for town menu starts
 STR_TOWN_MENU_TOWN_DIRECTORY                                    :Town directory
@@ -5237,3 +5238,32 @@ STR_PLANE                                                       :{BLACK}{PLANE}
 STR_SHIP                                                        :{BLACK}{SHIP}
 
 STR_TOOLBAR_RAILTYPE_VELOCITY                                   :{STRING} ({VELOCITY})
+
+# Watch company window
+STR_WATCH_WINDOW_TITLE                                          :{WHITE}Watching {RAW_STRING} {BLACK}({NUM}).
+STR_WATCH_CLICK_TO_WATCH_COMPANY_NUMBER                         :{BLACK}{NUM}
+STR_WATCH_CLICK_TO_WATCH_COMPANY                                :{BLACK}Click here to watch this company building
+STR_WATCH_CLICK_TO_OPEN_COMPANY                                 :{BLACK}Click here to open this company window
+STR_WATCH_CLICK_NEW_WINDOW                                      :{BLACK}Click here to open new watching window
+
+# Industry tooltip
+STR_INDUSTRY_VIEW_TRANSPORTED_TOOLTIP                           :{BLACK}{STRING}
+STR_INDUSTRY_VIEW_TRANSPORTED_TOOLTIP_1                         :{BLACK}{STRING}{}{CARGO_LONG} ({COMMA}%)
+STR_INDUSTRY_VIEW_TRANSPORTED_TOOLTIP_2                         :{BLACK}{STRING}{}{CARGO_LONG} ({COMMA}%){}{CARGO_LONG} ({COMMA}%)
+STR_INDUSTRY_VIEW_TRANSPORTED_TOOLTIP_3                         :{BLACK}{STRING}{}{CARGO_LONG} ({COMMA}%){}{CARGO_LONG} ({COMMA}%){}{CARGO_LONG} ({COMMA}%)
+STR_INDUSTRY_VIEW_TRANSPORTED_TOOLTIP_4                         :{BLACK}{STRING}{}{CARGO_LONG} ({COMMA}%){}{CARGO_LONG} ({COMMA}%){}{CARGO_LONG} ({COMMA}%){}{CARGO_LONG} ({COMMA}%)
+STR_INDUSTRY_VIEW_TRANSPORTED_TOOLTIP_5                         :{BLACK}{STRING}{}{CARGO_LONG} ({COMMA}%){}{CARGO_LONG} ({COMMA}%){}{CARGO_LONG} ({COMMA}%){}{CARGO_LONG} ({COMMA}%){}{CARGO_LONG} ({COMMA}%)
+STR_INDUSTRY_VIEW_TRANSPORTED_TOOLTIP_6                         :{BLACK}{STRING}{}{CARGO_LONG} ({COMMA}%){}{CARGO_LONG} ({COMMA}%){}{CARGO_LONG} ({COMMA}%){}{CARGO_LONG} ({COMMA}%){}{CARGO_LONG} ({COMMA}%){}{CARGO_LONG} ({COMMA}%)
+
+# Station tooltip
+STR_STATION_VIEW_TRANSPORTED_TOOLTIP                            :{BLACK}{STATION}
+STR_STATION_VIEW_TRANSPORTED_TOOLTIP_1                          :{BLACK}{STATION}{}{CARGO_LONG} ({COMMA}%)
+STR_STATION_VIEW_TRANSPORTED_TOOLTIP_2                          :{BLACK}{STATION}{}{CARGO_LONG} ({COMMA}%){}{BLACK}{CARGO_LONG} ({COMMA}%)
+STR_STATION_VIEW_TRANSPORTED_TOOLTIP_3                          :{BLACK}{STATION}{}{CARGO_LONG} ({COMMA}%){}{BLACK}{CARGO_LONG} ({COMMA}%){}{BLACK}{CARGO_LONG} ({COMMA}%)
+STR_STATION_VIEW_TRANSPORTED_TOOLTIP_4                          :{BLACK}{STATION}{}{CARGO_LONG} ({COMMA}%){}{BLACK}{CARGO_LONG} ({COMMA}%){}{BLACK}{CARGO_LONG} ({COMMA}%){}{BLACK}{CARGO_LONG} ({COMMA}%)
+STR_STATION_VIEW_TRANSPORTED_TOOLTIP_5                          :{BLACK}{STATION}{}{CARGO_LONG} ({COMMA}%){}{BLACK}{CARGO_LONG} ({COMMA}%){}{BLACK}{CARGO_LONG} ({COMMA}%){}{BLACK}{CARGO_LONG} ({COMMA}%){}{BLACK}{CARGO_LONG} ({COMMA}%)
+STR_STATION_VIEW_TRANSPORTED_TOOLTIP_6                          :{BLACK}{STATION}{}{CARGO_LONG} ({COMMA}%){}{BLACK}{CARGO_LONG} ({COMMA}%){}{BLACK}{CARGO_LONG} ({COMMA}%){}{BLACK}{CARGO_LONG} ({COMMA}%){}{BLACK}{CARGO_LONG} ({COMMA}%){}{BLACK}{CARGO_LONG} ({COMMA}%)
+STR_STATION_VIEW_TRANSPORTED_TOOLTIP_7                          :{BLACK}{STATION}{}{CARGO_LONG} ({COMMA}%){}{BLACK}{CARGO_LONG} ({COMMA}%){}{BLACK}{CARGO_LONG} ({COMMA}%){}{BLACK}{CARGO_LONG} ({COMMA}%){}{BLACK}{CARGO_LONG} ({COMMA}%){}{BLACK}{CARGO_LONG} ({COMMA}%){}{SILVER}(...)
+
+# Town tooltip
+STR_TOWN_NAME_TOOLTIP                                           :{BLACK}{TOWN}

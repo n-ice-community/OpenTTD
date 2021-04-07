@@ -34,6 +34,7 @@
 #include "news_gui.h"
 #include "ai/ai_gui.hpp"
 #include "tilehighlight_func.h"
+#include "watch_gui.h"  /* WCP */
 #include "smallmap_gui.h"
 #include "graph_gui.h"
 #include "textbuf_gui.h"
@@ -450,6 +451,7 @@ static CallBackFunction MenuClickSaveLoad(int index = 0)
 	return CBF_NONE;
 }
 
+/* WCP Entry 5 */
 /* --- Map button menu --- */
 
 enum MapMenuEntries {
@@ -457,10 +459,12 @@ enum MapMenuEntries {
 	MME_SHOW_EXTRAVIEWPORTS,
 	MME_SHOW_LINKGRAPH,
 	MME_SHOW_SIGNLISTS,
+	MME_WATCH_COMPANY,
 	MME_SHOW_TOWNDIRECTORY,
 	MME_SHOW_INDUSTRYDIRECTORY,
 };
 
+/* WCP Entry 4 */
 static CallBackFunction ToolbarMapClick(Window *w)
 {
 	DropDownList list;
@@ -468,6 +472,7 @@ static CallBackFunction ToolbarMapClick(Window *w)
 	list.emplace_back(new DropDownListStringItem(STR_MAP_MENU_EXTRA_VIEWPORT,          MME_SHOW_EXTRAVIEWPORTS,    false));
 	list.emplace_back(new DropDownListStringItem(STR_MAP_MENU_LINGRAPH_LEGEND,         MME_SHOW_LINKGRAPH,         false));
 	list.emplace_back(new DropDownListStringItem(STR_MAP_MENU_SIGN_LIST,               MME_SHOW_SIGNLISTS,         false));
+	list.emplace_back(new DropDownListStringItem(STR_MAP_MENU_WATCH_COMPANY,           MME_WATCH_COMPANY,          false));
 	PopupMainToolbMenu(w, WID_TN_SMALL_MAP, std::move(list), 0);
 	return CBF_NONE;
 }
@@ -490,6 +495,7 @@ static CallBackFunction ToolbarScenMapTownDir(Window *w)
  * @param index Index being clicked.
  * @return #CBF_NONE
  */
+ /* WCP Entry 7 */
 static CallBackFunction MenuClickMap(int index)
 {
 	switch (index) {
@@ -499,6 +505,7 @@ static CallBackFunction MenuClickMap(int index)
 		case MME_SHOW_SIGNLISTS:         ShowSignList();            break;
 		case MME_SHOW_TOWNDIRECTORY:     ShowTownDirectory();       break;
 		case MME_SHOW_INDUSTRYDIRECTORY: ShowIndustryDirectory();   break;
+		case MME_WATCH_COMPANY:          ShowWatchWindow(INVALID_COMPANY); break;
 	}
 	return CBF_NONE;
 }

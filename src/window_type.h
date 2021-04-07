@@ -366,7 +366,9 @@ enum WindowClass {
 	 * Build object; %Window numbers:
 	 *   - 0 = #BuildObjectWidgets
 	 */
+	/* WCP Entry 2 */
 	WC_BUILD_OBJECT,
+	WC_WATCH_COMPANY,
 
 	/**
 	 * Build vehicle; %Window numbers:
