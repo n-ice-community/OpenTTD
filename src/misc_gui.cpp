@@ -468,6 +468,7 @@ void ShowLandInfo(TileIndex tile, TileIndex end_tile)
 {
 	DeleteWindowById(WC_LAND_INFO, 0);
 	if (_settings_client.gui.enable_extra_tooltips) {
+		if (!_mouse_hovering) return;
 		new LandInfoWindow(tile, end_tile);
 	} else {
 		new LandInfoWindow(tile, end_tile, true);
@@ -867,6 +868,7 @@ struct TooltipsWindow : public Window
  */
 void GuiShowTooltips(Window *parent, StringID str, uint paramcount, const uint64 params[], TooltipCloseCondition close_tooltip)
 {
+	if (!_mouse_hovering) return;
 	DeleteWindowById(WC_TOOLTIPS, 0);
 
 	if (str == STR_NULL || !_cursor.in_window) return;
@@ -1613,7 +1615,7 @@ struct TooltipsExtraWindow : public Window
                switch (this->close_cond) {
                        case TCC_RIGHT_CLICK: if (!_right_button_down) delete this; break;
                        case TCC_HOVER: if (!_mouse_hovering) delete this; break;
-						case TCC_NONE: break;
+					   case TCC_NONE: break;
                }
        }
 
@@ -1628,8 +1630,7 @@ struct TooltipsExtraWindow : public Window
 
 void GuiShowTooltipsExtra(Window *parent, uint param, TooltipCloseCondition close_tooltip)
 {
-	if (!_mouse_hovering)
-		return;
+	if (!_mouse_hovering) return;
 
 	DeleteWindowById(WC_TOOLTIPS_EXTRA, 0);
 	new TooltipsExtraWindow(parent, param, close_tooltip);
