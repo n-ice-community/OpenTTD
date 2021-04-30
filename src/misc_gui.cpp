@@ -1613,6 +1613,7 @@ struct TooltipsExtraWindow : public Window
                switch (this->close_cond) {
                        case TCC_RIGHT_CLICK: if (!_right_button_down) delete this; break;
                        case TCC_HOVER: if (!_mouse_hovering) delete this; break;
+						case TCC_NONE: break;
                }
        }
 
@@ -1627,6 +1628,9 @@ struct TooltipsExtraWindow : public Window
 
 void GuiShowTooltipsExtra(Window *parent, uint param, TooltipCloseCondition close_tooltip)
 {
-       DeleteWindowById(WC_TOOLTIPS_EXTRA, 0);
-       new TooltipsExtraWindow(parent, param, close_tooltip);
+	if (!_mouse_hovering)
+		return;
+
+	DeleteWindowById(WC_TOOLTIPS_EXTRA, 0);
+	new TooltipsExtraWindow(parent, param, close_tooltip);
 }
