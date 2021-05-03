@@ -48,7 +48,7 @@ const char _openttd_build_date[] = __DATE__ " " __TIME__;
 /**
  * The git revision hash of this version.
  */
-const char _openttd_revision_hash[] = "dbba489fcf5ac57a7f74b7c039f806cfcbffc5c6";
+const char _openttd_revision_hash[] = "672f285218c6817784d86f737987b75db4bc78fc";
 
 /**
  * The year of this version.
