@@ -774,9 +774,9 @@ class CCCommand : public Window
 					/*get info of server from network.cpp and join*/
 					if (GetCommunityServer(widget - NIC_SERVERS1 + 1)) {
 						if (_ctrl_pressed) {
-							NetworkClientConnectGame(NetworkAddress(_cc_address, _cc_porti), COMPANY_NEW_COMPANY);
+							NetworkClientConnectGame(_cc_address, _cc_porti, COMPANY_NEW_COMPANY);
 						} else {
-							NetworkClientConnectGame(NetworkAddress(_cc_address, _cc_porti), COMPANY_SPECTATOR);
+							NetworkClientConnectGame(_cc_address, _cc_porti, COMPANY_SPECTATOR);
 						}
 					}        
 				} else { ShowErrorMessage(STR_CC_SERVER_DISABLED, INVALID_STRING_ID, WL_ERROR); }
