@@ -341,9 +341,9 @@ struct SelectGameWindow : public Window {
 				if(widget >= WID_SGI_CC1){
 					if (GetCommunityServer(widget - WID_SGI_CC1 + 1)) {
 						if (_ctrl_pressed) {
-							NetworkClientConnectGame(NetworkAddress(_cc_address, _cc_porti), COMPANY_NEW_COMPANY);
+							NetworkClientConnectGame(_cc_address, _cc_porti, COMPANY_NEW_COMPANY);
 						} else {
-							NetworkClientConnectGame(NetworkAddress(_cc_address, _cc_porti), COMPANY_SPECTATOR);
+							NetworkClientConnectGame(_cc_address, _cc_porti, COMPANY_SPECTATOR);
 						}
                         delete _cc_address;
 					}
