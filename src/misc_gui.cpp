@@ -1650,7 +1650,9 @@ struct TooltipsExtraWindow : public Window
 
 void GuiShowTooltipsExtra(Window *parent, uint param, TooltipCloseCondition close_tooltip)
 {
-	if (!_mouse_hovering && _settings_client.gui.hover_delay_ms > 0 || !_right_button_down) return;
+	if ((!_mouse_hovering && _settings_client.gui.hover_delay_ms > 0) ||
+			(!_right_button_down && _settings_client.gui.hover_delay_ms == 0))
+		return;
 
 	DeleteWindowById(WC_TOOLTIPS_EXTRA, 0);
 	new TooltipsExtraWindow(parent, param, close_tooltip);
