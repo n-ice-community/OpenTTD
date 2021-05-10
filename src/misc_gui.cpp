@@ -95,6 +95,7 @@ public:
 	char landinfo_data[LAND_INFO_LINE_END][LAND_INFO_LINE_BUFF_SIZE];
 	TileIndex tile;
 	TileIndex end_tile;  ///< For use in ruler(dragdrop) mode
+	TooltipCloseCondition close_cond; ///< Condition for closing the window.
 
 	Point OnInitialPosition(int16 sm_width, int16 sm_height, int window_number) override
 	{
@@ -157,9 +158,10 @@ public:
 	}
 
 	//new
-       LandInfoWindow(TileIndex tile, TileIndex end_tile=INVALID_TILE) :
+       LandInfoWindow(TileIndex tile, TileIndex end_tile=INVALID_TILE, TooltipCloseCondition close_tooltip=TCC_HOVER) :
                Window(&_land_info_desc), tile(tile), end_tile(end_tile)
 	{
+		this->close_cond = close_tooltip;
 		this->InitNested();
                 CLRBITS(this->flags, WF_WHITE_BORDER);
 
@@ -448,13 +450,19 @@ public:
 
        void OnMouseLoop() override
        {
-		if (_settings_client.gui.enable_extra_tooltips) {
-	               /* Always close tooltips when the cursor is not in our window. */
-	               if (!_cursor.in_window) {
-	                       delete this;
-	                       return;
-	               }
-	               if (!_mouse_hovering) delete this;
+		/* Always close tooltips when the cursor is not in our window. */
+		if (!_cursor.in_window) {
+			delete this;
+			return;
+		}
+
+		/* We can show tooltips while dragging tools. These are shown as long as
+		 * we are dragging the tool. Normal tooltips work with hover or rmb. */
+		switch (this->close_cond) {
+			case TCC_RIGHT_CLICK: if (!_right_button_down) delete this; break;
+			case TCC_HOVER: if (!_mouse_hovering) delete this; break;
+			case TCC_NONE: break;
+			default: break;
 		}
        }
 
@@ -464,12 +472,11 @@ public:
  * Show land information window.
  * @param tile The tile to show information about.
  */
-void ShowLandInfo(TileIndex tile, TileIndex end_tile)
+void ShowLandInfo(TileIndex tile, TooltipCloseCondition close_cond, TileIndex end_tile)
 {
 	DeleteWindowById(WC_LAND_INFO, 0);
 	if (_settings_client.gui.enable_extra_tooltips) {
-		if (!_mouse_hovering) return;
-		new LandInfoWindow(tile, end_tile);
+		new LandInfoWindow(tile, end_tile, close_cond);
 	} else {
 		new LandInfoWindow(tile, end_tile, true);
 	}
@@ -868,7 +875,6 @@ struct TooltipsWindow : public Window
  */
 void GuiShowTooltips(Window *parent, StringID str, uint paramcount, const uint64 params[], TooltipCloseCondition close_tooltip)
 {
-	if (!_mouse_hovering) return;
 	DeleteWindowById(WC_TOOLTIPS, 0);
 
 	if (str == STR_NULL || !_cursor.in_window) return;
@@ -1386,44 +1392,52 @@ void ShowQuery(StringID caption, StringID message, Window *parent, QueryCallback
 
 /** Window for displaying a tooltip. */
 void GuiPrepareTooltipsExtra(Window *parent){
-       const Point p = GetTileBelowCursor();
-       if (p.x == -1) return;
-       const TileIndex tile = TileVirtXY(p.x, p.y);
+	const Point p = GetTileBelowCursor();
+	if (p.x == -1) return;
 
-       //if (_cursor.sprite == SPR_CURSOR_QUERY) {  //original
-       if (_cursor.sprite_seq[0].sprite == SPR_CURSOR_QUERY) {  //test
-               // Land info tool active
-               ShowLandInfo(tile);
-               return;
-       }
+	const TileIndex tile = TileVirtXY(p.x, p.y);
 
-       if (!_settings_client.gui.enable_extra_tooltips)
-               return;
+	if (_cursor.sprite_seq[0].sprite == SPR_CURSOR_QUERY &&
+			FindWindowByClass(WC_LAND_INFO) == nullptr) {
+		if (_settings_client.gui.hover_delay_ms == 0 && !_right_button_down)
+			return;
 
-       if (tile >= MapSize()) return;
-       uint param = 0;
-       switch (GetTileType(tile)) {
-               case MP_HOUSE: {
-                       const HouseID house = GetHouseType(tile);
-                       param = ((house & 0xFFFF) << 16) | MP_HOUSE;
-                       break;
-               }
-               case MP_INDUSTRY: {
-                       const Industry *ind = Industry::GetByTile(tile);
-                       if(ind->produced_cargo[0] == CT_INVALID && ind->produced_cargo[1] == CT_INVALID) return;
-                       param = ((ind->index & 0xFFFF) << 16) | MP_INDUSTRY;
-                       break;
-               }
-               case MP_STATION: {
-                       if (IsRailWaypoint(tile) || HasTileWaterGround(tile)) break;
-                       const Station *st = Station::GetByTile(tile);
-                       param |= ((st->index & 0xFFFF) << 16) | MP_STATION;
-                       break;
-               }
-               default:
-                       return;
-       }
-       if(param != 0) GuiShowTooltipsExtra(parent, param, TCC_HOVER);
+		ShowLandInfo(tile,
+				_settings_client.gui.hover_delay_ms > 0 ? TCC_HOVER : TCC_RIGHT_CLICK);
+
+		return;
+	}
+
+	if (!_settings_client.gui.enable_extra_tooltips) return;
+
+	if (tile >= MapSize()) return;
+
+	uint param = 0;
+	switch (GetTileType(tile)) {
+		case MP_HOUSE: {
+			const HouseID house = GetHouseType(tile);
+			param = ((house & 0xFFFF) << 16) | MP_HOUSE;
+			break;
+		}
+		case MP_INDUSTRY: {
+			const Industry *ind = Industry::GetByTile(tile);
+			if(ind->produced_cargo[0] == CT_INVALID && ind->produced_cargo[1] == CT_INVALID) return;
+			param = ((ind->index & 0xFFFF) << 16) | MP_INDUSTRY;
+			break;
+		}
+		case MP_STATION: {
+			if (IsRailWaypoint(tile) || HasTileWaterGround(tile)) break;
+			const Station *st = Station::GetByTile(tile);
+			param |= ((st->index & 0xFFFF) << 16) | MP_STATION;
+			break;
+		}
+		default:
+			return;
+	}
+	if(param != 0) {
+		GuiShowTooltipsExtra(parent, param,
+				_settings_client.gui.hover_delay_ms > 0 ? TCC_HOVER : TCC_RIGHT_CLICK);
+	}
 }
 
 static const NWidgetPart _nested_tooltips_extra_widgets[] = {
@@ -1621,6 +1635,7 @@ struct TooltipsExtraWindow : public Window
                        case TCC_RIGHT_CLICK: if (!_right_button_down) delete this; break;
                        case TCC_HOVER: if (!_mouse_hovering) delete this; break;
 					   case TCC_NONE: break;
+					   default: break;
                }
        }
 
@@ -1635,7 +1650,7 @@ struct TooltipsExtraWindow : public Window
 
 void GuiShowTooltipsExtra(Window *parent, uint param, TooltipCloseCondition close_tooltip)
 {
-	if (!_mouse_hovering) return;
+	if (!_mouse_hovering && _settings_client.gui.hover_delay_ms > 0 || !_right_button_down) return;
 
 	DeleteWindowById(WC_TOOLTIPS_EXTRA, 0);
 	new TooltipsExtraWindow(parent, param, close_tooltip);

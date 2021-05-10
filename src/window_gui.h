@@ -883,6 +883,7 @@ Wcls *AllocateWindowDescFront(WindowDesc *desc, int window_number, bool return_e
 
 void RelocateAllWindows(int neww, int newh);
 
+void ShowLandInfo(TileIndex tile, TooltipCloseCondition cond = TCC_HOVER, TileIndex end_tile=INVALID_TILE);
 void GuiShowTooltips(Window *parent, StringID str, uint paramcount = 0, const uint64 params[] = nullptr, TooltipCloseCondition close_tooltip = TCC_HOVER);
 void GuiPrepareTooltipsExtra(Window *parent);
 
