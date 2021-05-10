@@ -210,8 +210,8 @@ struct TerraformToolbarWindow : Window {
 				ShowBuildTreesToolbar();
 				break;
 
-      case WID_TT_MEASUREMENT_TOOL:
-				HandlePlacePushButton(this, WID_TT_MEASUREMENT_TOOL, SPR_CURSOR_QUERY, HT_RECT);
+			case WID_TT_MEASUREMENT_TOOL:
+				HandlePlacePushButton(this, WID_TT_MEASUREMENT_TOOL, SPR_CURSOR_MOUSE, HT_RECT);
 				this->last_user_action = widget;
 				break;
 
@@ -251,7 +251,7 @@ struct TerraformToolbarWindow : Window {
 				DoCommandP(tile, OBJECT_OWNED_LAND, 0, CMD_BUILD_OBJECT | CMD_MSG(STR_ERROR_CAN_T_PURCHASE_THIS_LAND), CcPlaySound_CONSTRUCTION_RAIL);
 				break;
 
-      case WID_TT_MEASUREMENT_TOOL:
+			case WID_TT_MEASUREMENT_TOOL:
 				PlaceProc_Measure(tile);
 				break;
 
