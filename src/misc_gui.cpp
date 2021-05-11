@@ -525,6 +525,9 @@ public:
 
        void OnMouseLoop() override
        {
+		if (!_settings_client.gui.enable_extra_tooltips) {
+			return;
+		}
 		/* Always close tooltips when the cursor is not in our window. */
 		if (!_cursor.in_window) {
 			delete this;
@@ -537,6 +540,12 @@ public:
 			case TCC_RIGHT_CLICK: if (!_right_button_down) delete this; break;
 			case TCC_HOVER: if (!_mouse_hovering) delete this; break;
 			case TCC_NONE: break;
+			case TCC_EXIT_VIEWPORT: {
+				const Point p = GetTileBelowCursor();
+				if (p.x == -1) break;
+				if (tile != TileVirtXY(p.x, p.y)) delete this;
+				break;
+			}
 			default: break;
 		}
        }
@@ -1478,7 +1487,7 @@ void GuiPrepareTooltipsExtra(Window *parent){
 			return;
 
 		ShowLandInfo(tile,
-				_settings_client.gui.hover_delay_ms > 0 ? TCC_HOVER : TCC_RIGHT_CLICK);
+				_settings_client.gui.hover_delay_ms > 0 ? TCC_EXIT_VIEWPORT : TCC_RIGHT_CLICK);
 
 		return;
 	}
