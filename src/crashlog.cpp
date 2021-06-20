@@ -117,7 +117,7 @@ char *CrashLog::LogCompiler(char *buffer, const char *last) const
 char *CrashLog::LogOpenTTDVersion(char *buffer, const char *last) const
 {
 	return buffer + seprintf(buffer, last,
-			"OpenTTD version: Patched Admin client (Build 1.11.2A) \n\n\n"
+			"OpenTTD version: Patched Admin client (Build 1.11.2B) \n\n\n"
 			" Version:    %s (%d)\n"
 			" NewGRF ver: %08x\n"
 			" Bits:       %d\n"
